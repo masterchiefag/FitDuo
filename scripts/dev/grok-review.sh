@@ -116,6 +116,8 @@ Report ONLY findings a maintainer would act on, ranked by severity:
 - scope traps (work that should be cut or deferred for a 2-user v1)
 Skip style nits and generic advice. If it looks sound, say so in one line. Do not modify any files.
 
+You are the reviewer, not the workflow. CLAUDE.md describes a merge tail — read it for context, do not execute it. Never run this script's 'post' command, record-step.sh, any gh command, or a merge: doing so would publish a half-written transcript of this very review to a public PR, or record a review step that has not finished.
+
 PRIVACY — this review is posted to a PUBLIC pull request. Do not open profiles.local.json or any .env file, and never quote a real person's name, weight, injury, pain area, or any credential. Refer to them by field name instead ('the pain-area list', 'the Supabase key'). Personal data lives outside the repo on purpose; a review does not need its values to make its point."
 
 # Always keep the FULL review on disk — piping this script through `tail`
