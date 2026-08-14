@@ -71,28 +71,44 @@ nothing of what it said, while the review itself is gitignored scratch.
 Copying the full wrapper would have been ~250 lines solving a problem we don't
 have.
 
-*One thing here did earn a mechanism.* The remote is public and Grok runs with
-`--always-approve`, so it can read `profiles.local.json` and quote it into a
-comment — and this repo has already shipped personal data once by reading
-"gitignored" as "unpublished". That is a bit that has bitten, silent when it
-fails, and mechanically checkable, so posting is checked against local profile
-and env *string* values (bare numbers would fire on every rep count) and fails
-closed (`scripts/dev/lib/leak-check.mjs`, proof-of-bite in
-`tests/leak-check.test.ts`). Deliberately not an opt-out flag: a flag does not
-get set under the same velocity that skipped the review tail. The check only
-counts a value as personal if it is absent from the checked-in template and
-catalog — a guard that fires on "dumbbell" blocks every post and gets deleted
-within a day.
+### The leak scanner that was built, reviewed, and deleted
 
-*Two things self-review caught in that guard, both worth remembering.* The
-whitelist compared by **substring**, which exempted any value sitting inside
-catalog prose — measured against the real catalog, that silently exempted the
-names Sam, Ben, Ron, Eve, Tim, Lou and Art ("same", "bend", "iron", "every",
-"time", "cloud", "start"). A privacy guard with a hole exactly at short first
-names is worse than none, because it is trusted. And it **failed open**: with an
-unreadable or missing target it printed nothing, which the caller could not
-distinguish from "scanned, clean". *For a guard, the interesting question is not
-"does it catch?" but "what does it do when it cannot run?"*
+The remote is public and Grok runs with `--always-approve`, so it *can* read
+`profiles.local.json` and quote it into a public comment. The response was a
+scanner (`leak-check.mjs`) that compared the review against local profile and
+env values and failed closed. Two review rounds took it apart:
+
+- It compared by **substring**, so any personal value sitting inside catalog
+  prose was exempted. Measured against the real catalog that silently exempted
+  the names Sam, Ben, Ron, Eve, Tim, Lou and Art ("same", "bend", "iron",
+  "every", "time", "cloud", "start").
+- It **failed open**: with an unreadable target it printed the same empty string
+  it prints for "scanned, clean".
+- After both were fixed, Grok found the one that ended it: real profiles store
+  `name: "First Last"`, so a review saying *"Zebediah's target is wrong"* — the
+  exact sentence the guard exists to stop — never matched the whole-value
+  needle. And `profiles.local.json` does not exist in a **worktree** at all
+  (gitignored files stay in the primary checkout), so in the way this repo
+  actually runs reviews, the name half had no needles and was a no-op. The
+  sandboxed tests passed anyway, because they built a layout we never run in.
+
+Each fix was one more round of the same arms race: tokenize names but not
+`notes` (or every review trips on "after"), resolve the primary worktree,
+decide about `.env.*`. **Deleted.** Personal data is kept out by a privacy
+paragraph in the Grok prompt instead.
+
+*The lesson is not "guards are bad" — it is that a guard is only worth building
+when it can be complete.* The gitignore that keeps profiles out of git is
+complete: files are in or out. A text scanner over free-form prose never is, and
+a partial privacy guard is worse than none, because it converts an obvious risk
+that people stay alert to into a quiet one they trust. Ask "what does it do when
+it cannot run?" and "what does it miss?" before writing the first line, not in
+review.
+
+*Residual risk, stated plainly:* nothing mechanically stops a review from
+quoting a name. The review streams to the terminal as it is written, so it is
+visible before anyone acts on it, and `GROK_REVIEW_POST=0` skips posting for a
+review that touches profile code.
 
 ---
 

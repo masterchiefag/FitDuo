@@ -11,12 +11,12 @@
 # a durable trace next to `record-step.sh grok`, which otherwise records that a
 # review happened and keeps nothing of what it said.
 #
-# NOTE: the remote is public, so posted review text is public. Grok runs with
-# --always-approve and can read gitignored files, so posting is checked against
-# profiles.local.json / .env and fails CLOSED on a match. That check is not
-# GROK_REVIEW_POST: an opt-out flag does not get set under the same velocity
-# that skipped the review tail (docs/DECISIONS.md), and this repo has already
-# shipped personal data once by reading "gitignored" as "unpublished".
+# NOTE: the remote is public, so posted review text is public. Personal data is
+# kept out by INSTRUCTION — the privacy paragraph in the prompt below — not by a
+# scanner. A scanner was written and deleted: see docs/DECISIONS.md for why the
+# half-working version was the more dangerous option. The review is printed to
+# the terminal as it is written, so a bad one is visible before anyone acts on
+# it, and GROK_REVIEW_POST=0 skips posting when a review touches profile code.
 #
 # Usage:
 #   scripts/dev/grok-review.sh diff [range]     # default: HEAD~1..HEAD
@@ -54,7 +54,9 @@ Report ONLY findings a maintainer would act on, ranked by severity:
 - correctness bugs (name the concrete failure scenario)
 - design risks (something that will bite within weeks, not hypotheticals)
 - scope traps (work that should be cut or deferred for a 2-user v1)
-Skip style nits and generic advice. If it looks sound, say so in one line. Do not modify any files."
+Skip style nits and generic advice. If it looks sound, say so in one line. Do not modify any files.
+
+PRIVACY — this review is posted to a PUBLIC pull request. Do not open profiles.local.json or any .env file, and never quote a real person's name, weight, injury, pain area, or any credential. Refer to them by field name instead ('the pain-area list', 'the Supabase key'). Personal data lives outside the repo on purpose; a review does not need its values to make its point."
 
 # Always keep the FULL review on disk — piping this script through `tail`
 # silently truncated a 15-finding review down to 10 once. Never again.
@@ -69,20 +71,6 @@ echo "--- full review saved to $OUT ---" >&2
 command -v gh >/dev/null 2>&1 || { echo "grok-review: gh not on PATH — not posted" >&2; exit 0; }
 PR="$(gh pr view --json number --jq .number 2>/dev/null || true)"
 [ -n "$PR" ] || { echo "grok-review: no open PR for this branch — not posted" >&2; exit 0; }
-
-# Refuse to publish anything that quotes local personal data (tests/leak-check.test.ts
-# is this guard's proof-of-bite — a guard that stops matching is a silent leak).
-if ! LEAK="$(node scripts/dev/lib/leak-check.mjs "$OUT")"; then
-  # The check could not run (missing, renamed, unreadable). `set -e` would abort
-  # here with no explanation; not posting is the safe reading of "unknown".
-  echo "grok-review: NOT posted — leak check failed to run. Review is at $OUT." >&2
-  exit 0
-fi
-if [ -n "$LEAK" ]; then
-  echo "grok-review: NOT posted — the review quotes local personal data ($(printf '%.20s' "$LEAK")...)." >&2
-  echo "grok-review: review is at $OUT. Read it, then post by hand if it is a false positive." >&2
-  exit 0
-fi
 
 SHA="$(git rev-parse HEAD)"
 if {
