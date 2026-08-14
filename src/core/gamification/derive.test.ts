@@ -1,0 +1,210 @@
+import { describe, expect, it } from 'vitest'
+import {
+  deriveProgression,
+  deriveStats,
+  levelFromXp,
+  totalXpForLevel,
+  type SessionEvent,
+  type SetEvent,
+} from './derive'
+
+const U = 'p1'
+const WEEKDAYS = [true, true, true, true, true, false, false] // Mon–Fri
+const ALL_DAYS = [true, true, true, true, true, true, true]
+
+// 2026-08-03 is a Monday.
+const ms = (dateISO: string, hour = 18) =>
+  Date.parse(`${dateISO}T${String(hour).padStart(2, '0')}:00:00`)
+
+function session(
+  dateISO: string,
+  opts: { completed?: boolean; duo?: boolean; hour?: number } = {},
+): SessionEvent {
+  return {
+    dateISO,
+    completed: opts.completed ?? true,
+    participantIds: opts.duo ? [U, 'p2'] : [U],
+    startedAt: ms(dateISO, opts.hour ?? 18),
+  }
+}
+
+function setsFor(dateISO: string, count: number, weight = 10, reps = 10, target = 10): SetEvent[] {
+  return Array.from({ length: count }, (_, i) => ({
+    userId: U,
+    exerciseId: 'db-squat',
+    targetReps: target,
+    actualReps: reps,
+    weight,
+    loggedAt: ms(dateISO) + i * 60_000,
+  }))
+}
+
+describe('levels', () => {
+  it('curve anchors', () => {
+    expect(totalXpForLevel(1)).toBe(0)
+    expect(totalXpForLevel(2)).toBe(250)
+    expect(levelFromXp(0)).toBe(1)
+    expect(levelFromXp(249)).toBe(1)
+    expect(levelFromXp(250)).toBe(2)
+  })
+})
+
+describe('deriveStats', () => {
+  it('single completed session: base + sets + full-clear XP, streak 1', () => {
+    const stats = deriveStats(
+      U,
+      [session('2026-08-03')],
+      setsFor('2026-08-03', 24),
+      WEEKDAYS,
+      '2026-08-03',
+    )
+    expect(stats.totalXp).toBe(50 + 48 + 25)
+    expect(stats.streak).toBe(1)
+    expect(stats.sessionsCompleted).toBe(1)
+    expect(stats.achievements.map((a) => a.id)).toContain('first_workout')
+  })
+
+  it('rest days never break the streak', () => {
+    // Mon–Fri completed, Sat+Sun rest, next Mon completed => streak 6.
+    const days = [
+      '2026-08-03',
+      '2026-08-04',
+      '2026-08-05',
+      '2026-08-06',
+      '2026-08-07',
+      '2026-08-10',
+    ]
+    const stats = deriveStats(
+      U,
+      days.map((d) => session(d)),
+      [],
+      WEEKDAYS,
+      '2026-08-10',
+    )
+    expect(stats.streak).toBe(6)
+  })
+
+  it('one missed scheduled day per week is absorbed by the freeze', () => {
+    // Missed Wed 08-05; freeze absorbs it; streak continues.
+    const days = ['2026-08-03', '2026-08-04', '2026-08-06', '2026-08-07']
+    const stats = deriveStats(
+      U,
+      days.map((d) => session(d)),
+      [],
+      WEEKDAYS,
+      '2026-08-07',
+    )
+    expect(stats.streak).toBe(4)
+  })
+
+  it('a second miss in the same week resets the streak', () => {
+    // Missed Wed AND Thu; second miss resets, Friday restarts at 1.
+    const days = ['2026-08-03', '2026-08-04', '2026-08-07']
+    const stats = deriveStats(
+      U,
+      days.map((d) => session(d)),
+      [],
+      WEEKDAYS,
+      '2026-08-07',
+    )
+    expect(stats.streak).toBe(1)
+  })
+
+  it('bonus rest-day workout extends the streak', () => {
+    // Fri + Sat (rest day) + Sun (rest day) => 3.
+    const days = ['2026-08-07', '2026-08-08', '2026-08-09']
+    const stats = deriveStats(
+      U,
+      days.map((d) => session(d)),
+      [],
+      WEEKDAYS,
+      '2026-08-09',
+    )
+    expect(stats.streak).toBe(3)
+  })
+
+  it('7-day streak awards milestone bonus and On Fire', () => {
+    const days = Array.from({ length: 7 }, (_, i) => `2026-08-${String(3 + i).padStart(2, '0')}`)
+    const stats = deriveStats(
+      U,
+      days.map((d) => session(d)),
+      [],
+      ALL_DAYS,
+      '2026-08-09',
+    )
+    expect(stats.streak).toBe(7)
+    expect(stats.totalXp).toBe(7 * 50 + 50)
+    expect(stats.achievements.map((a) => a.id)).toContain('week_streak')
+  })
+
+  it('abandoned sessions keep per-set XP but no streak', () => {
+    const stats = deriveStats(
+      U,
+      [session('2026-08-03', { completed: false })],
+      setsFor('2026-08-03', 5),
+      WEEKDAYS,
+      '2026-08-03',
+    )
+    expect(stats.totalXp).toBe(10)
+    expect(stats.streak).toBe(0)
+  })
+
+  it('PRs add capped XP and unlock achievements', () => {
+    // Two sessions; second improves e1rm on the same exercise (one PR).
+    const sets = [...setsFor('2026-08-03', 3, 10, 10), ...setsFor('2026-08-04', 3, 12.5, 10, 10)]
+    const sessions = [session('2026-08-03'), session('2026-08-04')]
+    const stats = deriveStats(U, sessions, sets, ALL_DAYS, '2026-08-04')
+    expect(stats.prCount).toBe(1)
+    expect(stats.achievements.map((a) => a.id)).toContain('first_pr')
+    // day2 XP includes +15 for the PR
+    expect(stats.totalXp).toBe(50 + 6 + 25 + (50 + 6 + 25 + 15))
+  })
+
+  it('perfect week and duo day unlock', () => {
+    const days = ['2026-08-03', '2026-08-04', '2026-08-05', '2026-08-06', '2026-08-07']
+    const stats = deriveStats(
+      U,
+      days.map((d) => session(d, { duo: true })),
+      [],
+      WEEKDAYS,
+      '2026-08-09',
+    )
+    const ids = stats.achievements.map((a) => a.id)
+    expect(ids).toContain('perfect_week')
+    expect(ids).toContain('duo_day')
+  })
+
+  it('early bird unlocks for pre-7am sessions', () => {
+    const stats = deriveStats(U, [session('2026-08-03', { hour: 6 })], [], WEEKDAYS, '2026-08-03')
+    expect(stats.achievements.map((a) => a.id)).toContain('early_bird')
+  })
+
+  it('comeback unlocks after a 7+ day gap', () => {
+    const stats = deriveStats(
+      U,
+      [session('2026-08-03'), session('2026-08-14')],
+      [],
+      WEEKDAYS,
+      '2026-08-14',
+    )
+    expect(stats.achievements.map((a) => a.id)).toContain('comeback')
+  })
+})
+
+describe('deriveProgression', () => {
+  it('captures last session targets, actuals, feedback, and best e1rm', () => {
+    const sets: SetEvent[] = [
+      ...setsFor('2026-08-03', 3, 10, 10),
+      ...setsFor('2026-08-05', 3, 12.5, 8, 10),
+    ]
+    const prog = deriveProgression(U, sets, [
+      { userId: U, exerciseId: 'db-squat', rating: 'too_hard', loggedAt: ms('2026-08-05') + 1 },
+    ])
+    const p = prog['db-squat']!
+    expect(p.lastWeight).toBe(12.5)
+    expect(p.lastTargetReps).toBe(10)
+    expect(p.lastActualReps).toEqual([8, 8, 8])
+    expect(p.lastFeedback).toBe('too_hard')
+    expect(p.bestE1rm).toBeCloseTo(12.5 * (1 + 8 / 30))
+  })
+})

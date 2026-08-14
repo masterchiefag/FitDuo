@@ -9,10 +9,10 @@ import {
   appendSession,
   appendSetLogs,
   clearSnapshot,
-  loadSessions,
   saveSnapshot,
   type SessionSnapshot,
 } from '../../infra/localstore'
+import { statsFor } from '../lib/planner'
 
 export interface PersonSummary {
   userId: string
@@ -36,22 +36,8 @@ function plannedSetsPerPerson(plan: WorkoutPlan): number {
   return sets
 }
 
-function computeStreak(userId: string, todayISO: string): number {
-  // M2 placeholder: consecutive calendar days with a completed session,
-  // ending today. Real schedule-aware derivation lands in M3.
-  const sessions = loadSessions().filter((s) => !s.abandoned && s.participantIds.includes(userId))
-  const days = new Set(sessions.map((s) => s.dateISO))
-  days.add(todayISO)
-  let streak = 0
-  const d = new Date(todayISO)
-  for (;;) {
-    const iso = d.toISOString().slice(0, 10)
-    if (!days.has(iso)) break
-    streak += 1
-    d.setDate(d.getDate() - 1)
-  }
-  return streak
-}
+// Real schedule-aware streak derivation from the event log (core/gamification).
+const computeStreak = (userId: string) => statsFor(userId).streak
 
 interface PlayerStore {
   plan: WorkoutPlan | null
@@ -163,7 +149,7 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
               setsLogged: setsDone,
               setsPlanned,
               xp,
-              streak: e.abandoned ? 0 : computeStreak(userId, plan.dateISO),
+              streak: e.abandoned ? 0 : computeStreak(userId),
             }
           })
           set({ summary: { abandoned: e.abandoned, durationSeconds, people } })

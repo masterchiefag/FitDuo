@@ -1,40 +1,26 @@
+import { useMemo } from 'react'
 import { useNavigate } from 'react-router'
 import { usePlayerStore } from '../stores/playerStore'
-import { buildDemoPlan } from '../fixtures/demoPlan'
 import { exercisesById } from '../lib/catalog'
 import { PROFILES } from '../lib/profiles'
-import { loadSessions, loadSetLogs } from '../../infra/localstore'
+import { DAY_TYPE_LABEL, planForToday, statsFor } from '../lib/planner'
 import { localDateISO } from '../../core/dates'
-
-function personStats(userId: string) {
-  const sessions = loadSessions().filter((s) => !s.abandoned && s.participantIds.includes(userId))
-  const sets = loadSetLogs().filter((l) => l.userId === userId).length
-  const xp = sessions.length * 75 + sets * 2 // M2 approximation; real derivation in M3
-  const days = new Set(sessions.map((s) => s.dateISO))
-  let streak = 0
-  const d = new Date()
-  for (;;) {
-    const iso = localDateISO(d.getTime())
-    if (!days.has(iso)) break
-    streak += 1
-    d.setDate(d.getDate() - 1)
-  }
-  const doneToday = days.has(localDateISO(Date.now()))
-  return { streak, xp, doneToday, totalSessions: sessions.length }
-}
 
 export default function TodayScreen() {
   const navigate = useNavigate()
   const start = usePlayerStore((s) => s.start)
   const todayISO = localDateISO(Date.now())
-  const previewPlan = buildDemoPlan(['p1', 'p2'], todayISO)
+
+  const previewPlan = useMemo(() => planForToday(['p1', 'p2']), [])
+  const stats = useMemo(() => PROFILES.map((p) => ({ profile: p, s: statsFor(p.id) })), [])
+
   const mainExercises = previewPlan.blocks
     .flatMap((b) => (b.kind === 'superset' || b.kind === 'circuit' ? b.items : []))
     .map((i) => exercisesById.get(i.exerciseId)?.name ?? i.exerciseId)
   const mins = Math.round(previewPlan.estimatedSeconds / 60)
 
   const begin = (participantIds: string[]) => {
-    start(buildDemoPlan(participantIds, todayISO))
+    start(planForToday(participantIds))
     void navigate('/workout')
   }
 
@@ -52,7 +38,9 @@ export default function TodayScreen() {
       {/* Workout card */}
       <div className="mt-5 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <div className="bg-gradient-to-br from-indigo-600 to-violet-600 p-5 text-white">
-          <p className="text-xs font-bold tracking-widest uppercase opacity-80">Full Body</p>
+          <p className="text-xs font-bold tracking-widest uppercase opacity-80">
+            {DAY_TYPE_LABEL[previewPlan.dayType]}
+          </p>
           <h2 className="mt-1 text-2xl font-extrabold">Today's Workout</h2>
           <p className="mt-1 text-sm opacity-90">~{mins} min · warm-up + 4 blocks + stretch</p>
         </div>
@@ -84,41 +72,42 @@ export default function TodayScreen() {
 
       {/* People cards */}
       <div className="mt-5 grid gap-4 sm:grid-cols-2">
-        {PROFILES.map((p) => {
-          const s = personStats(p.id)
-          return (
-            <div
-              key={p.id}
-              className="rounded-3xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900"
-            >
-              <div className="flex items-center justify-between">
-                <p className={`text-sm font-bold tracking-wide uppercase ${p.accent.text}`}>
-                  {p.name}
-                </p>
-                {s.doneToday && (
-                  <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
-                    Done today ✓
-                  </span>
-                )}
+        {stats.map(({ profile, s }) => (
+          <div
+            key={profile.id}
+            className="rounded-3xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900"
+          >
+            <div className="flex items-center justify-between">
+              <p className={`text-sm font-bold tracking-wide uppercase ${profile.accent.text}`}>
+                {profile.name}
+              </p>
+              {s.completedDates.has(todayISO) && (
+                <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
+                  Done today ✓
+                </span>
+              )}
+            </div>
+            <div className="mt-3 flex items-end justify-between">
+              <div>
+                <p className="text-3xl font-extrabold">🔥 {s.streak}</p>
+                <p className="text-xs text-slate-400">day streak</p>
               </div>
-              <div className="mt-3 flex items-end justify-between">
-                <div>
-                  <p className="text-3xl font-extrabold">🔥 {s.streak}</p>
-                  <p className="text-xs text-slate-400">day streak</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-xl font-extrabold">{s.xp} XP</p>
-                  <p className="text-xs text-slate-400">{s.totalSessions} workouts</p>
-                </div>
+              <div className="text-right">
+                <p className="text-xl font-extrabold">Lv {s.level}</p>
+                <p className="text-xs text-slate-400">
+                  {s.xpIntoLevel}/{s.xpForNextLevel} XP
+                </p>
               </div>
             </div>
-          )
-        })}
+            <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+              <div
+                className={`h-full rounded-full ${profile.accent.bg}`}
+                style={{ width: `${Math.min(100, (s.xpIntoLevel / s.xpForNextLevel) * 100)}%` }}
+              />
+            </div>
+          </div>
+        ))}
       </div>
-
-      <p className="mt-6 text-center text-xs text-slate-400">
-        Fixture workout (M2). Generated daily workouts arrive in M3.
-      </p>
     </div>
   )
 }
