@@ -6,6 +6,9 @@ import type { ExerciseProgress, FeedbackRating } from '../generator/types'
 
 export interface SessionEvent {
   dateISO: LocalDateISO
+  /** When the session actually finished, if it did. Sessions can now be paused
+   *  for hours, so a fixed window from the start is the wrong boundary. */
+  endedAt?: number
   /** Recovery sessions keep the streak alive but are not strength days. */
   mode: 'full' | 'mobility'
   completed: boolean // false = abandoned
@@ -81,6 +84,8 @@ export interface PersonStats {
   totalVolumeKg: number
   prCount: number
   completedDates: Set<LocalDateISO>
+  /** Dates with a completed STRENGTH session — recovery days are not workouts. */
+  workoutDates: Set<LocalDateISO>
   achievements: Unlocked[]
 }
 
@@ -108,7 +113,8 @@ function makeEventSessionAssigner(
   return (loggedAt) => {
     let owner: SessionEvent | null = null
     for (const s of sorted) {
-      if (s.startedAt <= loggedAt && loggedAt - s.startedAt <= SESSION_WINDOW_MS) owner = s
+      const until = s.endedAt ?? s.startedAt + SESSION_WINDOW_MS
+      if (s.startedAt <= loggedAt && loggedAt <= until) owner = s
       if (s.startedAt > loggedAt) break
     }
     return owner
@@ -150,6 +156,9 @@ export function deriveStats(
   const sessionOf = makeEventSessionAssigner(mySessions)
 
   const completedDates = new Set(mySessions.filter((s) => s.completed).map((s) => s.dateISO))
+  const workoutDates = new Set(
+    mySessions.filter((s) => s.completed && s.mode !== 'mobility').map((s) => s.dateISO),
+  )
   // Keyed by startedAt: a session's identity, unique per person.
   const setsBySession = new Map<number, SetEvent[]>()
   const orphanSetsByDate = new Map<LocalDateISO, SetEvent[]>()
@@ -278,6 +287,7 @@ export function deriveStats(
     totalVolumeKg: Math.round(totalVolumeKg),
     prCount: prDates.length,
     completedDates,
+    workoutDates,
     achievements,
   }
 }

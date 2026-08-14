@@ -59,4 +59,13 @@ export const HOUSEHOLD_EQUIPMENT: Equipment[] = [...new Set(PROFILES.flatMap((p)
 
 export const HOUSEHOLD_SCHEDULE: boolean[] = source.schedule
 
+/**
+ * True when we are running on example data — i.e. a production build, which
+ * deliberately contains no personal profiles until M4 moves them to Supabase.
+ * The weights shown are NOT anyone's real weights, so the UI must say so
+ * rather than quietly prescribing the wrong loads.
+ */
+export const USING_EXAMPLE_PROFILES =
+  typeof __LOCAL_PROFILES__ === 'undefined' || __LOCAL_PROFILES__ === null
+
 export const profileById = (id: string) => PROFILES.find((p) => p.id === id)

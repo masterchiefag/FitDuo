@@ -95,10 +95,17 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
       soundOn: isAudioReady(),
     })
     const now = Date.now()
-    // A snapshot taken by the late-timer rule is already paused. The user just
-    // pressed Resume, so honour that rather than making them press it twice.
-    if (snap.state.phase === 'paused') get().dispatch({ type: 'RESUME', now })
-    else get().dispatch({ type: 'TIMER_FIRED', now })
+    // The user pressed Resume — one tap must put them back in the session.
+    // Snapshots arrive in two shapes: already paused (late-timer rule), or a
+    // live phase with a stale deadline (tab killed mid-hold). Wrap the latter
+    // so both take the same tested RESUME path; otherwise the stale one fires
+    // TIMER_FIRED, trips the late rule, and lands on the Paused screen.
+    if (snap.state.phase === 'paused') {
+      get().dispatch({ type: 'RESUME', now })
+    } else {
+      set({ state: { phase: 'paused', resumeState: snap.state, pausedAt: snap.savedAt } })
+      get().dispatch({ type: 'RESUME', now })
+    }
   },
 
   dispatch(event) {

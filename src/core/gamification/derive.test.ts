@@ -258,6 +258,54 @@ describe('deriveStats', () => {
     expect(stats.totalXp).toBe(85 + 85)
   })
 
+  it('a session paused for hours still owns the sets logged after it resumes', () => {
+    // Start 21:00, pause (lid closed), finish after 03:00. A fixed 6h window
+    // from the start would orphan the later sets — 2 XP each and a full-clear
+    // judged on the first hour only. endedAt is the real boundary.
+    const overnight: SessionEvent = {
+      dateISO: '2026-08-03',
+      mode: 'full',
+      completed: true,
+      participantIds: [U],
+      startedAt: ms('2026-08-03', 21),
+      endedAt: Date.parse('2026-08-04T03:30:00'),
+    }
+    const sets: SetEvent[] = [
+      ...Array.from({ length: 4 }, (_, i) => ({
+        userId: U,
+        exerciseId: 'db-squat',
+        targetReps: 10,
+        actualReps: 10,
+        weight: 10,
+        loggedAt: ms('2026-08-03', 21) + i * 60_000,
+      })),
+      // Resumed well past the old 6h cut-off.
+      ...Array.from({ length: 4 }, (_, i) => ({
+        userId: U,
+        exerciseId: 'db-squat',
+        targetReps: 10,
+        actualReps: 10,
+        weight: 10,
+        loggedAt: Date.parse('2026-08-04T03:00:00') + i * 60_000,
+      })),
+    ]
+    const stats = deriveStats(U, [overnight], sets, WEEKDAYS, '2026-08-04')
+    // All 8 sets belong to the session: 50 + 2x8 + 25 full clear.
+    expect(stats.totalXp).toBe(50 + 16 + 25)
+  })
+
+  it('a recovery day is not a workout day', () => {
+    const stats = deriveStats(
+      U,
+      [session('2026-08-03', { mode: 'mobility' })],
+      [],
+      WEEKDAYS,
+      '2026-08-03',
+    )
+    expect(stats.completedDates.has('2026-08-03')).toBe(true)
+    expect(stats.workoutDates.has('2026-08-03')).toBe(false)
+  })
+
   it('PRs add capped XP and unlock achievements', () => {
     // Two sessions; second improves e1rm on the same exercise (one PR).
     const sets = [...setsFor('2026-08-03', 3, 10, 10), ...setsFor('2026-08-04', 3, 12.5, 10, 10)]

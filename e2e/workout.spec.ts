@@ -43,7 +43,9 @@ test('golden path: duo workout from start to celebration', async ({ page }) => {
   await expect(page.getByText('Partner')).toBeVisible()
 
   await page.getByRole('button', { name: 'Back to Today' }).click()
-  await expect(page.getByText('Done today ✓').first()).toBeVisible()
+  // A strength session marks the day as a WORKOUT, distinct from a recovery
+  // session — the badge is what tells them whether the real session is done.
+  await expect(page.getByText('Workout done ✓').first()).toBeVisible()
   // Real streak derivation drives the person cards.
   await expect(page.getByText('🔥 1').first()).toBeVisible()
 })

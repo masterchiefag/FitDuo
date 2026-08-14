@@ -35,6 +35,7 @@ export function sessionEvents(): SessionEvent[] {
   return loadSessions().map((s) => ({
     dateISO: s.dateISO,
     mode: s.mode ?? 'full',
+    endedAt: s.endedAt,
     completed: !s.abandoned,
     participantIds: s.participantIds,
     startedAt: s.startedAt,
