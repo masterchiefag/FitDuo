@@ -9,6 +9,8 @@ whose central finding was: *every prose-only prevention eventually failed under
 velocity; every mechanical one held*). When something is learned, route it down
 this ladder and **stop at the first rung that fits**:
 
+0. **Accept it** — name the risk, write it in the PR, build nothing. A real
+   answer, and the default when the risk has never actually materialised here.
 1. **Eliminate** — change the code or content so the right thing is automatic.
 2. **Test / gate** — a regression test is worth more than a paragraph. Anything
    that bit once and is mechanically checkable becomes a test, not a rule.
@@ -20,6 +22,166 @@ this ladder and **stop at the first rung that fits**:
 
 The failure mode is writing everything into CLAUDE.md because it's frictionless.
 CLAUDE.md should get *shorter* as the test suite grows.
+
+**The ladder assumes you should be on it at all.** Before routing, ask: *when did
+this bite?* Grep this file for the date. The gates here that earn their cost
+defend against incidents with a date attached; a mechanism defending against an
+imagined one is paid for by every future PR and buys a feeling of safety.
+
+---
+
+## 2026-08-14 — A 15-line change that took six commits, and why
+
+Worth recording as a failure of *process*, not of code — every commit below was
+individually justified.
+
+The ask was two things: post Grok reviews to the PR, merge instead of squash.
+That shipped in one commit. A review then found a privacy risk **in that
+addition**, and it was discharged by building a leak scanner. The scanner
+generated its own findings — substring holes, fail-open behaviour, a whole-value
+needle that missed `"First Last"`, and finally the discovery that it was a no-op
+in a worktree — each discharged by building more. Then the machinery around
+posting did the same. Six commits, four Grok rounds, cleanup diff ~5× the
+original change. The scanner was deleted in the end; the correct answer had been
+"accept the risk and write it down" from the first minute.
+
+**Grok said stop, three times, in its `scope traps` section** — *"do not rebuild
+the leak scanner", "do not import the Sherlock machinery"*. Those were read as
+advice while every correctness finding was treated as an obligation. That
+asymmetry is the whole failure. **A finding that says *this should not exist* is
+worth more than one that says *this is broken*, and must be acted on with the
+same force.**
+
+Two structural causes, both now addressed in prose (deliberately not a gate —
+gating this would be self-parody):
+
+- **Fixes enter unframed.** The template forces *"are we solving the right
+  problem?"* once, for the PR's stated intent. Everything harmful here arrived
+  later as a *fix to a finding*, and a fix carries an implicit authorisation a
+  feature does not. Had the scanner been its own PR, the framing section would
+  have killed it in five minutes. Hence: **never build a new mechanism inside
+  the PR that discovered the need for it.**
+- **The ladder had no rung 0.** It routed *where* to encode a lesson and
+  presupposed one must be encoded. "Accept it" is now rung 0.
+
+The sentence *"escalation is earned, not pre-emptive"* was written into this file
+during the same session that violated it, within the hour — the exact failure
+mode this file already documents for CLAUDE.md prose. Which is the honest limit
+of this entry too: it will not stop the next session by itself. The thing most
+likely to stop it is the user saying "aren't we over-engineering?" — and the
+lesson is to treat that as decisive on the first ask, not the third.
+
+---
+
+## 2026-08-14 — Merge commits on `main`, and Grok reviews posted to the PR
+
+Both of these were defaults nobody chose. Squash merging was simply what the
+first two PRs happened to use; the Grok script didn't post because it was
+written when this repo had no PRs (its header still said so).
+
+**`main` merges with `gh pr merge --merge`.** The point is that a bug fix and
+the commit explaining it survive as separate, blamable commits. Squash collapses
+a branch into one commit, so `git blame` on a fixed line reports the squash, not
+the fix — you lose the line's own history exactly where it's most wanted.
+GitHub does keep merged branch commits at `refs/pull/N/head` forever, so squash
+isn't total loss, but a trail that requires the GitHub UI isn't one `git log`
+can follow.
+
+*The cost, accepted knowingly:* the review tail verifies one sha, so with merge
+commits `main` now also contains intermediate branch commits that were never
+gate-verified and may not typecheck. `git bisect` can land on them.
+**`git log --first-parent` is the gate-verified line of `main`** — use it for
+history, and `git bisect --first-parent` when bisecting. Under squash these were
+the same set; they no longer are.
+
+**Enforced by nothing — on purpose, and this is a live bet.** The first draft of
+this change added a hook branch denying `--squash`; the second reached for the
+GitHub repo setting that disables squash and rebase outright. Both were dropped.
+The escalation rule in this file is *earned*, not pre-emptive: the review tail
+became a gate because it had already been skipped within an hour. Merge method
+has never been skipped, it is one decision per PR rather than a step you drop
+while tired, and every gate has a running cost — the merge gate already
+false-positived on a commit message that merely said "merge", and needs
+`tests/merge-gate.test.ts` alive forever or it decays into a no-op.
+
+So this stays prose in CLAUDE.md, and the honest position is that prose is
+weaker: **nothing currently prevents a squash merge from the CLI or the GitHub
+UI.** If a branch does get flattened, that is the evidence, and the fix is the
+repo setting (`gh repo edit --enable-squash-merge=false --enable-rebase-merge=false`)
+— rung 1, no code — not a hook branch.
+
+**Grok reviews post to the PR** (`gh pr comment`, anchored to the reviewed sha).
+Deliberately *not* the `~/dev/sherlock` machinery — PENDING→COMMENT submission,
+review-id snapshots, head-sha polling. That wrapper exists because two agents
+ran in separate terminals with a human as the bus (7–25 min of stall per PR).
+Here Grok and Claude share a session, so posting buys **no latency** — only the
+durable trace that `record-step.sh grok` was missing: it recorded that a review happened and kept
+nothing of what it said, while the review itself is gitignored scratch.
+Copying the full wrapper would have been ~250 lines solving a problem we don't
+have.
+
+### The leak scanner that was built, reviewed, and deleted
+
+The remote is public and Grok runs with `--always-approve`, so it *can* read
+`profiles.local.json` and quote it into a public comment. The response was a
+scanner (`leak-check.mjs`) that compared the review against local profile and
+env values and failed closed. Two review rounds took it apart:
+
+- It compared by **substring**, so any personal value sitting inside catalog
+  prose was exempted. Measured against the real catalog that silently exempted
+  the names Sam, Ben, Ron, Eve, Tim, Lou and Art ("same", "bend", "iron",
+  "every", "time", "cloud", "start").
+- It **failed open**: with an unreadable target it printed the same empty string
+  it prints for "scanned, clean".
+- After both were fixed, Grok found the one that ended it: real profiles store
+  `name: "First Last"`, so a review saying *"Zebediah's target is wrong"* — the
+  exact sentence the guard exists to stop — never matched the whole-value
+  needle. And `profiles.local.json` does not exist in a **worktree** at all
+  (gitignored files stay in the primary checkout), so in the way this repo
+  actually runs reviews, the name half had no needles and was a no-op. The
+  sandboxed tests passed anyway, because they built a layout we never run in.
+
+Each fix was one more round of the same arms race: tokenize names but not
+`notes` (or every review trips on "after"), resolve the primary worktree,
+decide about `.env.*`. **Deleted.** Personal data is kept out by a privacy
+paragraph in the Grok prompt instead.
+
+*The lesson is not "guards are bad" — it is that a guard is only worth building
+when it can be complete.* The gitignore that keeps profiles out of git is
+complete: files are in or out. A text scanner over free-form prose never is, and
+a partial privacy guard is worse than none, because it converts an obvious risk
+that people stay alert to into a quiet one they trust. Ask "what does it do when
+it cannot run?" and "what does it miss?" before writing the first line, not in
+review.
+
+*Residual risk, stated plainly:* nothing mechanically stops a review from
+quoting a name, and **nothing downstream catches it either**. Posting is a
+separate command (`grok-review.sh post`), but the merge tail has Claude run both
+steps, so that is a separate *step*, not a human sign-off — do not let this
+paragraph grow back into claiming otherwise. What the split actually buys: the
+raw transcript is surfaced at a moment of its own instead of going straight out.
+The first version posted automatically at the end of the review, and the
+justification written for it here — "the review streams to the terminal, so it
+is visible before anyone acts on it" — was simply false: in the merge tail
+Claude runs the script, and the comment was public in the same breath as being
+generated. Grok caught that, on this PR, in the paragraph defending it.
+
+Worth keeping for the same reason: what `tee` captures is Grok's **entire stdout
+transcript**, narration turns included, not a curated review. Auto-posting it
+published that raw log to a public repo. A manual `post` makes the raw-transcript
+problem visible to whoever posts, instead of routing it straight to strangers.
+(`post` also refuses a file over 60 kB — GitHub's comment cap is 64 kB, and a
+30-turn milestone transcript will reach it.)
+
+**The subtler one: `post` must attest the sha that was *reviewed*, not `HEAD`.**
+The first version stamped `HEAD`. With the written tail being review → fix →
+post → `record-step.sh grok`, that meant: review sha A, commit the fixes as B,
+post a comment saying "reviewed at B", record the Grok step at B, and
+`merge-ready.sh` passes — certifying a tree nobody reviewed, in a comment whose
+own text says a new commit invalidates the review. The reviewed sha is now
+stamped when the review *starts*, and `post` refuses unless it equals `HEAD`. So
+a fix commit forces another review, which is what the tail always claimed.
+*A record of a check is only worth as much as the thing it is bound to.*
 
 ---
 

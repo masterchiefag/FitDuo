@@ -21,7 +21,7 @@ Quality bar: a reasonably polished v1 in one pass, not a month of bug fixes. Tha
 
 ## v1.1 revision — direction-check feedback (2026-08-14)
 
-Atul's feedback after trying the M2/M3 build, now the top of the backlog. **Execution model change: Opus executes milestones; Fable maintains this plan and reviews; Grok gives a second opinion on plan revisions and milestone diffs via headless CLI** (pattern borrowed from `~/dev/sherlock`'s `scripts/dev/grok-review-pr.sh`, simplified — no PRs in this repo).
+Atul's feedback after trying the M2/M3 build, now the top of the backlog. **Execution model change: Opus executes milestones; Fable maintains this plan and reviews; Grok gives a second opinion on plan revisions and milestone diffs via headless CLI** (pattern borrowed from `~/dev/sherlock`'s `scripts/dev/grok-review-pr.sh`, simplified — reviews post to the PR as a plain comment, without that script's PENDING/polling machinery).
 
 ### A1 — Product, not a bespoke tool for one person (standing filter, added 2026-08-14)
 Atul's instruction: *push back when a request is too specific to be useful to anyone else.* FitDuo should end up a product other households can use, so every request gets this filter before it is built:
@@ -147,7 +147,7 @@ R5 ships before M4, so the schema must already carry what R1/R4/R5 produce or th
 
 Post-launch: R2c conversational coach, R2d authored TTS, R3b self-recorded clips, activity feed, push.
 
-Every milestone tail, in order: `npm run typecheck && npm run test -- --run && npm run e2e` → `/code-review` (medium) → **Grok second opinion** (`scripts/dev/grok-review.sh diff <range>`) → fix findings → commit. Plan revisions of any size also go through Grok before execution starts.
+Every milestone goes through the PR tail in [CLAUDE.md](../CLAUDE.md#workflow--every-change-goes-through-a-pr) — that is the single canonical version, and `merge-ready.sh` enforces it. Plan revisions of any size also go through Grok (`scripts/dev/grok-review.sh file docs/PLAN.md`) before execution starts.
 
 ## Product spec (v1)
 

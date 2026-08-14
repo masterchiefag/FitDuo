@@ -12,18 +12,21 @@ Direct commits to `main` are for bootstrap only. One change at a time:
 2. **Frame it** — fill the PR template's *"Are we solving the right problem?"* section. Cheapest step to skip, most expensive to skip. `merge-ready.sh` checks it is filled.
 3. **Build**, and **verify in a real browser** — a green suite is not a working app.
 4. **Open the PR**, then run the tail against the final sha:
-   - `scripts/dev/grok-review.sh diff main..HEAD` → fix → `scripts/dev/record-step.sh grok`
+   - `scripts/dev/grok-review.sh diff main..HEAD` → fix → re-run → read it → `scripts/dev/grok-review.sh post` → `scripts/dev/record-step.sh grok` (`post` refuses a review not run against `HEAD`)
    - `/code-review` (medium) → fix → `scripts/dev/record-step.sh self-review`
    - `npm run typecheck && npm run test -- --run && npm run e2e` → `scripts/dev/record-step.sh suite`
-5. **Merge.** Blocked by `scripts/dev/merge-gate-hook.mjs` unless all three are recorded **at the current sha** — any new commit invalidates them, deliberately.
+5. **Merge** with `gh pr merge --merge` — never `--squash` or `--rebase`; `main` keeps every commit (docs/DECISIONS.md). Blocked by `scripts/dev/merge-gate-hook.mjs` unless all three are recorded **at the current sha** — any new commit invalidates them, deliberately.
+
+`main`'s gate-verified line is `git log --first-parent`; branch commits below it were never verified at merge time.
 
 Grok and `/code-review` reliably find *different* classes of problem; run both. Plan revisions get a Grok pass before execution starts.
 
 **Why it is a gate and not a paragraph:** this tail existed as prose in this file and was skipped within the hour under delivery pressure (see docs/DECISIONS.md). Prose preventions fail under velocity; mechanical ones hold. `tests/merge-gate.test.ts` is the gate's proof-of-bite — keep it passing, or the gate has silently become a no-op.
 
-**Two standing filters on any new request:**
+**Three standing filters on any new request:**
 - *Is it generic?* Express it as content or a rule (a catalog field, a typed input, one entry in the adjuster pipeline), never a branch keyed to one person's circumstances. See PLAN §A0/A1.
-- *Is it a lesson?* Encode it at the cheapest durable rung — code fix > regression test > area doc > this file. Prose in CLAUDE.md is the most expensive option, not the default.
+- *Is it a lesson?* Encode it at the cheapest durable rung — accept it and write it down > code fix > regression test > area doc > this file. Prose in CLAUDE.md is the most expensive option, not the default.
+- *Is it worth building at all?* **Name the date it bit** — grep docs/DECISIONS.md. A mechanism defending against something that has never happened here costs every future PR and buys a feeling. A review finding names a risk; it does not authorise a mechanism, and "accept it, say so in the PR" is a real answer. A finding that says *this should not exist* is worth more than one that says *this is broken*: act on it with the same force. **Never build a new mechanism inside the PR that discovered the need for it** — fixes bypass the framing step in a way features cannot; make it its own PR and let step 2 judge it.
 
 ## Commands
 
