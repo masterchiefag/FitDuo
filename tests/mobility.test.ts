@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { catalogSchema } from '../src/core/catalog/types'
+import { catalogSchema, type Equipment } from '../src/core/catalog/types'
 import {
   MOBILITY_FOCUS,
   generateMobilitySession,
@@ -57,6 +57,47 @@ describe('mobility sessions', () => {
     for (const minutes of [5, 10, 20]) {
       const mins = gen('posture', base.equipment, minutes).estimatedSeconds / 60
       expect(mins, `posture @ ${minutes}min`).toBeGreaterThanOrEqual(minutes * 0.85)
+    }
+  })
+
+  it('the posture pool fills a request without repeating a movement, up to what each kit can hold', () => {
+    // The content bar. Padding a thin pool by cycling it (which the fill loop
+    // will happily do) is the failure this catches — so assert the length too,
+    // or an under-filled session would pass by prescribing almost nothing.
+    //
+    // Two kits, because the duration a kit can honestly serve is a property of
+    // the *kit*, not of the generator. `mobilityPlan` intersects participants'
+    // equipment, so the default duo path is bodyweight + dumbbell even when one
+    // person owns a band — and that path gets less content, so it tops out
+    // sooner. The binding phase in both cases is `activate` (35% of the budget).
+    //
+    // Neither goes to 30 min. The full-kit pool holds ~27.7 min of unique work
+    // but caps a repeat-free session at ~24.9 min; bw+dumbbell caps at ~16.5.
+    // Filling the rest would mean shipping near-duplicate movements, or ones
+    // whose demo photos show something other than the cues — see the PR. The
+    // honest fix for 30 min is capping the offered duration, not more filler.
+    const kits: [string, Equipment[], number[]][] = [
+      ['full kit', ['bodyweight', 'dumbbell', 'band', 'roller'], [10, 20]],
+      ['duo (bodyweight + dumbbell)', ['bodyweight', 'dumbbell'], [10]],
+    ]
+    for (const [label, equipment, durations] of kits) {
+      for (const dateISO of ['2026-08-14', '2026-11-02', '2027-01-31']) {
+        for (const minutes of durations) {
+          const where = `${label} ${dateISO} @ ${minutes}min`
+          const plan = generateMobilitySession({
+            ...base,
+            equipment,
+            focus: 'posture',
+            dateISO,
+            targetSeconds: minutes * 60,
+          })
+          const ids = plan.blocks.flatMap((b) => b.items.map((i) => i.exerciseId))
+          for (const id of new Set(ids)) {
+            expect(ids.filter((x) => x === id).length, `${where}: ${id}`).toBe(1)
+          }
+          expect(plan.estimatedSeconds, where).toBeGreaterThanOrEqual(minutes * 60 * 0.85)
+        }
+      }
     }
   })
 

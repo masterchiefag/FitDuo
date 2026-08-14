@@ -2634,7 +2634,14 @@
           "Switch arms halfway"
         ]
       },
-      "loads": []
+      "loads": [],
+      "mobility": {
+        "phase": "open",
+        "regions": [
+          "shoulders"
+        ],
+        "seconds": 40
+      }
     },
     {
       "id": "cross-shoulder-stretch",
@@ -3106,6 +3113,391 @@
       }
     },
     {
+      "id": "elbow-circles",
+      "name": "Elbow Circles",
+      "role": "mobility",
+      "equipment": "bodyweight",
+      "pattern": "mobility",
+      "primaryMuscles": [
+        "shoulders"
+      ],
+      "secondaryMuscles": [
+        "back"
+      ],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        1,
+        1
+      ],
+      "secondsPerRep": 45,
+      "setupSeconds": 5,
+      "media": {
+        "images": [
+          "/exercise-media/elbow-circles_0.webp",
+          "/exercise-media/elbow-circles_1.webp"
+        ],
+        "instructions": [
+          "Fingertips on your shoulders, elbows up to shoulder height",
+          "Draw the biggest circle you can with the elbows",
+          "Half the time forwards, half backwards"
+        ]
+      },
+      "loads": [],
+      "mobility": {
+        "phase": "mobilise",
+        "regions": [
+          "shoulders",
+          "thoracic"
+        ],
+        "seconds": 45,
+        "focusCue": "Let the shoulder blades travel with the elbows — that is the joint you are freeing"
+      }
+    },
+    {
+      "id": "seated-thoracic-rotation",
+      "name": "Seated Thoracic Rotation",
+      "role": "mobility",
+      "equipment": "bodyweight",
+      "pattern": "mobility",
+      "primaryMuscles": [
+        "back"
+      ],
+      "secondaryMuscles": [
+        "core",
+        "shoulders"
+      ],
+      "tier": 1,
+      "unilateral": true,
+      "repRange": [
+        1,
+        1
+      ],
+      "secondsPerRep": 60,
+      "setupSeconds": 5,
+      "media": {
+        "images": [
+          "/exercise-media/seated-thoracic-rotation_0.webp",
+          "/exercise-media/seated-thoracic-rotation_1.webp"
+        ],
+        "instructions": [
+          "Sit tall on a chair, fingers laced behind your head",
+          "Turn the ribcage one way — hips and knees stay facing forward",
+          "Then fold that elbow down toward the inside of the opposite knee, and come back up",
+          "Three turns each way — switch sides halfway"
+        ]
+      },
+      "loads": [],
+      "mobility": {
+        "phase": "mobilise",
+        "regions": [
+          "thoracic",
+          "neck"
+        ],
+        "seconds": 60,
+        "priority": 2,
+        "focusCue": "Rotation comes from the mid-back — keep the belt line still and the chin down"
+      }
+    },
+    {
+      "id": "overhead-reach",
+      "name": "Overhead Reach",
+      "role": "mobility",
+      "equipment": "bodyweight",
+      "pattern": "mobility",
+      "primaryMuscles": [
+        "core"
+      ],
+      "secondaryMuscles": [
+        "chest",
+        "back",
+        "triceps"
+      ],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        1,
+        1
+      ],
+      "secondsPerRep": 45,
+      "setupSeconds": 5,
+      "media": {
+        "images": [
+          "/exercise-media/overhead-reach_0.webp",
+          "/exercise-media/overhead-reach_1.webp"
+        ],
+        "instructions": [
+          "Lace your fingers and turn the palms to the ceiling",
+          "Press up tall, shoulders down away from your ears",
+          "Tuck the tailbone so the stretch stays in the torso, not the low back"
+        ]
+      },
+      "loads": [],
+      "mobility": {
+        "phase": "open",
+        "regions": [
+          "chest",
+          "shoulders",
+          "thoracic"
+        ],
+        "seconds": 45
+      }
+    },
+    {
+      "id": "side-lying-side-stretch",
+      "name": "Side-Lying Side Stretch",
+      "role": "mobility",
+      "equipment": "bodyweight",
+      "pattern": "mobility",
+      "primaryMuscles": [
+        "back"
+      ],
+      "secondaryMuscles": [],
+      "tier": 1,
+      "unilateral": true,
+      "repRange": [
+        1,
+        1
+      ],
+      "secondsPerRep": 70,
+      "setupSeconds": 10,
+      "media": {
+        "images": [
+          "/exercise-media/side-lying-side-stretch_0.webp",
+          "/exercise-media/side-lying-side-stretch_1.webp"
+        ],
+        "instructions": [
+          "Lie on your side, bottom knee bent in front of you for balance",
+          "Reach the top arm long over your head and gently pull on the wrist",
+          "The whole side of the body opens — switch sides halfway"
+        ]
+      },
+      "loads": [],
+      "mobility": {
+        "phase": "open",
+        "regions": [
+          "thoracic",
+          "shoulders",
+          "lower_back"
+        ],
+        "seconds": 70
+      }
+    },
+    {
+      "id": "standing-side-bend",
+      "name": "Standing Side Bend",
+      "role": "mobility",
+      "equipment": "bodyweight",
+      "pattern": "mobility",
+      "primaryMuscles": [
+        "core"
+      ],
+      "secondaryMuscles": [],
+      "tier": 1,
+      "unilateral": true,
+      "repRange": [
+        1,
+        1
+      ],
+      "secondsPerRep": 60,
+      "setupSeconds": 5,
+      "media": {
+        "images": [
+          "/exercise-media/standing-side-bend_0.webp",
+          "/exercise-media/standing-side-bend_1.webp"
+        ],
+        "instructions": [
+          "Feet a little wider than your hips, one hand on that hip",
+          "Other hand behind your head, elbow up — lean away from the supporting hand",
+          "Stay square — no twisting or leaning forward. Switch sides halfway"
+        ]
+      },
+      "loads": [],
+      "mobility": {
+        "phase": "open",
+        "regions": [
+          "thoracic",
+          "lower_back"
+        ],
+        "seconds": 60
+      }
+    },
+    {
+      "id": "prone-chest-lift",
+      "name": "Prone Chest Lift",
+      "role": "mobility",
+      "equipment": "bodyweight",
+      "pattern": "mobility",
+      "primaryMuscles": [
+        "core"
+      ],
+      "secondaryMuscles": [],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        1,
+        1
+      ],
+      "secondsPerRep": 45,
+      "setupSeconds": 10,
+      "media": {
+        "images": [
+          "/exercise-media/prone-chest-lift_0.webp",
+          "/exercise-media/prone-chest-lift_1.webp"
+        ],
+        "instructions": [
+          "Face down, arms straight alongside your body, palms resting on the floor",
+          "Lift the chest off the floor and hold two seconds",
+          "Do not press through the hands — the mid-back lifts you. Lower slowly"
+        ]
+      },
+      "loads": [
+        {
+          "area": "lower_back",
+          "stress": "moderate"
+        }
+      ],
+      "mobility": {
+        "phase": "activate",
+        "regions": [
+          "thoracic",
+          "lower_back"
+        ],
+        "seconds": 45,
+        "focusCue": "No pushing with the hands — the muscles between the shoulder blades do all of it"
+      }
+    },
+    {
+      "id": "isometric-neck-front-back",
+      "name": "Neck Isometric — Front & Back",
+      "role": "mobility",
+      "equipment": "bodyweight",
+      "pattern": "mobility",
+      "primaryMuscles": [
+        "shoulders"
+      ],
+      "secondaryMuscles": [],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        1,
+        1
+      ],
+      "secondsPerRep": 45,
+      "setupSeconds": 5,
+      "media": {
+        "images": [
+          "/exercise-media/isometric-neck-front-back_0.webp",
+          "/exercise-media/isometric-neck-front-back_1.webp"
+        ],
+        "instructions": [
+          "Palms on your forehead, press your head into them",
+          "Nothing actually moves — build the pressure slowly, hold ten seconds",
+          "Release, then repeat with your hands behind your head"
+        ]
+      },
+      "loads": [
+        {
+          "area": "neck",
+          "stress": "moderate"
+        }
+      ],
+      "mobility": {
+        "phase": "activate",
+        "regions": [
+          "neck"
+        ],
+        "seconds": 45,
+        "focusCue": "Strength here is what stops your head drifting forward by the afternoon"
+      }
+    },
+    {
+      "id": "isometric-neck-sides",
+      "name": "Neck Isometric — Sides",
+      "role": "mobility",
+      "equipment": "bodyweight",
+      "pattern": "mobility",
+      "primaryMuscles": [
+        "shoulders"
+      ],
+      "secondaryMuscles": [],
+      "tier": 1,
+      "unilateral": true,
+      "repRange": [
+        1,
+        1
+      ],
+      "secondsPerRep": 45,
+      "setupSeconds": 5,
+      "media": {
+        "images": [
+          "/exercise-media/isometric-neck-sides_0.webp",
+          "/exercise-media/isometric-neck-sides_1.webp"
+        ],
+        "instructions": [
+          "Palm flat against the side of your head",
+          "Press head into hand and resist — the head does not move",
+          "Ten seconds each side, keep breathing normally"
+        ]
+      },
+      "loads": [
+        {
+          "area": "neck",
+          "stress": "moderate"
+        }
+      ],
+      "mobility": {
+        "phase": "activate",
+        "regions": [
+          "neck"
+        ],
+        "seconds": 45
+      }
+    },
+    {
+      "id": "shoulder-opener",
+      "name": "Shoulder Opener",
+      "role": "mobility",
+      "equipment": "bodyweight",
+      "pattern": "mobility",
+      "primaryMuscles": [
+        "shoulders"
+      ],
+      "secondaryMuscles": [
+        "biceps",
+        "chest"
+      ],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        1,
+        1
+      ],
+      "secondsPerRep": 60,
+      "setupSeconds": 10,
+      "media": {
+        "images": [
+          "/exercise-media/shoulder-opener_0.webp",
+          "/exercise-media/shoulder-opener_1.webp"
+        ],
+        "instructions": [
+          "Hold a broomstick, a towel or a band behind your hips, hands wider than your shoulders",
+          "Keeping the arms straight, lift it up and away behind you",
+          "Only as far as is comfortable — lower slowly, chest stays lifted"
+        ]
+      },
+      "loads": [],
+      "mobility": {
+        "phase": "open",
+        "regions": [
+          "chest",
+          "shoulders"
+        ],
+        "seconds": 60,
+        "focusCue": "Widen your grip if the shoulders shrug — range should come from the joint"
+      }
+    },
+    {
       "id": "band-pull-apart",
       "name": "Band Pull-Apart",
       "role": "mobility",
@@ -3345,6 +3737,45 @@
           "lower_back"
         ],
         "seconds": 45
+      }
+    },
+    {
+      "id": "band-internal-rotation",
+      "name": "Band Internal Rotation",
+      "role": "mobility",
+      "equipment": "band",
+      "pattern": "mobility",
+      "primaryMuscles": [
+        "shoulders"
+      ],
+      "secondaryMuscles": [],
+      "tier": 1,
+      "unilateral": true,
+      "repRange": [
+        1,
+        1
+      ],
+      "secondsPerRep": 45,
+      "setupSeconds": 10,
+      "media": {
+        "images": [
+          "/exercise-media/band-internal-rotation_0.webp",
+          "/exercise-media/band-internal-rotation_1.webp"
+        ],
+        "instructions": [
+          "Anchor the band at elbow height and stand side-on to it",
+          "Elbow pinned to your side and bent 90°",
+          "Rotate the forearm in across your belly, return slowly — switch sides halfway"
+        ]
+      },
+      "loads": [],
+      "mobility": {
+        "phase": "activate",
+        "regions": [
+          "shoulders"
+        ],
+        "seconds": 45,
+        "focusCue": "The partner to external rotation — a cuff trained one way only still lets the joint drift"
       }
     }
   ]
