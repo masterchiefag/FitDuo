@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import fc from 'fast-check'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { allCanPerform, canPerform } from '../src/core/catalog/equipment'
+import { allCanPerform, canPerform, isWeighted } from '../src/core/catalog/equipment'
 import { catalogSchema, type Equipment, type Exercise } from '../src/core/catalog/types'
 import {
   DURATION_MAX_S,
@@ -10,6 +10,7 @@ import {
   ThinKitError,
   generateWorkout,
 } from '../src/core/generator/generate'
+import { nextTarget } from '../src/core/generator/progression'
 import { addDays } from '../src/core/dates'
 import type { DayHistory, GeneratorInput, ParticipantInput } from '../src/core/generator/types'
 
@@ -314,6 +315,36 @@ describe('equipment eligibility', () => {
     const bandPull = exercise('band-pull-apart', [['band']])
     expect(allCanPerform(bandPull, [['bodyweight', 'band'], ['bodyweight']])).toBe(false)
     expect(allCanPerform(bandPull, [['bodyweight', 'band']])).toBe(true)
+  })
+
+  /**
+   * A trap this PR set for the next content change. `pull_v` is three deep and
+   * all dumbbell, so the obvious next move is a band alternative:
+   * `requires: [['dumbbell'], ['band']]`. Load has to be decided per PERSON at
+   * that point — the exercise alone cannot answer it without either handing a
+   * weight target to someone holding only a band, or taking it away from
+   * someone holding 15 kg.
+   */
+  it('decides load from what the person can use, not from the exercise alone', () => {
+    const eitherWay = exercise('band-or-db-row', [['dumbbell'], ['band']])
+    // Only a band: no way to load it, so no weight target.
+    expect(isWeighted(eitherWay, ['bodyweight', 'band'])).toBe(false)
+    // Only dumbbells: the band kit is out of reach, so every usable way is loaded.
+    expect(isWeighted(eitherWay, ['bodyweight', 'dumbbell'])).toBe(true)
+    // Both: they can do it unloaded, so prescribing a weight would be a guess.
+    expect(isWeighted(eitherWay, ['bodyweight', 'dumbbell', 'band'])).toBe(false)
+
+    const dumbbellOnly = exercise('curl', [['dumbbell']])
+    expect(isWeighted(dumbbellOnly, ['bodyweight', 'dumbbell'])).toBe(true)
+    expect(isWeighted(exercise('push-up', [['bodyweight']]), ['bodyweight', 'dumbbell'])).toBe(
+      false,
+    )
+  })
+
+  it('never prescribes a weight for a movement the person can do unloaded', () => {
+    const eitherWay = exercise('band-or-db-row', [['dumbbell'], ['band']])
+    const t = nextTarget(eitherWay, [5, 10, 15], undefined, ['bodyweight', 'dumbbell', 'band'])
+    expect(t.weight).toBe(0)
   })
 
   it('treats bodyweight as owned even when a profile forgets to list it', () => {

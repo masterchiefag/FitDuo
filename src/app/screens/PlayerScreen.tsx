@@ -390,6 +390,13 @@ function RestView({
               Next · Round {state.round + 1}/{block.rounds}
             </p>
             <p className="font-bold">{nextEx.name}</p>
+            {/* Rest is exactly when you get set up, so the note has to be here
+                too — the thumbnail beside it is the misleading gym frame. */}
+            {nextEx.setupNote && (
+              <p className="mt-0.5 text-xs text-slate-500 italic dark:text-slate-400">
+                {nextEx.setupNote}
+              </p>
+            )}
           </div>
         </div>
       )}
