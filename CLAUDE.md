@@ -12,7 +12,7 @@ Direct commits to `main` are for bootstrap only. One change at a time:
 2. **Frame it** — fill the PR template's *"Are we solving the right problem?"* section. Cheapest step to skip, most expensive to skip. `merge-ready.sh` checks it is filled.
 3. **Build**, and **verify in a real browser** — a green suite is not a working app.
 4. **Open the PR**, then run the tail against the final sha:
-   - `scripts/dev/grok-review.sh diff main..HEAD` → fix → `scripts/dev/record-step.sh grok`
+   - `scripts/dev/grok-review.sh diff main..HEAD` → fix → read the review, then `scripts/dev/grok-review.sh post` → `scripts/dev/record-step.sh grok`
    - `/code-review` (medium) → fix → `scripts/dev/record-step.sh self-review`
    - `npm run typecheck && npm run test -- --run && npm run e2e` → `scripts/dev/record-step.sh suite`
 5. **Merge** with `gh pr merge --merge` — never `--squash` or `--rebase`; `main` keeps every commit (docs/DECISIONS.md). Blocked by `scripts/dev/merge-gate-hook.mjs` unless all three are recorded **at the current sha** — any new commit invalidates them, deliberately.

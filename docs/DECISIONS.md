@@ -106,9 +106,18 @@ it cannot run?" and "what does it miss?" before writing the first line, not in
 review.
 
 *Residual risk, stated plainly:* nothing mechanically stops a review from
-quoting a name. The review streams to the terminal as it is written, so it is
-visible before anyone acts on it, and `GROK_REVIEW_POST=0` skips posting for a
-review that touches profile code.
+quoting a name. The backstop is that **posting is a separate command**
+(`grok-review.sh post`), so the person who posts has read what they are posting.
+The first version posted automatically at the end of the review, and the
+justification written for it here — "the review streams to the terminal, so it
+is visible before anyone acts on it" — was simply false: in the merge tail
+Claude runs the script, and the comment was public in the same breath as being
+generated. Grok caught that, on this PR, in the paragraph defending it.
+
+Worth keeping for the same reason: what `tee` captures is Grok's **entire stdout
+transcript**, narration turns included, not a curated review. Auto-posting it
+published that raw log to a public repo. A manual `post` makes the raw-transcript
+problem visible to whoever posts, instead of routing it straight to strangers.
 
 ---
 
