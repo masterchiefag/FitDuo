@@ -155,8 +155,11 @@ it cannot run?" and "what does it miss?" before writing the first line, not in
 review.
 
 *Residual risk, stated plainly:* nothing mechanically stops a review from
-quoting a name. The backstop is that **posting is a separate command**
-(`grok-review.sh post`), so the person who posts has read what they are posting.
+quoting a name, and **nothing downstream catches it either**. Posting is a
+separate command (`grok-review.sh post`), but the merge tail has Claude run both
+steps, so that is a separate *step*, not a human sign-off — do not let this
+paragraph grow back into claiming otherwise. What the split actually buys: the
+raw transcript is surfaced at a moment of its own instead of going straight out.
 The first version posted automatically at the end of the review, and the
 justification written for it here — "the review streams to the terminal, so it
 is visible before anyone acts on it" — was simply false: in the merge tail

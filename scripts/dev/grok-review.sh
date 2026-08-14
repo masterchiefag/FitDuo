@@ -16,11 +16,12 @@
 # all — not a curated review. Personal data is kept out by the privacy paragraph
 # in the prompt below, an instruction rather than a sandbox (a scanner was
 # written and deleted; docs/DECISIONS.md says why the half-working version was
-# the more dangerous option). An instruction can be missed, so the backstop is
-# that a human reads $OUT before running `post`.
+# the more dangerous option). An instruction can be missed and nothing here
+# catches that: `post` is a separate step, not a human sign-off — the merge tail
+# runs both. Read $OUT before posting; that habit is the only backstop there is.
 #
 # Usage:
-#   scripts/dev/grok-review.sh diff [range]     # default: HEAD~1..HEAD
+#   scripts/dev/grok-review.sh diff [range]     # default: main..HEAD
 #   scripts/dev/grok-review.sh file <path>      # e.g. the plan markdown
 #   scripts/dev/grok-review.sh post             # put the saved review on the PR
 #
@@ -35,8 +36,11 @@ OUT="${GROK_REVIEW_OUT:-.grok-review-latest.md}"
 # Posting is a SEPARATE command, deliberately. As a side effect of `diff` it
 # published a review to a public PR in the same breath as generating it, with
 # nobody having read it — and what `tee` captures is the whole stdout
-# transcript, narration turns included, not a finished review. Now the person
-# who posts is by definition someone who has read it.
+# transcript, narration turns included, not a finished review. Splitting the
+# command does not make the review vetted (the merge tail runs both steps), but
+# it does make the raw transcript visible at a step of its own.
+#
+# Line 1 of the stamp is the reviewed sha, line 2 the range/target reviewed.
 STAMP="$OUT.sha"
 
 if [ "$MODE" = "post" ]; then
@@ -48,7 +52,8 @@ if [ "$MODE" = "post" ]; then
   # record-step grok at B -> merge-ready passes, with B never reviewed. That is
   # the gate certifying an unreviewed tree, in a comment whose own text says a
   # new commit invalidates the review.
-  REVIEWED="$(cat "$STAMP" 2>/dev/null || true)"
+  REVIEWED="$(sed -n 1p "$STAMP" 2>/dev/null || true)"
+  REVIEWED_LABEL="$(sed -n 2p "$STAMP" 2>/dev/null || true)"
   HEAD_SHA="$(git rev-parse HEAD)"
   if [ -z "$REVIEWED" ]; then
     echo "no reviewed-sha stamp at $STAMP — re-run the review" >&2
@@ -72,8 +77,10 @@ if [ "$MODE" = "post" ]; then
   PR="$(gh pr view --json number --jq .number 2>/dev/null || true)"
   [ -n "$PR" ] || { echo "no open PR for this branch" >&2; exit 2; }
   {
-    printf '## Grok review\n\nReviewed at `%s`. Any new commit invalidates this review; see `scripts/dev/merge-ready.sh`.\n\n---\n\n' \
-      "${REVIEWED:0:12}"
+    # The range is in the header because a comment saying only "reviewed at
+    # <sha>" reads as a review of the whole PR even when it covered one commit.
+    printf '## Grok review — `%s`\n\nReviewed at `%s`. Raw CLI transcript, not a curated review. Any new commit invalidates it; see `scripts/dev/merge-ready.sh`.\n\n---\n\n' \
+      "${REVIEWED_LABEL:-unknown range}" "${REVIEWED:0:12}"
     cat "$OUT"
   } | gh pr comment "$PR" --body-file -
   echo "posted $OUT to PR #$PR at ${REVIEWED:0:7}" >&2
@@ -84,7 +91,9 @@ command -v "$GROK_BIN" >/dev/null || { echo "grok not on PATH" >&2; exit 2; }
 
 case "$MODE" in
   diff)
-    RANGE="${2:-HEAD~1..HEAD}"
+    # Defaults to the whole branch: the only range the merge tail ever uses, and
+    # `HEAD~1..HEAD` silently reviewed just the tip when the range was omitted.
+    RANGE="${2:-main..HEAD}"
     TARGET="the output of \`git diff $RANGE\` and \`git log --oneline $RANGE\` in this repo"
     LABEL="diff $RANGE"
     ;;
@@ -111,10 +120,14 @@ PRIVACY — this review is posted to a PUBLIC pull request. Do not open profiles
 
 # Always keep the FULL review on disk — piping this script through `tail`
 # silently truncated a 15-finding review down to 10 once. Never again.
-# Stamp the sha BEFORE the review runs: it is the tree Grok is about to read.
-# Written first so a crashed review leaves no stamp rather than a stale one.
+# Stamp the sha BEFORE the review runs: it is the tree Grok is about to read,
+# not whatever HEAD is after a long run. The trap is what makes "a crashed
+# review leaves no stamp" true — without it, a run that dies at turn 4 leaves a
+# valid-looking stamp beside a truncated transcript, and `post` publishes it.
 rm -f "$STAMP"
-git rev-parse HEAD >"$STAMP"
+trap 'rm -f "$STAMP"' EXIT
+{ git rev-parse HEAD; printf '%s\n' "$LABEL"; } >"$STAMP"
 "$GROK_BIN" -p "$PROMPT" --always-approve --max-turns "$MAX_TURNS" --disable-web-search | tee "$OUT"
-echo "--- $LABEL: full review saved to $OUT (reviewed $(cut -c1-7 "$STAMP")) ---" >&2
+trap - EXIT
+echo "--- $LABEL: full review saved to $OUT (reviewed $(sed -n 1p "$STAMP" | cut -c1-7)) ---" >&2
 echo "--- read it, then: $0 post ---" >&2
