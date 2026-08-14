@@ -10,7 +10,22 @@
       "Bash(npm run format:*)",
       "Bash(npx vitest:*)",
       "Bash(npx tsc:*)",
-      "Bash(npx playwright test:*)"
+      "Bash(npx playwright test:*)",
+      "Bash(scripts/dev/record-step.sh:*)",
+      "Bash(scripts/dev/merge-ready.sh:*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node scripts/dev/merge-gate-hook.mjs"
+          }
+        ]
+      }
     ]
   }
 }

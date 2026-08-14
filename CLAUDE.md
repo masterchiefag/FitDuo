@@ -4,7 +4,22 @@ Duolingo-style guided dumbbell workout PWA for exactly two users (a couple shari
 
 **Start here:** [docs/PLAN.md](docs/PLAN.md) for what to build next (sequencing is at "Revised sequencing"); [docs/DECISIONS.md](docs/DECISIONS.md) for why things are the way they are, and the rule for where new learnings go.
 
-**Execution model:** Opus executes milestones from docs/PLAN.md, **one change at a time**. Milestone tail, in order: `npm run typecheck && npm run test -- --run && npm run e2e` → **verify the change in a real browser** → `/code-review` (medium) → Grok second opinion `scripts/dev/grok-review.sh diff <range>` → fix findings → commit. Plan revisions get a Grok pass *before* execution starts — it has twice caught design bugs that would have shipped.
+## Workflow — every change goes through a PR
+
+Direct commits to `main` are for bootstrap only. One change at a time:
+
+1. **Branch** — `git checkout -b <slug>`.
+2. **Frame it** — fill the PR template's *"Are we solving the right problem?"* section. Cheapest step to skip, most expensive to skip. `merge-ready.sh` checks it is filled.
+3. **Build**, and **verify in a real browser** — a green suite is not a working app.
+4. **Open the PR**, then run the tail against the final sha:
+   - `scripts/dev/grok-review.sh diff main..HEAD` → fix → `scripts/dev/record-step.sh grok`
+   - `/code-review` (medium) → fix → `scripts/dev/record-step.sh self-review`
+   - `npm run typecheck && npm run test -- --run && npm run e2e` → `scripts/dev/record-step.sh suite`
+5. **Merge.** Blocked by `scripts/dev/merge-gate-hook.mjs` unless all three are recorded **at the current sha** — any new commit invalidates them, deliberately.
+
+Grok and `/code-review` reliably find *different* classes of problem; run both. Plan revisions get a Grok pass before execution starts.
+
+**Why it is a gate and not a paragraph:** this tail existed as prose in this file and was skipped within the hour under delivery pressure (see docs/DECISIONS.md). Prose preventions fail under velocity; mechanical ones hold. `tests/merge-gate.test.ts` is the gate's proof-of-bite — keep it passing, or the gate has silently become a no-op.
 
 **Two standing filters on any new request:**
 - *Is it generic?* Express it as content or a rule (a catalog field, a typed input, one entry in the adjuster pipeline), never a branch keyed to one person's circumstances. See PLAN §A0/A1.
