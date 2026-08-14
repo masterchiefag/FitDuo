@@ -1,5 +1,6 @@
 import { catalog, exercisesById } from './catalog'
-import { PROFILES, HOUSEHOLD_EQUIPMENT } from './profiles'
+import { PROFILES, HOUSEHOLD_EQUIPMENT, HOUSEHOLD_SCHEDULE } from './profiles'
+import type { Equipment } from '../../core/catalog/types'
 import { loadFeedback, loadSessions, loadSetLogs } from '../../infra/localstore'
 import {
   deriveProgression,
@@ -15,8 +16,9 @@ import type { DayHistory, DayType, GeneratorInput, WorkoutPlan } from '../../cor
 
 export const GENERATOR_VERSION = 1
 export const HOUSEHOLD_ID = 'home'
-// Mon–Fri workout days; Sat/Sun rest. Editable via onboarding in M4.
-export const DEFAULT_SCHEDULE = [true, true, true, true, true, false, false]
+// Household training days, from profiles.local.json (see profiles.ts).
+// Editable via onboarding in M4.
+export const DEFAULT_SCHEDULE = HOUSEHOLD_SCHEDULE
 
 export const DAY_TYPE_LABEL: Record<DayType, string> = {
   full_a: 'Full Body',
@@ -32,6 +34,7 @@ export const DAY_TYPE_LABEL: Record<DayType, string> = {
 export function sessionEvents(): SessionEvent[] {
   return loadSessions().map((s) => ({
     dateISO: s.dateISO,
+    mode: s.mode ?? 'full',
     completed: !s.abandoned,
     participantIds: s.participantIds,
     startedAt: s.startedAt,
@@ -56,6 +59,7 @@ export function buildRecentHistory(todayISO: LocalDateISO): DayHistory[] {
   const byDate = new Map<string, DayHistory>()
   for (const s of sessions) {
     if (s.dateISO >= todayISO) continue
+    if ((s.mode ?? 'full') === 'mobility') continue // recovery is not a strength day
     byDate.set(s.dateISO, {
       dateISO: s.dateISO,
       dayType: (s.dayType as DayHistory['dayType']) ?? null,
@@ -99,6 +103,12 @@ export function generatorInputFor(participantIds: string[], dateISO: LocalDateIS
   }
 }
 
+function sharedEquipment(participantIds: string[]): Equipment[] {
+  const lists = participantIds.map((id) => PROFILES.find((p) => p.id === id)?.equipment ?? [])
+  const [first, ...others] = lists
+  return (first ?? []).filter((eq) => others.every((l) => l.includes(eq)))
+}
+
 export function mobilityPlan(
   focus: MobilityFocus,
   participantIds: string[],
@@ -112,13 +122,11 @@ export function mobilityPlan(
     focus,
     participantIds,
     targetSeconds: minutes * 60,
-    equipment: participantIds.length
-      ? [
-          ...new Set(
-            participantIds.flatMap((id) => PROFILES.find((p) => p.id === id)?.equipment ?? []),
-          ),
-        ]
-      : HOUSEHOLD_EQUIPMENT,
+    // Everyone performs the same movement at the same time, so eligibility is
+    // what ALL participants own — a union would hand someone a band they do
+    // not have. (Per-person weight targets are the opposite case, and stay
+    // per-person.)
+    equipment: participantIds.length ? sharedEquipment(participantIds) : HOUSEHOLD_EQUIPMENT,
   })
 }
 

@@ -28,7 +28,9 @@ export default function HistoryScreen() {
               >
                 <div>
                   <p className="font-bold">
-                    {DAY_TYPE_LABEL[s.dayType as DayType] ?? s.dayType}{' '}
+                    {s.mode === 'mobility'
+                      ? 'Mobility & Relief'
+                      : (DAY_TYPE_LABEL[s.dayType as DayType] ?? s.dayType)}{' '}
                     {s.abandoned && (
                       <span className="ml-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-500 dark:bg-slate-800">
                         partial

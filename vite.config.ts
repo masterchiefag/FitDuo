@@ -1,10 +1,24 @@
 /// <reference types="vitest/config" />
+import { existsSync, readFileSync } from 'node:fs'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
-export default defineConfig({
+/**
+ * Personal profiles are injected at DEV time only.
+ *
+ * They used to be imported from src via import.meta.glob, which meant Vite
+ * inlined names, weights and injury notes straight into the production bundle
+ * — i.e. `npm run build` published them. Deployed builds now compile to
+ * `null` here and load real profiles at runtime (Supabase, behind auth, M4).
+ */
+function localProfiles(mode: string): string {
+  if (mode !== 'development') return 'null'
+  return existsSync('profiles.local.json') ? readFileSync('profiles.local.json', 'utf8') : 'null'
+}
+
+export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     tailwindcss(),
@@ -28,8 +42,11 @@ export default defineConfig({
       devOptions: { enabled: false },
     }),
   ],
+  define: {
+    __LOCAL_PROFILES__: localProfiles(mode),
+  },
   test: {
     include: ['src/**/*.test.ts', 'tests/**/*.test.ts'],
     environment: 'node',
   },
-})
+}))

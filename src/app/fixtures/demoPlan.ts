@@ -33,6 +33,7 @@ export function buildDemoPlan(participantIds: string[], dateISO: string): Workou
     planVersion: 1,
     seed: 20260814,
     dateISO,
+    mode: 'full',
     dayType: 'full_a',
     participantIds,
     estimatedSeconds: 2400,

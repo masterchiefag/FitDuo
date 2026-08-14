@@ -6,6 +6,8 @@ import type { ExerciseProgress, FeedbackRating } from '../generator/types'
 
 export interface SessionEvent {
   dateISO: LocalDateISO
+  /** Recovery sessions keep the streak alive but are not strength days. */
+  mode: 'full' | 'mobility'
   completed: boolean // false = abandoned
   participantIds: string[]
   startedAt: number // epoch ms
@@ -183,8 +185,10 @@ export function deriveStats(
       streak += 1
       longestStreak = Math.max(longestStreak, streak)
 
-      let xp = 50 + 2 * daySets.length
       const session = mySessions.find((s) => s.dateISO === d && s.completed)
+      // Showing up for recovery work counts for the streak, but it is not a
+      // strength session and must not pay like one.
+      let xp = session?.mode === 'mobility' ? 20 : 50 + 2 * daySets.length
       // Full-clear bonus can't be derived from sets alone (targets vary);
       // approximate: every logged set hit its target reps.
       const fullClear = daySets.length > 0 && daySets.every((s) => s.actualReps >= s.targetReps)

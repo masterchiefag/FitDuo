@@ -135,6 +135,7 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
           )
           appendSession({
             dateISO: plan.dateISO,
+            mode: plan.mode,
             participantIds: plan.participantIds,
             dayType: plan.dayType,
             startedAt,

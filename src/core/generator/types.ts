@@ -72,10 +72,15 @@ export type Block =
     }
   | { kind: 'cooldown'; items: TimedItem[] }
 
+/** What kind of session this is. Strength days drive progression and
+ *  muscle-balance history; recovery days deliberately do not. */
+export type SessionMode = 'full' | 'mobility'
+
 export interface WorkoutPlan {
   planVersion: 1
   seed: number
   dateISO: string
+  mode: SessionMode
   dayType: DayType
   participantIds: string[]
   estimatedSeconds: number // invariant: 3000..3600

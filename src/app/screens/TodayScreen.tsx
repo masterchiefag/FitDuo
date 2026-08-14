@@ -17,7 +17,8 @@ export default function TodayScreen() {
   const start = usePlayerStore((s) => s.start)
   const todayISO = localDateISO(Date.now())
 
-  const previewPlan = useMemo(() => planForToday(['p1', 'p2']), [])
+  const everyone = useMemo(() => PROFILES.map((p) => p.id), [])
+  const previewPlan = useMemo(() => planForToday(everyone), [everyone])
   const stats = useMemo(() => PROFILES.map((p) => ({ profile: p, s: statsFor(p.id) })), [])
 
   const mainExercises = previewPlan.blocks
@@ -25,7 +26,9 @@ export default function TodayScreen() {
     .map((i) => exercisesById.get(i.exerciseId)?.name ?? i.exerciseId)
   const mins = Math.round(previewPlan.estimatedSeconds / 60)
 
-  const [mobilityWho, setMobilityWho] = useState<string[]>([PROFILES[0]!.id])
+  // Default to everyone, like the strength card — tapping a focus starts
+  // immediately, so a solo default silently drops the partner's credit.
+  const [mobilityWho, setMobilityWho] = useState<string[]>(PROFILES.map((p) => p.id))
   const [mobilityMinutes, setMobilityMinutes] = useState<number>(DEFAULT_MOBILITY_MINUTES)
 
   const beginMobility = (focus: MobilityFocus) => {
@@ -64,7 +67,7 @@ export default function TodayScreen() {
           </p>
           <div className="mt-4 flex flex-col gap-2 sm:flex-row">
             <button
-              onClick={() => begin(['p1', 'p2'])}
+              onClick={() => begin(everyone)}
               className="flex-1 rounded-2xl bg-indigo-600 py-3.5 text-lg font-extrabold text-white shadow-lg shadow-indigo-600/30 hover:bg-indigo-500"
             >
               Start duo workout 💪
@@ -88,7 +91,7 @@ export default function TodayScreen() {
       <div className="mt-5 rounded-3xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
         <div className="flex items-baseline justify-between gap-3">
           <h2 className="text-lg font-extrabold">Mobility &amp; Relief</h2>
-          <span className="text-xs font-semibold text-slate-400">no weights needed</span>
+          <span className="text-xs font-semibold text-slate-400">light or no equipment</span>
         </div>
         <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
           Loosen up on its own or after a workout. Each session runs mobilise → open → activate.
@@ -110,21 +113,6 @@ export default function TodayScreen() {
               </button>
             ))}
           </div>
-        </div>
-        <div className="mt-4 grid gap-2 sm:grid-cols-3">
-          {(Object.keys(MOBILITY_FOCUS) as MobilityFocus[]).map((focus) => {
-            const f = MOBILITY_FOCUS[focus]
-            return (
-              <button
-                key={focus}
-                onClick={() => beginMobility(focus)}
-                className="rounded-2xl border border-slate-200 p-3 text-left transition-colors hover:border-emerald-400 hover:bg-emerald-50 dark:border-slate-700 dark:hover:border-emerald-500 dark:hover:bg-emerald-950"
-              >
-                <p className="font-bold">{f.label}</p>
-                <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{f.blurb}</p>
-              </button>
-            )
-          })}
         </div>
         <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-400">
           <span>Who's doing it?</span>
@@ -151,6 +139,30 @@ export default function TodayScreen() {
           >
             Both
           </button>
+        </div>
+        <div className="mt-4 grid gap-2 sm:grid-cols-3">
+          {(Object.keys(MOBILITY_FOCUS) as MobilityFocus[]).map((focus) => {
+            const f = MOBILITY_FOCUS[focus]
+            // Shallow pools honestly deliver less than the slot asked for.
+            const actualMins = Math.round(
+              mobilityPlan(focus, mobilityWho, mobilityMinutes).estimatedSeconds / 60,
+            )
+            return (
+              <button
+                key={focus}
+                onClick={() => beginMobility(focus)}
+                className="rounded-2xl border border-slate-200 p-3 text-left transition-colors hover:border-emerald-400 hover:bg-emerald-50 dark:border-slate-700 dark:hover:border-emerald-500 dark:hover:bg-emerald-950"
+              >
+                <div className="flex items-baseline justify-between gap-2">
+                  <p className="font-bold">{f.label}</p>
+                  <span className="shrink-0 text-xs font-semibold text-slate-400">
+                    {actualMins} min
+                  </span>
+                </div>
+                <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{f.blurb}</p>
+              </button>
+            )
+          })}
         </div>
       </div>
 

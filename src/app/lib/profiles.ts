@@ -1,13 +1,11 @@
 import exampleProfiles from '../../../content/profiles.example.json'
 
-// Personal data (names, weights, pain areas) is NEVER committed. Real values
-// live in ./profiles.local.json (gitignored) until M4 moves them to Supabase.
-// The glob resolves to {} when that file is absent, so the repo builds for
-// anyone who clones it — they just see the generic example profiles.
-const localModules = import.meta.glob('/profiles.local.json', { eager: true }) as Record<
-  string,
-  { default: ProfilesFile }
->
+// Personal data (names, weights, pain areas) is NEVER committed AND never
+// built into a production bundle. vite.config.ts injects profiles.local.json
+// only in dev; production compiles this to `null` and will load real profiles
+// at runtime from Supabase (M4). Anyone cloning the repo sees the example
+// profiles, which is also what a production build currently gets.
+declare const __LOCAL_PROFILES__: ProfilesFile | null
 
 import type { BodyArea, Equipment } from '../../core/catalog/types'
 export type { BodyArea, Equipment }
@@ -35,7 +33,8 @@ const ACCENTS: Record<string, { text: string; bg: string; ring: string }> = {
 }
 
 const source: ProfilesFile =
-  Object.values(localModules)[0]?.default ?? (exampleProfiles as unknown as ProfilesFile)
+  (typeof __LOCAL_PROFILES__ !== 'undefined' && __LOCAL_PROFILES__) ||
+  (exampleProfiles as unknown as ProfilesFile)
 
 export interface LocalProfile {
   id: string

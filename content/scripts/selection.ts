@@ -1005,6 +1005,15 @@ export const MOBILITY_META: Record<string, MobilityMeta> = {
     focusCue: 'Light or no weight here — squeeze the shoulder blades together, hold a beat',
   },
   'dead-bug': { phase: 'activate', regions: ['lower_back'], seconds: 40 },
+  'glute-bridge': {
+    phase: 'activate',
+    regions: ['lower_back', 'hips'],
+    seconds: 40,
+    priority: 2,
+    focusCue: 'Squeeze the glutes at the top — they should do the work, not the low back',
+  },
+  'single-leg-glute-bridge': { phase: 'activate', regions: ['hips', 'lower_back'], seconds: 40 },
+  'bent-knee-hip-raise': { phase: 'activate', regions: ['lower_back'], seconds: 35 },
 }
 
 /** Mobility-only movements — the posture work the strength catalog was missing. */

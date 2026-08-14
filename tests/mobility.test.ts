@@ -41,14 +41,32 @@ describe('mobility sessions', () => {
     }
   })
 
-  it('honours the requested duration, within a movement of it', () => {
+  it('never runs meaningfully longer than requested', () => {
     for (const focus of focuses) {
       for (const minutes of [5, 10, 20, 30]) {
         const mins = gen(focus, base.equipment, minutes).estimatedSeconds / 60
-        // Each phase overshoots by at most its final movement (~1 min) plus a
-        // 15s changeover per block, so allow a modest band around the target.
-        expect(mins, `${focus} @ ${minutes}min`).toBeGreaterThanOrEqual(minutes * 0.75)
-        expect(mins, `${focus} @ ${minutes}min`).toBeLessThanOrEqual(minutes * 1.35 + 2)
+        // Overshoot is bounded by the last movement of each phase plus block
+        // transitions. Undershoot is legitimate: a shallow pool delivers a
+        // shorter honest session rather than padding (see the repeat test).
+        expect(mins, `${focus} @ ${minutes}min`).toBeLessThanOrEqual(minutes * 1.2 + 2)
+      }
+    }
+  })
+
+  it('fills the requested slot when the catalog can support it', () => {
+    for (const minutes of [5, 10, 20]) {
+      const mins = gen('posture', base.equipment, minutes).estimatedSeconds / 60
+      expect(mins, `posture @ ${minutes}min`).toBeGreaterThanOrEqual(minutes * 0.85)
+    }
+  })
+
+  it('pads with at most one extra round — never the same stretch three times', () => {
+    for (const focus of focuses) {
+      const ids = gen(focus, base.equipment, 30).blocks.flatMap((b) =>
+        b.items.map((i) => i.exerciseId),
+      )
+      for (const id of new Set(ids)) {
+        expect(ids.filter((x) => x === id).length, `${focus}: ${id}`).toBeLessThanOrEqual(2)
       }
     }
   })

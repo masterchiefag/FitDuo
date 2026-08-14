@@ -341,6 +341,7 @@ export function generateWorkout(input: GeneratorInput): WorkoutPlan {
     planVersion: 1,
     seed,
     dateISO,
+    mode: 'full',
     dayType,
     participantIds: participants.map((p) => p.userId),
     estimatedSeconds: estimatePlanSeconds(byId, blocks),

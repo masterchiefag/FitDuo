@@ -18,10 +18,11 @@ const ms = (dateISO: string, hour = 18) =>
 
 function session(
   dateISO: string,
-  opts: { completed?: boolean; duo?: boolean; hour?: number } = {},
+  opts: { completed?: boolean; duo?: boolean; hour?: number; mode?: 'full' | 'mobility' } = {},
 ): SessionEvent {
   return {
     dateISO,
+    mode: opts.mode ?? 'full',
     completed: opts.completed ?? true,
     participantIds: opts.duo ? [U, 'p2'] : [U],
     startedAt: ms(dateISO, opts.hour ?? 18),
@@ -225,6 +226,7 @@ describe('deriveProgression', () => {
   it('attributes post-midnight sets to the session that started them', () => {
     const lateSession: SessionEvent = {
       dateISO: '2026-08-03',
+      mode: 'full',
       completed: true,
       participantIds: [U],
       startedAt: ms('2026-08-03', 23),

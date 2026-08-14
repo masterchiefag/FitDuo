@@ -12,6 +12,7 @@ const plan: WorkoutPlan = {
   planVersion: 1,
   seed: 42,
   dateISO: '2026-08-14',
+  mode: 'full',
   dayType: 'full_a',
   participantIds: [P1, P2],
   estimatedSeconds: 3300,

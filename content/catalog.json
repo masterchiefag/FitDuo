@@ -1720,7 +1720,17 @@
           "area": "lower_back",
           "stress": "high"
         }
-      ]
+      ],
+      "mobility": {
+        "phase": "activate",
+        "regions": [
+          "lower_back",
+          "hips"
+        ],
+        "seconds": 40,
+        "priority": 2,
+        "focusCue": "Squeeze the glutes at the top — they should do the work, not the low back"
+      }
     },
     {
       "id": "single-leg-glute-bridge",
@@ -1758,7 +1768,15 @@
           "area": "lower_back",
           "stress": "high"
         }
-      ]
+      ],
+      "mobility": {
+        "phase": "activate",
+        "regions": [
+          "hips",
+          "lower_back"
+        ],
+        "seconds": 40
+      }
     },
     {
       "id": "superman",
@@ -2234,7 +2252,14 @@
           "area": "lower_back",
           "stress": "moderate"
         }
-      ]
+      ],
+      "mobility": {
+        "phase": "activate",
+        "regions": [
+          "lower_back"
+        ],
+        "seconds": 35
+      }
     },
     {
       "id": "db-side-bend",
