@@ -39,8 +39,11 @@ test('golden path: duo workout from start to celebration', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Workout complete!' })).toBeVisible()
   await expect(page.getByText(/\+\d+ XP/).first()).toBeVisible()
   await expect(page.getByText(/1-day streak/).first()).toBeVisible()
-  await expect(page.getByText('Atul')).toBeVisible()
-  await expect(page.getByText('Partner')).toBeVisible()
+  // One card per participant, asserted by structure. Real names live in
+  // gitignored profiles.local.json (CLAUDE.md — the remote is public), so
+  // asserting them both leaks a name and makes the suite pass or fail on
+  // whether that file happens to exist in the checkout.
+  await expect(page.getByText(/\d+\/\d+ sets/)).toHaveCount(2)
 
   await page.getByRole('button', { name: 'Back to Today' }).click()
   // A strength session marks the day as a WORKOUT, distinct from a recovery
