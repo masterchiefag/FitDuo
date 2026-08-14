@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import fc from 'fast-check'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { canPerform } from '../src/core/catalog/equipment'
+import { allCanPerform, canPerform } from '../src/core/catalog/equipment'
 import { catalogSchema, type Equipment, type Exercise } from '../src/core/catalog/types'
 import { DURATION_MAX_S, DURATION_MIN_S, generateWorkout } from '../src/core/generator/generate'
 import { addDays } from '../src/core/dates'
@@ -19,10 +19,17 @@ const weightsArb = fc
   })
   .map((w) => [...w].sort((a, b) => a - b))
 
+/** The kits a real household actually has, leanest first. */
+const MINIMAL_KIT: Equipment[] = ['bodyweight', 'dumbbell']
+const HOME_KIT: Equipment[] = ['bodyweight', 'dumbbell', 'band', 'roller', 'chair', 'wall', 'step']
+const GYM_KIT: Equipment[] = [...HOME_KIT, 'bench', 'pullup_bar']
+const equipmentArb = fc.constantFrom(MINIMAL_KIT, HOME_KIT, GYM_KIT)
+
 const participantArb = (userId: string): fc.Arbitrary<ParticipantInput> =>
   fc.record({
     userId: fc.constant(userId),
     availableWeights: weightsArb,
+    equipment: equipmentArb.map((k) => [...k]),
     maxTier: fc.constantFrom(1 as const, 2 as const, 3 as const),
     progression: fc.constant({}),
   })
@@ -39,28 +46,20 @@ const dateArb = fc
   })
   .map((d) => d.toISOString().slice(0, 10))
 
-/** The kits a real household actually has, leanest first. */
-const MINIMAL_KIT: Equipment[] = ['bodyweight', 'dumbbell']
-const HOME_KIT: Equipment[] = ['bodyweight', 'dumbbell', 'band', 'roller', 'chair', 'wall', 'step']
-const GYM_KIT: Equipment[] = [...HOME_KIT, 'bench', 'pullup_bar']
-const equipmentArb = fc.constantFrom(MINIMAL_KIT, HOME_KIT, GYM_KIT)
-
 const inputArb: fc.Arbitrary<GeneratorInput> = fc
   .record({
     dateISO: dateArb,
     scheduledDays: scheduleArb,
-    equipment: equipmentArb,
     p1: participantArb('p1'),
     p2: participantArb('p2'),
     duo: fc.boolean(),
   })
-  .map(({ dateISO, scheduledDays, equipment, p1, p2, duo }) => ({
+  .map(({ dateISO, scheduledDays, p1, p2, duo }) => ({
     householdId: 'home',
     dateISO,
     generatorVersion: 1,
     catalog,
     scheduledDays,
-    equipment: [...equipment],
     participants: duo ? [p1, p2] : [p1],
     recentHistory: [],
   }))
@@ -148,12 +147,13 @@ describe('generateWorkout properties', () => {
             // Checked against the raw `requires` data, NOT via canPerform:
             // calling the same predicate the generator used would make this
             // assertion agree with any bug it contains.
-            const usable = ex.requires.some((kit) =>
-              kit.every((need) => need === 'bodyweight' || input.equipment.includes(need)),
-            )
+            const usableBy = (owned: Equipment[]) =>
+              ex.requires.some((kit) =>
+                kit.every((need) => need === 'bodyweight' || owned.includes(need)),
+              )
             expect(
-              usable,
-              `${ex.id} needs ${JSON.stringify(ex.requires)}, kit is ${input.equipment.join(',')}`,
+              input.participants.every((p) => usableBy(p.equipment)),
+              `${ex.id} needs ${JSON.stringify(ex.requires)}`,
             ).toBe(true)
           }
         }
@@ -169,8 +169,15 @@ describe('generateWorkout properties', () => {
       generatorVersion: 1,
       catalog,
       scheduledDays: [true, true, true, true, true, true, true],
-      equipment: [...HOME_KIT],
-      participants: [{ userId: 'p1', availableWeights: [5, 10], maxTier: 2, progression: {} }],
+      participants: [
+        {
+          userId: 'p1',
+          availableWeights: [5, 10],
+          equipment: [...HOME_KIT],
+          maxTier: 2,
+          progression: {},
+        },
+      ],
       recentHistory: [],
     }
     const history: DayHistory[] = []
@@ -254,6 +261,32 @@ describe('equipment eligibility', () => {
     expect(canPerform(dips, ['bodyweight', 'step'])).toBe(true)
     expect(canPerform(dips, ['bodyweight', 'chair'])).toBe(true)
     expect(canPerform(dips, DUMBBELL_ONLY)).toBe(false)
+  })
+
+  /**
+   * The bug alternative kits introduced, and the reason `allCanPerform` is not
+   * `canPerform(ex, A ∩ B)`.
+   *
+   * MUTATION-CHECKED: reverting the app + generator to "intersect the two
+   * equipment lists, then check that" fails the first case — A on a chair and
+   * B on a step can both do a chair dip, but their intersected list holds
+   * neither, so the movement silently disappears for a pair who can do it.
+   */
+  it('a shared session keeps what each person can do with their OWN kit', () => {
+    const dips = exercise('chair-dips', [['chair'], ['bench'], ['step']])
+    const withChair: Equipment[] = ['bodyweight', 'dumbbell', 'chair']
+    const withStep: Equipment[] = ['bodyweight', 'dumbbell', 'step']
+
+    expect(allCanPerform(dips, [withChair, withStep])).toBe(true)
+    // ...and the intersection, which is what a merged list would have produced:
+    const intersection = withChair.filter((e) => withStep.includes(e))
+    expect(canPerform(dips, intersection)).toBe(false)
+  })
+
+  it('a shared session still drops what only ONE person can do', () => {
+    const bandPull = exercise('band-pull-apart', [['band']])
+    expect(allCanPerform(bandPull, [['bodyweight', 'band'], ['bodyweight']])).toBe(false)
+    expect(allCanPerform(bandPull, [['bodyweight', 'band']])).toBe(true)
   })
 
   it('treats bodyweight as owned even when a profile forgets to list it', () => {

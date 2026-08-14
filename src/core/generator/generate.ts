@@ -1,4 +1,4 @@
-import { canPerform } from '../catalog/equipment'
+import { allCanPerform } from '../catalog/equipment'
 import type { Exercise, Pattern } from '../catalog/types'
 import { daysBetween, weekdayIndex } from '../dates'
 import { BLOCK_TRANSITION_SECONDS } from '../player/reducer'
@@ -292,8 +292,13 @@ export function generateWorkout(input: GeneratorInput): WorkoutPlan {
 
   // Equipment is filtered ONCE, before any selection: the relaxation ladder in
   // selectForSlot may drop the no-repeat window and the tier cap, but it must
-  // never reach for a movement the household cannot physically do.
-  const performable = catalog.filter((e) => canPerform(e, input.equipment))
+  // never reach for a movement someone in the session cannot physically do.
+  const performable = catalog.filter((e) =>
+    allCanPerform(
+      e,
+      participants.map((p) => p.equipment),
+    ),
+  )
 
   const ctx: SelectionCtx = {
     rng,

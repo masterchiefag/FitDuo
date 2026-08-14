@@ -222,8 +222,31 @@ variants would be additive later.
 layer and only fills in a person's `equipment` list. The generator has never
 heard of "home" or "gym" and must not, or every new kit becomes a branch.
 
+**The bug the new expressiveness introduced, caught by Grok.** Duo eligibility
+was `canPerform(ex, A ∩ B)` — intersect the two people's equipment lists, then
+check once. That was *correct* while an exercise named one implement, and
+stopped being correct the moment kits became alternatives: for
+`[['chair'], ['step']]`, one person on a chair and the other on a step can both
+do the movement, but the intersection of their lists contains neither, so it
+silently vanished for a pair who could do it. Measured on divergent kits: 4
+movements lost. The rule is pairwise — `allCanPerform` asks each person's own
+kit — and equipment moved onto `ParticipantInput` beside `availableWeights`,
+where per-person things belong. *Class: an identity that held under the old
+model is not carried forward by the type-checker. When a field gains
+expressiveness, re-derive every rule that consumed it — do not port the rule.*
+
+**Second Grok finding: a new failure mode reached a screen.** The strength
+generator had never filtered by equipment, so `selectForSlot`'s
+`no candidates for pattern X` was unreachable. Once it filters, a thin kit
+throws — during `TodayScreen`'s render, i.e. a blank home screen. Core still
+throws (it is a real invariant violation); the screen now catches it and says
+so, and mobility sessions, which need nothing, stay available underneath.
+*Class: making a check real makes its failure path reachable for the first
+time.*
+
 **Mutation-checked** (the rule from PR #1): reverting `canPerform` to
-single-value matching fails three tests. The property test needed fixing first
+single-value matching fails three tests; reverting `allCanPerform` to
+intersect-then-check fails the divergent-kit test. The property test needed fixing first
 — it called `canPerform` on both sides, so it agreed with any bug the predicate
 contained. It now checks the raw `requires` data independently. *Class: a test
 that reuses the implementation as its own oracle cannot fail.*

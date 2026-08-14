@@ -91,12 +91,12 @@ export function generatorInputFor(participantIds: string[], dateISO: LocalDateIS
     generatorVersion: GENERATOR_VERSION,
     catalog: catalog.exercises,
     scheduledDays: DEFAULT_SCHEDULE,
-    equipment: participantIds.length ? sharedEquipment(participantIds) : HOUSEHOLD_EQUIPMENT,
     participants: participantIds.map((id) => {
       const profile = PROFILES.find((p) => p.id === id)!
       return {
         userId: id,
         availableWeights: profile.availableWeights,
+        equipment: profile.equipment,
         maxTier: 2 as const,
         progression: deriveProgression(id, sessions, sets, feedback),
       }
@@ -106,15 +106,17 @@ export function generatorInputFor(participantIds: string[], dateISO: LocalDateIS
 }
 
 /**
- * What every participant owns. Everyone performs the same movement at the same
- * time, so eligibility is the INTERSECTION — a union would hand someone a band
- * they do not have. (Per-person weight targets are the opposite case and stay
- * per-person; see PLAN R1 "never intersect the two weight arrays".)
+ * One kit per participant — never merged into a single list. Everyone does the
+ * same movement at the same time, so the generator asks whether EACH of these
+ * kits can do it (`allCanPerform`); intersecting the lists first would lose
+ * movements that one person does on a chair and the other on a step.
+ *
+ * With nobody selected (the Today preview before a choice) the household union
+ * is the loosest honest guess.
  */
-function sharedEquipment(participantIds: string[]): Equipment[] {
-  const lists = participantIds.map((id) => PROFILES.find((p) => p.id === id)?.equipment ?? [])
-  const [first, ...others] = lists
-  return (first ?? []).filter((eq) => others.every((l) => l.includes(eq)))
+function kitsFor(participantIds: string[]): Equipment[][] {
+  if (participantIds.length === 0) return [HOUSEHOLD_EQUIPMENT]
+  return participantIds.map((id) => PROFILES.find((p) => p.id === id)?.equipment ?? [])
 }
 
 export function mobilityPlan(
@@ -130,7 +132,7 @@ export function mobilityPlan(
     focus,
     participantIds,
     targetSeconds: minutes * 60,
-    equipment: participantIds.length ? sharedEquipment(participantIds) : HOUSEHOLD_EQUIPMENT,
+    kits: kitsFor(participantIds),
   })
 }
 

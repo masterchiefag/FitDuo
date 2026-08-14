@@ -22,11 +22,12 @@ const base = {
   equipment: ['bodyweight', 'dumbbell', 'band', 'roller'] as const,
 }
 
+// One kit per participant; the solo default is the single kit under test.
 const gen = (focus: MobilityFocus, equipment = base.equipment, minutes = 10) =>
   generateMobilitySession({
     ...base,
     focus,
-    equipment: [...equipment],
+    kits: [[...equipment]],
     targetSeconds: minutes * 60,
   })
 
@@ -67,9 +68,9 @@ describe('mobility sessions', () => {
     // or an under-filled session would pass by prescribing almost nothing.
     //
     // Two kits, because the duration a kit can honestly serve is a property of
-    // the *kit*, not of the generator. `mobilityPlan` intersects participants'
-    // equipment, so the default duo path is bodyweight + dumbbell even when one
-    // person owns a band — and that path gets less content, so it tops out
+    // the *kit*, not of the generator. A duo movement must be doable by BOTH
+    // people, so when only one owns a band the pair effectively trains on
+    // bodyweight + dumbbell — and that path gets less content, so it tops out
     // sooner. The binding phase in both cases is `activate` (35% of the budget).
     //
     // Neither goes to 30 min. The full-kit pool holds ~27.7 min of unique work
@@ -87,7 +88,7 @@ describe('mobility sessions', () => {
           const where = `${label} ${dateISO} @ ${minutes}min`
           const plan = generateMobilitySession({
             ...base,
-            equipment,
+            kits: [equipment],
             focus: 'posture',
             dateISO,
             targetSeconds: minutes * 60,

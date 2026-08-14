@@ -24,13 +24,22 @@ export default function TodayScreen() {
   // not on /workout, so the unfinished session has to be offered HERE or it is
   // silently discarded by the next Start.
   const [snapshot, setSnapshot] = useState(() => loadSnapshot())
-  const previewPlan = useMemo(() => planForToday(everyone), [everyone])
+  // A kit with no candidates for some movement pattern is a real answer, not a
+  // crash — the generator throws, and this screen renders during load, so an
+  // unguarded call turns a thin equipment list into a blank home screen.
+  const previewPlan = useMemo(() => {
+    try {
+      return planForToday(everyone)
+    } catch {
+      return null
+    }
+  }, [everyone])
   const stats = useMemo(() => PROFILES.map((p) => ({ profile: p, s: statsFor(p.id) })), [])
 
-  const mainExercises = previewPlan.blocks
+  const mainExercises = (previewPlan?.blocks ?? [])
     .flatMap((b) => (b.kind === 'superset' || b.kind === 'circuit' ? b.items : []))
     .map((i) => exercisesById.get(i.exerciseId)?.name ?? i.exerciseId)
-  const mins = Math.round(previewPlan.estimatedSeconds / 60)
+  const mins = Math.round((previewPlan?.estimatedSeconds ?? 0) / 60)
 
   // Default to everyone, like the strength card — tapping a focus starts
   // immediately, so a solo default silently drops the partner's credit.
@@ -108,39 +117,56 @@ export default function TodayScreen() {
       )}
 
       {/* Workout card */}
-      <div className="mt-5 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
-        <div className="bg-gradient-to-br from-indigo-600 to-violet-600 p-5 text-white">
-          <p className="text-xs font-bold tracking-widest uppercase opacity-80">
-            {DAY_TYPE_LABEL[previewPlan.dayType]}
+      {previewPlan === null ? (
+        <div className="mt-5 rounded-3xl border border-amber-300 bg-amber-50 p-5 dark:border-amber-800 dark:bg-amber-950">
+          <h2 className="text-lg font-extrabold">Not enough kit for a full session</h2>
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+            A strength session needs candidates for every movement pattern, and one of them has none
+            for what everyone here owns. Add to your kit in Settings — mobility sessions below still
+            work with nothing at all.
           </p>
-          <h2 className="mt-1 text-2xl font-extrabold">Today's Workout</h2>
-          <p className="mt-1 text-sm opacity-90">~{mins} min · warm-up + 4 blocks + stretch</p>
+          <button
+            onClick={() => void navigate('/settings')}
+            className="mt-3 rounded-2xl bg-amber-500 px-4 py-2 text-sm font-extrabold text-white hover:bg-amber-400"
+          >
+            Check your kit
+          </button>
         </div>
-        <div className="p-5">
-          <p className="text-sm text-slate-500 dark:text-slate-400">
-            {[...new Set(mainExercises)].join(' · ')}
-          </p>
-          <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-            <button
-              onClick={() => begin(everyone)}
-              className="flex-1 rounded-2xl bg-indigo-600 py-3.5 text-lg font-extrabold text-white shadow-lg shadow-indigo-600/30 hover:bg-indigo-500"
-            >
-              Start duo workout 💪
-            </button>
-            <div className="flex gap-2 sm:flex-col">
-              {PROFILES.map((p) => (
-                <button
-                  key={p.id}
-                  onClick={() => begin([p.id])}
-                  className="flex-1 rounded-2xl bg-slate-100 px-4 py-2 text-sm font-bold text-slate-600 hover:bg-slate-200 sm:py-1.5 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
-                >
-                  Just {p.name}
-                </button>
-              ))}
+      ) : (
+        <div className="mt-5 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div className="bg-gradient-to-br from-indigo-600 to-violet-600 p-5 text-white">
+            <p className="text-xs font-bold tracking-widest uppercase opacity-80">
+              {DAY_TYPE_LABEL[previewPlan.dayType]}
+            </p>
+            <h2 className="mt-1 text-2xl font-extrabold">Today's Workout</h2>
+            <p className="mt-1 text-sm opacity-90">~{mins} min · warm-up + 4 blocks + stretch</p>
+          </div>
+          <div className="p-5">
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              {[...new Set(mainExercises)].join(' · ')}
+            </p>
+            <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+              <button
+                onClick={() => begin(everyone)}
+                className="flex-1 rounded-2xl bg-indigo-600 py-3.5 text-lg font-extrabold text-white shadow-lg shadow-indigo-600/30 hover:bg-indigo-500"
+              >
+                Start duo workout 💪
+              </button>
+              <div className="flex gap-2 sm:flex-col">
+                {PROFILES.map((p) => (
+                  <button
+                    key={p.id}
+                    onClick={() => begin([p.id])}
+                    className="flex-1 rounded-2xl bg-slate-100 px-4 py-2 text-sm font-bold text-slate-600 hover:bg-slate-200 sm:py-1.5 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+                  >
+                    Just {p.name}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Mobility & Relief — standalone, no strength session needed */}
       <div className="mt-5 rounded-3xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">

@@ -24,6 +24,21 @@ export function canPerform(ex: Exercise, owned: readonly Equipment[]): boolean {
 }
 
 /**
+ * Whether a shared session can include this movement: everyone performs it at
+ * the same time, so every participant must be able to do it — each with their
+ * OWN kit.
+ *
+ * NOT `canPerform(ex, A ∩ B)`. Intersecting the two lists was equivalent while
+ * an exercise named one implement, and stops being equivalent the moment kits
+ * are alternatives: for `[['chair'], ['step']]`, one person on a chair and the
+ * other on a step both satisfy it, while the intersection of their lists
+ * contains neither and the movement vanishes for a pair who can both do it.
+ */
+export function allCanPerform(ex: Exercise, kits: readonly (readonly Equipment[])[]): boolean {
+  return kits.length > 0 && kits.every((kit) => canPerform(ex, kit))
+}
+
+/**
  * Whether a weight target means anything for this movement. True only when
  * every way of performing it involves dumbbells — an exercise you *can* do
  * unloaded gets a bodyweight target.
