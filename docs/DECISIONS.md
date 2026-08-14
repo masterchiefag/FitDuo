@@ -23,6 +23,47 @@ CLAUDE.md should get *shorter* as the test suite grows.
 
 ---
 
+## 2026-08-14 — Merge commits on `main`, and Grok reviews posted to the PR
+
+Both of these were defaults nobody chose. Squash merging was simply what the
+first two PRs happened to use; the Grok script didn't post because it was
+written when this repo had no PRs (its header still said so).
+
+**`main` merges with `gh pr merge --merge`.** The point is that a bug fix and
+the commit explaining it survive as separate, blamable commits. Squash collapses
+a branch into one commit, so `git blame` on a fixed line reports the squash, not
+the fix — you lose the line's own history exactly where it's most wanted.
+GitHub does keep merged branch commits at `refs/pull/N/head` forever, so squash
+isn't total loss, but a trail that requires the GitHub UI isn't one `git log`
+can follow.
+
+*The cost, accepted knowingly:* the review tail verifies one sha, so with merge
+commits `main` now also contains intermediate branch commits that were never
+gate-verified and may not typecheck. `git bisect` can land on them.
+**`git log --first-parent` is the gate-verified line of `main`** — use it for
+history, and `git bisect --first-parent` when bisecting. Under squash these were
+the same set; they no longer are.
+
+*Not* enforced by a new branch in `merge-gate-hook.mjs`. The placement ladder
+says stop at the first rung that fits, and rung 1 (eliminate) fits: disabling
+squash and rebase in the GitHub repo settings makes `--squash` fail at the API,
+for every actor, with no regex to maintain and no proof-of-bite test to keep
+alive. A hook branch would have been rung 2 for a problem rung 1 already
+closes. Escalate only if it turns out something can still flatten a branch.
+
+**Grok reviews post to the PR** (`gh pr comment`, anchored to the reviewed sha).
+Deliberately *not* the `~/dev/sherlock` machinery — PENDING→COMMENT submission,
+review-id snapshots, head-sha polling. That wrapper exists because two agents
+ran in separate terminals with a human as the bus (7–25 min of stall per PR).
+Here Grok and Claude share a session and the review is on stdout before anyone
+acts on it, so posting buys **no latency** — only the durable trace that
+`record-step.sh grok` was missing: it recorded that a review happened and kept
+nothing of what it said, while the review itself is gitignored scratch.
+Copying the full wrapper would have been ~250 lines solving a problem we don't
+have. *Caveat:* the remote is public; `GROK_REVIEW_POST=0` skips posting.
+
+---
+
 ## 2026-08-14 — PR #1: the review tail, applied to itself
 
 The tail (frame → build → browser-verify → Grok → self-review → suite → merge)

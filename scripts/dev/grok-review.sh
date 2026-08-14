@@ -1,13 +1,25 @@
 #!/usr/bin/env bash
 # Headless Grok second-opinion review for FitDuo.
-# No PRs in this repo — reviews a commit range's diff, or a file (e.g. the plan).
+# Reviews a commit range's diff, or a file (e.g. the plan).
 # Pattern borrowed from ~/dev/sherlock/scripts/dev/grok-review-pr.sh, simplified.
+#
+# Posting: the finished review is posted to the branch's open PR as a plain
+# comment, anchored to the sha it reviewed. Deliberately NOT the sherlock
+# machinery (PENDING->COMMENT submission, review-id snapshots, head-sha polling):
+# that exists because two agents ran in separate terminals with a human as the
+# bus. Here Grok and Claude share a session, so posting buys no latency — only
+# a durable trace next to `record-step.sh grok`, which otherwise records that a
+# review happened and keeps nothing of what it said.
+#
+# NOTE: the remote is public, so posted review text is public. Reviews critique
+# code, but if one ever quotes personal profile data, post with GROK_REVIEW_POST=0.
 #
 # Usage:
 #   scripts/dev/grok-review.sh diff [range]     # default: HEAD~1..HEAD
 #   scripts/dev/grok-review.sh file <path>      # e.g. the plan markdown
 #
-# Env: GROK_BIN (default: grok on PATH), GROK_REVIEW_MAX_TURNS (default 30)
+# Env: GROK_BIN (default: grok on PATH), GROK_REVIEW_MAX_TURNS (default 30),
+#      GROK_REVIEW_POST (default 1; 0 = never post to the PR)
 set -euo pipefail
 
 GROK_BIN="${GROK_BIN:-grok}"
@@ -19,10 +31,12 @@ case "$MODE" in
   diff)
     RANGE="${2:-HEAD~1..HEAD}"
     TARGET="the output of \`git diff $RANGE\` and \`git log --oneline $RANGE\` in this repo"
+    LABEL="diff $RANGE"
     ;;
   file)
     [ $# -ge 2 ] || { echo "usage: $0 file <path>" >&2; exit 2; }
     TARGET="the file at $2"
+    LABEL="file $2"
     ;;
   *)
     echo "usage: $0 diff [range] | file <path>" >&2
@@ -43,3 +57,22 @@ Skip style nits and generic advice. If it looks sound, say so in one line. Do no
 OUT="${GROK_REVIEW_OUT:-.grok-review-latest.md}"
 "$GROK_BIN" -p "$PROMPT" --always-approve --max-turns "$MAX_TURNS" --disable-web-search | tee "$OUT"
 echo "--- full review saved to $OUT ---" >&2
+
+# Post to the branch's open PR. Best-effort — the review is already on disk, so
+# a posting failure must not fail the review — but loud, because a trace that
+# fails silently is worse than no trace: it reads as "reviewed and recorded".
+[ "${GROK_REVIEW_POST:-1}" = "1" ] || exit 0
+command -v gh >/dev/null 2>&1 || { echo "grok-review: gh not on PATH — not posted" >&2; exit 0; }
+PR="$(gh pr view --json number --jq .number 2>/dev/null || true)"
+[ -n "$PR" ] || { echo "grok-review: no open PR for this branch — not posted" >&2; exit 0; }
+
+SHA="$(git rev-parse HEAD)"
+if {
+  printf '## Grok review — `%s`\n\nReviewed at `%s`. Any new commit invalidates this review; see `scripts/dev/merge-ready.sh`.\n\n---\n\n' \
+    "$LABEL" "${SHA:0:12}"
+  cat "$OUT"
+} | gh pr comment "$PR" --body-file - >/dev/null; then
+  echo "grok-review: posted to PR #$PR at ${SHA:0:7}" >&2
+else
+  echo "grok-review: FAILED to post to PR #$PR — review is still at $OUT" >&2
+fi

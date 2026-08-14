@@ -15,7 +15,9 @@ Direct commits to `main` are for bootstrap only. One change at a time:
    - `scripts/dev/grok-review.sh diff main..HEAD` → fix → `scripts/dev/record-step.sh grok`
    - `/code-review` (medium) → fix → `scripts/dev/record-step.sh self-review`
    - `npm run typecheck && npm run test -- --run && npm run e2e` → `scripts/dev/record-step.sh suite`
-5. **Merge.** Blocked by `scripts/dev/merge-gate-hook.mjs` unless all three are recorded **at the current sha** — any new commit invalidates them, deliberately.
+5. **Merge** with `gh pr merge --merge` — real merge commits; squash/rebase are disabled on the repo (docs/DECISIONS.md). Blocked by `scripts/dev/merge-gate-hook.mjs` unless all three are recorded **at the current sha** — any new commit invalidates them, deliberately.
+
+`main`'s gate-verified line is `git log --first-parent`; branch commits below it were never verified at merge time.
 
 Grok and `/code-review` reliably find *different* classes of problem; run both. Plan revisions get a Grok pass before execution starts.
 
