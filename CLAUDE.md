@@ -2,7 +2,13 @@
 
 Duolingo-style guided dumbbell workout PWA for exactly two users (a couple sharing one laptop during workouts). Plan: [docs/PLAN.md](docs/PLAN.md) (canonical; mirror of `~/.claude/plans/i-want-to-experiment-piped-emerson.md`).
 
-**Execution model:** Opus executes milestones from docs/PLAN.md. Milestone tail, in order: `npm run typecheck && npm run test -- --run && npm run e2e` → `/code-review` (medium) → Grok second opinion `scripts/dev/grok-review.sh diff <range>` → fix findings → commit.
+**Start here:** [docs/PLAN.md](docs/PLAN.md) for what to build next (sequencing is at "Revised sequencing"); [docs/DECISIONS.md](docs/DECISIONS.md) for why things are the way they are, and the rule for where new learnings go.
+
+**Execution model:** Opus executes milestones from docs/PLAN.md, **one change at a time**. Milestone tail, in order: `npm run typecheck && npm run test -- --run && npm run e2e` → **verify the change in a real browser** → `/code-review` (medium) → Grok second opinion `scripts/dev/grok-review.sh diff <range>` → fix findings → commit. Plan revisions get a Grok pass *before* execution starts — it has twice caught design bugs that would have shipped.
+
+**Two standing filters on any new request:**
+- *Is it generic?* Express it as content or a rule (a catalog field, a typed input, one entry in the adjuster pipeline), never a branch keyed to one person's circumstances. See PLAN §A0/A1.
+- *Is it a lesson?* Encode it at the cheapest durable rung — code fix > regression test > area doc > this file. Prose in CLAUDE.md is the most expensive option, not the default.
 
 ## Commands
 
@@ -34,3 +40,5 @@ Pure deterministic core wrapped in boring infra. Server (Supabase, from M4) is a
 - Client-generated UUIDv7 keys on all event rows → sync is idempotent upsert.
 - Workout generation is seeded (`household|date|version`) and must stay byte-deterministic: sort candidates `(score desc, id asc)` before any PRNG pick.
 - Verify UI at desktop viewport first (the real workout device is a laptop in Chrome), then 375×812 responsive pass; check light + dark.
+- **A green suite is not a working app.** The unit tests cover the pure core; they cannot see a session that silently completes itself in the browser (this exact bug shipped once — see DECISIONS.md). Drive the real UI before calling a change done.
+- Personal data (names, weights, pain areas, equipment) lives in gitignored `profiles.local.json`, never in the repo — **the GitHub remote is public**. `content/profiles.example.json` is the checked-in template.
