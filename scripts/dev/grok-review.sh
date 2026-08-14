@@ -11,8 +11,12 @@
 # a durable trace next to `record-step.sh grok`, which otherwise records that a
 # review happened and keeps nothing of what it said.
 #
-# NOTE: the remote is public, so posted review text is public. Reviews critique
-# code, but if one ever quotes personal profile data, post with GROK_REVIEW_POST=0.
+# NOTE: the remote is public, so posted review text is public. Grok runs with
+# --always-approve and can read gitignored files, so posting is checked against
+# profiles.local.json / .env and fails CLOSED on a match. That check is not
+# GROK_REVIEW_POST: an opt-out flag does not get set under the same velocity
+# that skipped the review tail (docs/DECISIONS.md), and this repo has already
+# shipped personal data once by reading "gitignored" as "unpublished".
 #
 # Usage:
 #   scripts/dev/grok-review.sh diff [range]     # default: HEAD~1..HEAD
@@ -65,6 +69,15 @@ echo "--- full review saved to $OUT ---" >&2
 command -v gh >/dev/null 2>&1 || { echo "grok-review: gh not on PATH — not posted" >&2; exit 0; }
 PR="$(gh pr view --json number --jq .number 2>/dev/null || true)"
 [ -n "$PR" ] || { echo "grok-review: no open PR for this branch — not posted" >&2; exit 0; }
+
+# Refuse to publish anything that quotes local personal data (tests/leak-check.test.ts
+# is this guard's proof-of-bite — a guard that stops matching is a silent leak).
+LEAK="$(node scripts/dev/lib/leak-check.mjs "$OUT")"
+if [ -n "$LEAK" ]; then
+  echo "grok-review: NOT posted — the review quotes local personal data ($(printf '%.20s' "$LEAK")...)." >&2
+  echo "grok-review: review is at $OUT. Read it, then post by hand if it is a false positive." >&2
+  exit 0
+fi
 
 SHA="$(git rev-parse HEAD)"
 if {

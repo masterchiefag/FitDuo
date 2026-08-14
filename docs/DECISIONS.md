@@ -44,12 +44,21 @@ gate-verified and may not typecheck. `git bisect` can land on them.
 history, and `git bisect --first-parent` when bisecting. Under squash these were
 the same set; they no longer are.
 
-*Not* enforced by a new branch in `merge-gate-hook.mjs`. The placement ladder
-says stop at the first rung that fits, and rung 1 (eliminate) fits: disabling
-squash and rebase in the GitHub repo settings makes `--squash` fail at the API,
-for every actor, with no regex to maintain and no proof-of-bite test to keep
-alive. A hook branch would have been rung 2 for a problem rung 1 already
-closes. Escalate only if it turns out something can still flatten a branch.
+**Enforced by nothing — on purpose, and this is a live bet.** The first draft of
+this change added a hook branch denying `--squash`; the second reached for the
+GitHub repo setting that disables squash and rebase outright. Both were dropped.
+The escalation rule in this file is *earned*, not pre-emptive: the review tail
+became a gate because it had already been skipped within an hour. Merge method
+has never been skipped, it is one decision per PR rather than a step you drop
+while tired, and every gate has a running cost — the merge gate already
+false-positived on a commit message that merely said "merge", and needs
+`tests/merge-gate.test.ts` alive forever or it decays into a no-op.
+
+So this stays prose in CLAUDE.md, and the honest position is that prose is
+weaker: **nothing currently prevents a squash merge from the CLI or the GitHub
+UI.** If a branch does get flattened, that is the evidence, and the fix is the
+repo setting (`gh repo edit --enable-squash-merge=false --enable-rebase-merge=false`)
+— rung 1, no code — not a hook branch.
 
 **Grok reviews post to the PR** (`gh pr comment`, anchored to the reviewed sha).
 Deliberately *not* the `~/dev/sherlock` machinery — PENDING→COMMENT submission,
@@ -60,7 +69,19 @@ acts on it, so posting buys **no latency** — only the durable trace that
 `record-step.sh grok` was missing: it recorded that a review happened and kept
 nothing of what it said, while the review itself is gitignored scratch.
 Copying the full wrapper would have been ~250 lines solving a problem we don't
-have. *Caveat:* the remote is public; `GROK_REVIEW_POST=0` skips posting.
+have.
+
+*One thing here did earn a mechanism.* The remote is public and Grok runs with
+`--always-approve`, so it can read `profiles.local.json` and quote it into a
+comment — and this repo has already shipped personal data once by reading
+"gitignored" as "unpublished". That is a bit that has bitten, silent when it
+fails, and mechanically checkable, so posting is checked against local profile
+and env values and fails closed (`scripts/dev/lib/leak-check.mjs`, proof-of-bite
+in `tests/leak-check.test.ts`). Deliberately not an opt-out flag: a flag does
+not get set under the same velocity that skipped the review tail. The check only
+counts a value as personal if it is absent from the checked-in template and
+catalog — a guard that fires on "dumbbell" blocks every post and gets deleted
+within a day.
 
 ---
 
