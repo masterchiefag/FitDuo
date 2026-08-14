@@ -198,7 +198,7 @@ Nutrition, mental health, social beyond the two of you, native apps, Apple Healt
 - **Hosting:** Vercel (static output + a cron pinging Supabase every 3 days so the free project never pauses from inactivity).
 
 ### Data model (Supabase; full SQL in `supabase/migrations/0001_init.sql`)
-- `profiles` — display name, `partner_id` (points at each other), timezone, `available_weights numeric[]`, `schedule` jsonb (workout days) + `schedule_history` (so editing your schedule never rewrites past streaks).
+- `profiles` — display name, `partner_id` (points at each other), timezone, `available_weights numeric[]`, **`equipment text[]`** (what that person owns — load-bearing since PR #3: generation filters on it per participant, and dropping the column silently deletes band/roller/step work from every session), `schedule` jsonb (workout days) + `schedule_history` (so editing your schedule never rewrites past streaks).
 - `workout_sessions` — one per user per **local date** (`unique(user_id, workout_date)`); stores the shared generated `plan` jsonb (same `plan_hash` for both users on a duo day) + that user's target overlay + `generator_version` + `mode ('duo'|'solo')`, status `planned→in_progress→completed/abandoned`, and write-once completion snapshot (`sets_completed`, `xp_awarded`). A duo session simply writes two rows — streaks/XP stay purely per-person with no special casing.
 - `set_logs` — append-only, one row per completed set, **client-generated UUIDv7 keys** (idempotent sync).
 - `exercise_feedback` — one rating per exercise per session (`too_easy|right|too_hard`).

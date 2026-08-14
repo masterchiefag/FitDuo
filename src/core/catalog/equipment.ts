@@ -53,17 +53,16 @@ export function allCanPerform(ex: Exercise, kits: readonly (readonly Equipment[]
 }
 
 /**
- * Whether a weight target means anything for THIS person on this movement:
- * true only when every way they could perform it involves dumbbells.
+ * Whether a weight target means anything for this movement.
  *
- * Person-scoped rather than exercise-scoped because the two diverge as soon as
- * a movement offers a band alternative — `[['dumbbell'], ['band']]`. Asking the
- * exercise alone would call that unloaded for everyone including the person
- * holding 15 kg, or loaded for everyone including the person holding only a
- * band. Neither is right; who is doing it decides.
+ * Exercise-scoped, which is only correct while every kit for a movement agrees
+ * about dumbbells — true of all 95 today. **Accepted risk, not an oversight:**
+ * the day a movement offers `[['dumbbell'], ['band']]`, load has to be decided
+ * from the person's kit instead, or someone gets a weight target they cannot
+ * lift. Nothing in the catalog is mixed, so the per-person version is not built
+ * (docs/DECISIONS.md rung 0); the guard is the pool-depth test, which is what
+ * would drive anyone to add a band alternative in the first place.
  */
-export function isWeighted(ex: Exercise, owned: readonly Equipment[]): boolean {
-  const have = ownedEquipment(owned)
-  const usable = ex.requires.filter((kit) => kit.every((item) => have.includes(item)))
-  return usable.length > 0 && usable.every((kit) => kit.includes('dumbbell'))
+export function isWeighted(ex: Exercise): boolean {
+  return ex.requires.every((kit) => kit.includes('dumbbell'))
 }

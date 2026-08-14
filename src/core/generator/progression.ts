@@ -1,5 +1,5 @@
 import { isWeighted } from '../catalog/equipment'
-import type { Equipment, Exercise } from '../catalog/types'
+import type { Exercise } from '../catalog/types'
 import type { ExerciseProgress, PersonTarget } from './types'
 
 /** Epley estimated 1RM; reps at bodyweight (weight 0) contribute no e1rm. */
@@ -24,10 +24,10 @@ function snapToAvailable(available: number[], weight: number): number {
 }
 
 /** Starting target for an exercise with no history. */
-function initialTarget(ex: Exercise, availableWeights: number[], owned: Equipment[]): PersonTarget {
+function initialTarget(ex: Exercise, availableWeights: number[]): PersonTarget {
   const [minReps, maxReps] = ex.repRange
   const startReps = Math.min(minReps + 2, maxReps)
-  if (!isWeighted(ex, owned)) return { targetReps: startReps, weight: 0 }
+  if (!isWeighted(ex)) return { targetReps: startReps, weight: 0 }
   const sorted = [...availableWeights].sort((a, b) => a - b)
   // Conservative default: second-lightest dumbbell; feedback moves it quickly.
   const weight = sorted[Math.min(1, sorted.length - 1)] ?? 0
@@ -44,9 +44,8 @@ export function nextTarget(
   ex: Exercise,
   availableWeights: number[],
   progress: ExerciseProgress | undefined,
-  owned: Equipment[],
 ): PersonTarget {
-  const t = nextTargetRaw(ex, availableWeights, progress, owned)
+  const t = nextTargetRaw(ex, availableWeights, progress)
   // Whatever path produced it, the prescription must be liftable with the
   // dumbbells the person actually owns today.
   return t.weight === 0 ? t : { ...t, weight: snapToAvailable(availableWeights, t.weight) }
@@ -56,15 +55,14 @@ function nextTargetRaw(
   ex: Exercise,
   availableWeights: number[],
   progress: ExerciseProgress | undefined,
-  owned: Equipment[],
 ): PersonTarget {
   if (ex.repRange[0] === 1 && ex.repRange[1] === 1) return { targetReps: 1, weight: 0 }
-  if (!progress) return initialTarget(ex, availableWeights, owned)
+  if (!progress) return initialTarget(ex, availableWeights)
 
   const [minReps, maxReps] = ex.repRange
   const { lastWeight, lastTargetReps, lastActualReps, lastFeedback } = progress
   const clampReps = (r: number) => Math.max(minReps, Math.min(maxReps, r))
-  const isBodyweight = !isWeighted(ex, owned) || lastWeight === 0
+  const isBodyweight = !isWeighted(ex) || lastWeight === 0
 
   if (lastFeedback === 'too_hard') {
     if (isBodyweight) return { targetReps: clampReps(lastTargetReps - 2), weight: 0 }

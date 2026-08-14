@@ -334,7 +334,7 @@ export function generateWorkout(input: GeneratorInput): WorkoutPlan {
   const toWorkItem = (ex: Exercise): WorkItem => {
     const perPerson: Record<string, PersonTarget> = {}
     for (const p of participants) {
-      perPerson[p.userId] = nextTarget(ex, p.availableWeights, p.progression[ex.id], p.equipment)
+      perPerson[p.userId] = nextTarget(ex, p.availableWeights, p.progression[ex.id])
     }
     return { exerciseId: ex.id, perPerson }
   }
