@@ -9,6 +9,7 @@ import {
   appendSession,
   appendSetLogs,
   clearSnapshot,
+  loadSetLogs,
   saveSnapshot,
   type SessionSnapshot,
 } from '../../infra/localstore'
@@ -77,17 +78,27 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
   resume(snap) {
     unlockAudio()
     keepAwake()
+    // Rebuild this session's counters from the log — they drive the numbers on
+    // the completion screen, and zeroing them made every resumed session
+    // under-report what was actually done.
+    const setsLogged: Record<string, number> = {}
+    for (const log of loadSetLogs()) {
+      if (log.loggedAt >= snap.startedAt) setsLogged[log.userId] = (setsLogged[log.userId] ?? 0) + 1
+    }
     set({
       plan: snap.plan,
       state: snap.state,
       startedAt: snap.startedAt,
-      setsLogged: {},
+      setsLogged,
       feedbackGiven: {},
       summary: null,
       soundOn: isAudioReady(),
     })
-    // Fast-forward any timers that expired while the app was closed.
-    get().dispatch({ type: 'TIMER_FIRED', now: Date.now() })
+    const now = Date.now()
+    // A snapshot taken by the late-timer rule is already paused. The user just
+    // pressed Resume, so honour that rather than making them press it twice.
+    if (snap.state.phase === 'paused') get().dispatch({ type: 'RESUME', now })
+    else get().dispatch({ type: 'TIMER_FIRED', now })
   },
 
   dispatch(event) {

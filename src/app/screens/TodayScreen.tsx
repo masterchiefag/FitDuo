@@ -31,6 +31,17 @@ export default function TodayScreen() {
   const [mobilityWho, setMobilityWho] = useState<string[]>(PROFILES.map((p) => p.id))
   const [mobilityMinutes, setMobilityMinutes] = useState<number>(DEFAULT_MOBILITY_MINUTES)
 
+  // Generating three plans on every render just to label the cards is waste.
+  const mobilityMins = useMemo(() => {
+    const out = {} as Record<MobilityFocus, number>
+    for (const focus of Object.keys(MOBILITY_FOCUS) as MobilityFocus[]) {
+      out[focus] = Math.round(
+        mobilityPlan(focus, mobilityWho, mobilityMinutes).estimatedSeconds / 60,
+      )
+    }
+    return out
+  }, [mobilityWho, mobilityMinutes])
+
   const beginMobility = (focus: MobilityFocus) => {
     start(mobilityPlan(focus, mobilityWho, mobilityMinutes))
     void navigate('/workout')
@@ -144,9 +155,7 @@ export default function TodayScreen() {
           {(Object.keys(MOBILITY_FOCUS) as MobilityFocus[]).map((focus) => {
             const f = MOBILITY_FOCUS[focus]
             // Shallow pools honestly deliver less than the slot asked for.
-            const actualMins = Math.round(
-              mobilityPlan(focus, mobilityWho, mobilityMinutes).estimatedSeconds / 60,
-            )
+            const actualMins = mobilityMins[focus]
             return (
               <button
                 key={focus}

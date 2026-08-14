@@ -160,6 +160,7 @@ describe('deriveStats', () => {
     )
     expect(stats.totalXp).toBe(20)
     expect(stats.streak).toBe(1) // showing up still counts
+    expect(stats.sessionsCompleted).toBe(0) // ...but it is not a workout
   })
 
   it('mobility then strength on ONE day pays each session its own rate', () => {
@@ -190,7 +191,8 @@ describe('deriveStats', () => {
     const stats = deriveStats(U, [morning, evening], strengthSets, WEEKDAYS, '2026-08-03')
     // 20 (recovery) + 50 base + 2x10 sets + 25 full clear = 115
     expect(stats.totalXp).toBe(20 + 50 + 20 + 25)
-    expect(stats.sessionsCompleted).toBe(2)
+    // Both sessions paid, but only the strength one is a "workout".
+    expect(stats.sessionsCompleted).toBe(1)
     expect(stats.streak).toBe(1) // one calendar day, however many sessions
   })
 

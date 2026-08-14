@@ -210,13 +210,15 @@ export function deriveStats(
     // XP is per SESSION; streaks, freezes and achievements are per DAY.
     for (const session of daySessions) {
       if (session.completed) {
-        sessionsCompleted += 1
+        // 'Regular'/'Veteran' are workout milestones — a stretch is not one.
+        if (session.mode !== 'mobility') sessionsCompleted += 1
         totalXp += sessionXp(session, setsOf(session), prCountBySession.get(session.startedAt) ?? 0)
       } else {
         totalXp += 2 * setsOf(session).length // abandoned work still counts
       }
     }
-    if (!completed) totalXp += 2 * (orphanSetsByDate.get(d) ?? []).length
+    // Sets with no owning session still represent work done.
+    totalXp += 2 * (orphanSetsByDate.get(d) ?? []).length
 
     if (completed) {
       if (lastCompletedDate && daysBetween(lastCompletedDate, d) >= 7) unlock('comeback', d)
