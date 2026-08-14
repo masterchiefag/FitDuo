@@ -9,6 +9,7 @@ import {
   appendSession,
   appendSetLogs,
   clearSnapshot,
+  loadSetLogs,
   saveSnapshot,
   type SessionSnapshot,
 } from '../../infra/localstore'
@@ -77,17 +78,34 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
   resume(snap) {
     unlockAudio()
     keepAwake()
+    // Rebuild this session's counters from the log — they drive the numbers on
+    // the completion screen, and zeroing them made every resumed session
+    // under-report what was actually done.
+    const setsLogged: Record<string, number> = {}
+    for (const log of loadSetLogs()) {
+      if (log.loggedAt >= snap.startedAt) setsLogged[log.userId] = (setsLogged[log.userId] ?? 0) + 1
+    }
     set({
       plan: snap.plan,
       state: snap.state,
       startedAt: snap.startedAt,
-      setsLogged: {},
+      setsLogged,
       feedbackGiven: {},
       summary: null,
       soundOn: isAudioReady(),
     })
-    // Fast-forward any timers that expired while the app was closed.
-    get().dispatch({ type: 'TIMER_FIRED', now: Date.now() })
+    const now = Date.now()
+    // The user pressed Resume — one tap must put them back in the session.
+    // Snapshots arrive in two shapes: already paused (late-timer rule), or a
+    // live phase with a stale deadline (tab killed mid-hold). Wrap the latter
+    // so both take the same tested RESUME path; otherwise the stale one fires
+    // TIMER_FIRED, trips the late rule, and lands on the Paused screen.
+    if (snap.state.phase === 'paused') {
+      get().dispatch({ type: 'RESUME', now })
+    } else {
+      set({ state: { phase: 'paused', resumeState: snap.state, pausedAt: snap.savedAt } })
+      get().dispatch({ type: 'RESUME', now })
+    }
   },
 
   dispatch(event) {
@@ -135,6 +153,7 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
           )
           appendSession({
             dateISO: plan.dateISO,
+            mode: plan.mode,
             participantIds: plan.participantIds,
             dayType: plan.dayType,
             startedAt,

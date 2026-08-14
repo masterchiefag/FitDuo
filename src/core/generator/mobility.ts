@@ -1,4 +1,5 @@
 import type { Equipment, Exercise, MobilityPhase, MobilityRegion } from '../catalog/types'
+import { estimatePlanSeconds } from './generate'
 import { fnv1a32, mulberry32, shuffle } from './prng'
 import type { Block, TimedItem, WorkoutPlan } from './types'
 
@@ -95,7 +96,6 @@ export function generateMobilitySession(input: MobilityInput): WorkoutPlan {
   const regions = MOBILITY_FOCUS[focus].regions
 
   const blocks: Block[] = []
-  let estimatedSeconds = 0
   for (const phase of ['mobilise', 'open', 'activate'] as const) {
     const pool = poolFor(catalog, phase, regions, equipment)
     if (pool.length === 0) continue
@@ -114,10 +114,15 @@ export function generateMobilitySession(input: MobilityInput): WorkoutPlan {
     // Fill this phase's share of the time budget. Longer sessions work further
     // down the pool and then cycle back for a second round of the key
     // movements — which is how a real mobility routine lengthens.
+    // A second round of the key movements is how a real routine lengthens; a
+    // third is padding. Shallow pools stop after one pass, so a long request
+    // returns an honestly shorter session instead of the same two stretches
+    // three times.
+    const maxRounds = ordered.length >= 4 ? 2 : 1
     const budget = targetSeconds * PHASE_SHARE[phase]
     const chosen: Exercise[] = []
     let spent = 0
-    for (let i = 0; i < 40; i++) {
+    for (let i = 0; i < ordered.length * maxRounds; i++) {
       const ex = ordered[i % ordered.length]!
       const seconds = ex.mobility!.seconds
       // Round to the nearest fit rather than always overshooting: take the
@@ -139,7 +144,6 @@ export function generateMobilitySession(input: MobilityInput): WorkoutPlan {
       exerciseId: ex.id,
       seconds: ex.mobility!.seconds,
     }))
-    estimatedSeconds += items.reduce((a, i) => a + i.seconds, 0) + 15
     blocks.push({ kind: 'mobility', label: PHASE_LABEL[phase], items })
   }
 
@@ -147,9 +151,14 @@ export function generateMobilitySession(input: MobilityInput): WorkoutPlan {
     planVersion: 1,
     seed,
     dateISO,
-    dayType: 'full_a', // mobility sessions do not participate in day-type rotation
+    mode: 'mobility',
+    // Recovery work takes no part in day-type rotation; `mode` is what the app
+    // reads. This field only satisfies the shared plan shape.
+    dayType: 'full_a',
     participantIds,
-    estimatedSeconds,
+    // One estimator for every plan shape — the player's own block-transition
+    // constant included, so the number shown matches the session run.
+    estimatedSeconds: estimatePlanSeconds(new Map(catalog.map((e) => [e.id, e])), blocks),
     blocks,
   }
 }

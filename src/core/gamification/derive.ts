@@ -6,6 +6,11 @@ import type { ExerciseProgress, FeedbackRating } from '../generator/types'
 
 export interface SessionEvent {
   dateISO: LocalDateISO
+  /** When the session actually finished, if it did. Sessions can now be paused
+   *  for hours, so a fixed window from the start is the wrong boundary. */
+  endedAt?: number
+  /** Recovery sessions keep the streak alive but are not strength days. */
+  mode: 'full' | 'mobility'
   completed: boolean // false = abandoned
   participantIds: string[]
   startedAt: number // epoch ms
@@ -79,6 +84,8 @@ export interface PersonStats {
   totalVolumeKg: number
   prCount: number
   completedDates: Set<LocalDateISO>
+  /** Dates with a completed STRENGTH session — recovery days are not workouts. */
+  workoutDates: Set<LocalDateISO>
   achievements: Unlocked[]
 }
 
@@ -92,20 +99,36 @@ function weekKey(dateISO: LocalDateISO): string {
 const SESSION_WINDOW_MS = 6 * 3_600_000
 
 /**
- * Date-assigner for set/feedback events: the owning session's frozen dateISO
- * when one matches, falling back to the event's own local date. Keeps
- * cross-midnight sessions intact and replay timezone-independent.
+ * Owning-session lookup for set/feedback events.
+ *
+ * Everything downstream keys off the SESSION, not the calendar day: two
+ * sessions can share a date (mobility in the morning, strength in the
+ * evening — which the UI actively suggests), and a session can straddle
+ * midnight. Date-keyed replay pays both of those wrong.
  */
-function makeEventDateAssigner(sessions: SessionEvent[]): (loggedAt: number) => LocalDateISO {
+function makeEventSessionAssigner(
+  sessions: SessionEvent[],
+): (loggedAt: number) => SessionEvent | null {
   const sorted = [...sessions].sort((a, b) => a.startedAt - b.startedAt)
   return (loggedAt) => {
     let owner: SessionEvent | null = null
     for (const s of sorted) {
-      if (s.startedAt <= loggedAt && loggedAt - s.startedAt <= SESSION_WINDOW_MS) owner = s
+      const until = s.endedAt ?? s.startedAt + SESSION_WINDOW_MS
+      if (s.startedAt <= loggedAt && loggedAt <= until) owner = s
       if (s.startedAt > loggedAt) break
     }
-    return owner ? owner.dateISO : localDateISO(loggedAt)
+    return owner
   }
+}
+
+/** XP a single completed session is worth. One place, so modes cannot drift. */
+function sessionXp(session: SessionEvent, sets: SetEvent[], prCount: number): number {
+  // Recovery work counts for the streak but is not a strength session.
+  if (session.mode === 'mobility') return 20
+  let xp = 50 + 2 * sets.length
+  // Full-clear bonus: every set in THIS session hit its target reps.
+  if (sets.length > 0 && sets.every((s) => s.actualReps >= s.targetReps)) xp += 25
+  return xp + 15 * Math.min(prCount, 2)
 }
 
 /** Total order: by date, then start time — same-date sessions sort stably. */
@@ -130,24 +153,43 @@ export function deriveStats(
   const mySets = [...sets]
     .filter((s) => s.userId === userId)
     .sort((a, b) => a.loggedAt - b.loggedAt)
-  const dateOf = makeEventDateAssigner(mySessions)
+  const sessionOf = makeEventSessionAssigner(mySessions)
 
   const completedDates = new Set(mySessions.filter((s) => s.completed).map((s) => s.dateISO))
-  const setsByDate = new Map<LocalDateISO, SetEvent[]>()
+  const workoutDates = new Set(
+    mySessions.filter((s) => s.completed && s.mode !== 'mobility').map((s) => s.dateISO),
+  )
+  // Keyed by startedAt: a session's identity, unique per person.
+  const setsBySession = new Map<number, SetEvent[]>()
+  const orphanSetsByDate = new Map<LocalDateISO, SetEvent[]>()
   for (const s of mySets) {
-    const d = dateOf(s.loggedAt)
-    const list = setsByDate.get(d) ?? []
-    list.push(s)
-    setsByDate.set(d, list)
+    const owner = sessionOf(s.loggedAt)
+    if (owner) {
+      const list = setsBySession.get(owner.startedAt) ?? []
+      list.push(s)
+      setsBySession.set(owner.startedAt, list)
+    } else {
+      const d = localDateISO(s.loggedAt)
+      const list = orphanSetsByDate.get(d) ?? []
+      list.push(s)
+      orphanSetsByDate.set(d, list)
+    }
   }
 
-  // PRs: chronological best-e1rm improvements (weighted sets only).
+  // PRs: chronological best-e1rm improvements (weighted sets only), credited
+  // to the session that produced them.
   const bestE1rm = new Map<string, number>()
   const prDates: LocalDateISO[] = []
+  const prCountBySession = new Map<number, number>()
   for (const s of mySets) {
     const e = epleyE1rm(s.weight, s.actualReps)
     if (e > 0 && e > (bestE1rm.get(s.exerciseId) ?? 0) + 1e-9) {
-      if (bestE1rm.has(s.exerciseId)) prDates.push(dateOf(s.loggedAt))
+      if (bestE1rm.has(s.exerciseId)) {
+        const owner = sessionOf(s.loggedAt)
+        prDates.push(owner?.dateISO ?? localDateISO(s.loggedAt))
+        if (owner)
+          prCountBySession.set(owner.startedAt, (prCountBySession.get(owner.startedAt) ?? 0) + 1)
+      }
       bestE1rm.set(s.exerciseId, e)
     }
   }
@@ -166,34 +208,35 @@ export function deriveStats(
   const firstDate = mySessions[0]?.dateISO ?? todayISO
   let sessionsCompleted = 0
   let totalVolumeKg = 0
-  const prCountByDate = new Map<LocalDateISO, number>()
-  for (const d of prDates) prCountByDate.set(d, (prCountByDate.get(d) ?? 0) + 1)
-
   for (let d = firstDate; d <= todayISO; d = addDays(d, 1)) {
     const scheduled = schedule[weekdayIndex(d)] ?? false
     const completed = completedDates.has(d)
-    const daySets = setsByDate.get(d) ?? []
-    const dayVolume = daySets.reduce((a, s) => a + s.weight * s.actualReps, 0)
-    totalVolumeKg += dayVolume
+    const daySessions = mySessions.filter((s) => s.dateISO === d)
+    const setsOf = (s: SessionEvent) => setsBySession.get(s.startedAt) ?? []
+    const daySets = [...daySessions.flatMap(setsOf), ...(orphanSetsByDate.get(d) ?? [])]
+    totalVolumeKg += daySets.reduce((a, s) => a + s.weight * s.actualReps, 0)
+
+    // XP is per SESSION; streaks, freezes and achievements are per DAY.
+    for (const session of daySessions) {
+      if (session.completed) {
+        // 'Regular'/'Veteran' are workout milestones — a stretch is not one.
+        if (session.mode !== 'mobility') sessionsCompleted += 1
+        totalXp += sessionXp(session, setsOf(session), prCountBySession.get(session.startedAt) ?? 0)
+      } else {
+        totalXp += 2 * setsOf(session).length // abandoned work still counts
+      }
+    }
+    // Sets with no owning session still represent work done.
+    totalXp += 2 * (orphanSetsByDate.get(d) ?? []).length
 
     if (completed) {
       if (lastCompletedDate && daysBetween(lastCompletedDate, d) >= 7) unlock('comeback', d)
       lastCompletedDate = d
-      sessionsCompleted += 1
       streak += 1
       longestStreak = Math.max(longestStreak, streak)
-
-      let xp = 50 + 2 * daySets.length
-      const session = mySessions.find((s) => s.dateISO === d && s.completed)
-      // Full-clear bonus can't be derived from sets alone (targets vary);
-      // approximate: every logged set hit its target reps.
-      const fullClear = daySets.length > 0 && daySets.every((s) => s.actualReps >= s.targetReps)
-      if (fullClear) xp += 25
-      xp += 15 * Math.min(prCountByDate.get(d) ?? 0, 2)
-      if (streak === 7) xp += 50
-      if (streak === 30) xp += 150
-      if (streak === 100) xp += 500
-      totalXp += xp
+      if (streak === 7) totalXp += 50
+      if (streak === 30) totalXp += 150
+      if (streak === 100) totalXp += 500
 
       unlock('first_workout', d)
       if (streak >= 7) unlock('week_streak', d)
@@ -202,10 +245,9 @@ export function deriveStats(
       if (sessionsCompleted >= 25) unlock('sessions_25', d)
       if (sessionsCompleted >= 100) unlock('sessions_100', d)
       if (totalVolumeKg >= 10_000) unlock('volume_10t', d)
-      if (session && new Date(session.startedAt).getHours() < 7) unlock('early_bird', d)
-      if (session && session.participantIds.length >= 2) unlock('duo_day', d)
-    } else if (daySets.length > 0) {
-      totalXp += 2 * daySets.length // abandoned sessions keep per-set XP
+      const done = daySessions.filter((s) => s.completed)
+      if (done.some((s) => new Date(s.startedAt).getHours() < 7)) unlock('early_bird', d)
+      if (done.some((s) => s.participantIds.length >= 2)) unlock('duo_day', d)
     }
 
     if (!completed && scheduled && d < todayISO) {
@@ -245,6 +287,7 @@ export function deriveStats(
     totalVolumeKg: Math.round(totalVolumeKg),
     prCount: prDates.length,
     completedDates,
+    workoutDates,
     achievements,
   }
 }
@@ -262,7 +305,8 @@ export function deriveProgression(
   const myFeedback = feedback
     .filter((f) => f.userId === userId)
     .sort((a, b) => a.loggedAt - b.loggedAt)
-  const dateOf = makeEventDateAssigner(mySessions)
+  const sessionOf = makeEventSessionAssigner(mySessions)
+  const keyOf = (loggedAt: number) => sessionOf(loggedAt)?.startedAt ?? localDateISO(loggedAt)
 
   const setsByExercise = new Map<string, SetEvent[]>()
   for (const s of mySets) {
@@ -272,14 +316,16 @@ export function deriveProgression(
   }
 
   for (const [exerciseId, all] of setsByExercise) {
-    const lastDate = dateOf(all[all.length - 1]!.loggedAt)
-    const lastSession = all.filter((s) => dateOf(s.loggedAt) === lastDate)
+    // Scoped to the exercise's most recent SESSION — two sessions in one day
+    // are two different data points, and stale feedback must not ratchet.
+    const lastKey = keyOf(all[all.length - 1]!.loggedAt)
+    const lastSession = all.filter((s) => keyOf(s.loggedAt) === lastKey)
     // Feedback only applies to the exercise's LAST session — an old rating
     // must not keep ratcheting the weight on every later plan generation.
     const lastFeedback =
       [...myFeedback]
         .reverse()
-        .find((f) => f.exerciseId === exerciseId && dateOf(f.loggedAt) === lastDate)?.rating ?? null
+        .find((f) => f.exerciseId === exerciseId && keyOf(f.loggedAt) === lastKey)?.rating ?? null
     let best = 0
     for (const s of all) best = Math.max(best, epleyE1rm(s.weight, s.actualReps))
     out[exerciseId] = {

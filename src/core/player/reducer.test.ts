@@ -12,6 +12,7 @@ const plan: WorkoutPlan = {
   planVersion: 1,
   seed: 42,
   dateISO: '2026-08-14',
+  mode: 'full',
   dayType: 'full_a',
   participantIds: [P1, P2],
   estimatedSeconds: 3300,
@@ -201,6 +202,33 @@ describe('player reducer', () => {
   it('pause/resume preserves remaining time', () => {
     const { state } = run([
       { type: 'START', now: 0 }, // warmup ends at 40s
+      { type: 'PAUSE', now: 10_000 }, // 30s remaining
+      { type: 'RESUME', now: 100_000 },
+    ])
+    expect(state).toEqual({ phase: 'timed', blockIndex: 0, itemIndex: 0, endsAt: 130_000 })
+  })
+
+  it('resuming a phase that expired unattended restarts it, not skips it', () => {
+    // Walk away during a 40s warmup item, come back 10 minutes later: the late
+    // rule pauses. Resuming must give the full item back — resuming with zero
+    // remaining would instantly advance past the exercise they returned for.
+    const away = run([
+      { type: 'START', now: 0 },
+      { type: 'TIMER_FIRED', now: 600_000 },
+    ])
+    expect(away.state.phase).toBe('paused')
+    const resumed = reduce(plan, away.state, { type: 'RESUME', now: 700_000 })
+    expect(resumed.state).toEqual({
+      phase: 'timed',
+      blockIndex: 0,
+      itemIndex: 0,
+      endsAt: 700_000 + 40_000,
+    })
+  })
+
+  it('pausing with time left still resumes with only that time left', () => {
+    const { state } = run([
+      { type: 'START', now: 0 }, // 40s item
       { type: 'PAUSE', now: 10_000 }, // 30s remaining
       { type: 'RESUME', now: 100_000 },
     ])

@@ -18,10 +18,11 @@ const ms = (dateISO: string, hour = 18) =>
 
 function session(
   dateISO: string,
-  opts: { completed?: boolean; duo?: boolean; hour?: number } = {},
+  opts: { completed?: boolean; duo?: boolean; hour?: number; mode?: 'full' | 'mobility' } = {},
 ): SessionEvent {
   return {
     dateISO,
+    mode: opts.mode ?? 'full',
     completed: opts.completed ?? true,
     participantIds: opts.duo ? [U, 'p2'] : [U],
     startedAt: ms(dateISO, opts.hour ?? 18),
@@ -149,6 +150,162 @@ describe('deriveStats', () => {
     expect(stats.streak).toBe(0)
   })
 
+  it('a recovery session pays the reduced rate, not a strength rate', () => {
+    const stats = deriveStats(
+      U,
+      [session('2026-08-03', { mode: 'mobility' })],
+      [],
+      WEEKDAYS,
+      '2026-08-03',
+    )
+    expect(stats.totalXp).toBe(20)
+    expect(stats.streak).toBe(1) // showing up still counts
+    expect(stats.sessionsCompleted).toBe(0) // ...but it is not a workout
+  })
+
+  it('mobility then strength on ONE day pays each session its own rate', () => {
+    // The UI actively suggests this ("on its own or after a workout"), and a
+    // date-keyed replay paid the whole day at whichever session came first.
+    const morning: SessionEvent = {
+      dateISO: '2026-08-03',
+      mode: 'mobility',
+      completed: true,
+      participantIds: [U],
+      startedAt: ms('2026-08-03', 8),
+    }
+    const evening: SessionEvent = {
+      dateISO: '2026-08-03',
+      mode: 'full',
+      completed: true,
+      participantIds: [U],
+      startedAt: ms('2026-08-03', 18),
+    }
+    const strengthSets: SetEvent[] = Array.from({ length: 10 }, (_, i) => ({
+      userId: U,
+      exerciseId: 'db-squat',
+      targetReps: 10,
+      actualReps: 10,
+      weight: 10,
+      loggedAt: ms('2026-08-03', 18) + i * 60_000,
+    }))
+    const stats = deriveStats(U, [morning, evening], strengthSets, WEEKDAYS, '2026-08-03')
+    // 20 (recovery) + 50 base + 2x10 sets + 25 full clear = 115
+    expect(stats.totalXp).toBe(20 + 50 + 20 + 25)
+    // Both sessions paid, but only the strength one is a "workout".
+    expect(stats.sessionsCompleted).toBe(1)
+    expect(stats.streak).toBe(1) // one calendar day, however many sessions
+  })
+
+  it('sets are credited to the session that produced them, not the day', () => {
+    // Reversing the order must not move the strength sets onto the mobility
+    // session (the failure mode Grok found).
+    const mobilityLater: SessionEvent = {
+      dateISO: '2026-08-03',
+      mode: 'mobility',
+      completed: true,
+      participantIds: [U],
+      startedAt: ms('2026-08-03', 20),
+    }
+    const strengthFirst: SessionEvent = {
+      dateISO: '2026-08-03',
+      mode: 'full',
+      completed: true,
+      participantIds: [U],
+      startedAt: ms('2026-08-03', 7),
+    }
+    const sets: SetEvent[] = Array.from({ length: 10 }, (_, i) => ({
+      userId: U,
+      exerciseId: 'db-squat',
+      targetReps: 10,
+      actualReps: 10,
+      weight: 10,
+      loggedAt: ms('2026-08-03', 7) + i * 60_000,
+    }))
+    const stats = deriveStats(U, [strengthFirst, mobilityLater], sets, WEEKDAYS, '2026-08-03')
+    expect(stats.totalXp).toBe(20 + 50 + 20 + 25)
+  })
+
+  it('two strength sessions in a day are paid separately, not pooled', () => {
+    // The distinguishing case: crediting a day's sets to each session would
+    // pay both sessions for all 10 sets. Only per-session bucketing gets this
+    // right, and the mobility+strength case cannot detect the difference
+    // (a mobility session has no sets).
+    const mk = (hour: number): SessionEvent => ({
+      dateISO: '2026-08-03',
+      mode: 'full',
+      completed: true,
+      participantIds: [U],
+      startedAt: ms('2026-08-03', hour),
+    })
+    const setsAt = (hour: number): SetEvent[] =>
+      Array.from({ length: 5 }, (_, i) => ({
+        userId: U,
+        exerciseId: 'db-squat',
+        targetReps: 10,
+        actualReps: 10,
+        weight: 10,
+        loggedAt: ms('2026-08-03', hour) + i * 60_000,
+      }))
+    const stats = deriveStats(
+      U,
+      [mk(7), mk(18)],
+      [...setsAt(7), ...setsAt(18)],
+      WEEKDAYS,
+      '2026-08-03',
+    )
+    // Each session: 50 base + 2x5 sets + 25 full clear = 85. Pooling would
+    // charge each session for all 10 sets and yield 190.
+    expect(stats.totalXp).toBe(85 + 85)
+  })
+
+  it('a session paused for hours still owns the sets logged after it resumes', () => {
+    // Start 21:00, pause (lid closed), finish after 03:00. A fixed 6h window
+    // from the start would orphan the later sets — 2 XP each and a full-clear
+    // judged on the first hour only. endedAt is the real boundary.
+    const overnight: SessionEvent = {
+      dateISO: '2026-08-03',
+      mode: 'full',
+      completed: true,
+      participantIds: [U],
+      startedAt: ms('2026-08-03', 21),
+      endedAt: Date.parse('2026-08-04T03:30:00'),
+    }
+    const sets: SetEvent[] = [
+      ...Array.from({ length: 4 }, (_, i) => ({
+        userId: U,
+        exerciseId: 'db-squat',
+        targetReps: 10,
+        actualReps: 10,
+        weight: 10,
+        loggedAt: ms('2026-08-03', 21) + i * 60_000,
+      })),
+      // Resumed well past the old 6h cut-off.
+      ...Array.from({ length: 4 }, (_, i) => ({
+        userId: U,
+        exerciseId: 'db-squat',
+        targetReps: 10,
+        actualReps: 10,
+        weight: 10,
+        loggedAt: Date.parse('2026-08-04T03:00:00') + i * 60_000,
+      })),
+    ]
+    const stats = deriveStats(U, [overnight], sets, WEEKDAYS, '2026-08-04')
+    // All 8 sets belong to the session: 50 + 2x8 + 25 full clear.
+    expect(stats.totalXp).toBe(50 + 16 + 25)
+  })
+
+  it('a recovery day is not a workout day', () => {
+    const stats = deriveStats(
+      U,
+      [session('2026-08-03', { mode: 'mobility' })],
+      [],
+      WEEKDAYS,
+      '2026-08-03',
+    )
+    expect(stats.completedDates.has('2026-08-03')).toBe(true)
+    expect(stats.workoutDates.has('2026-08-03')).toBe(false)
+  })
+
   it('PRs add capped XP and unlock achievements', () => {
     // Two sessions; second improves e1rm on the same exercise (one PR).
     const sets = [...setsFor('2026-08-03', 3, 10, 10), ...setsFor('2026-08-04', 3, 12.5, 10, 10)]
@@ -225,6 +382,7 @@ describe('deriveProgression', () => {
   it('attributes post-midnight sets to the session that started them', () => {
     const lateSession: SessionEvent = {
       dateISO: '2026-08-03',
+      mode: 'full',
       completed: true,
       participantIds: [U],
       startedAt: ms('2026-08-03', 23),

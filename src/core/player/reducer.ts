@@ -104,6 +104,25 @@ function advanceTimed(plan: WorkoutPlan, state: PlayerState, now: number): Trans
   }
 }
 
+/** The phase's own full length, used to restart a phase that expired unattended. */
+function fullDurationOf(
+  plan: WorkoutPlan,
+  state: Extract<PlayerState, { endsAt: number }>,
+): number {
+  if (state.phase === 'timed') {
+    const block = blockAt(plan, state.blockIndex)
+    const item = block && isTimedBlock(block) ? block.items[state.itemIndex] : undefined
+    return (item?.seconds ?? 1) * 1000
+  }
+  if (state.phase === 'rest') {
+    const block = blockAt(plan, state.blockIndex)
+    const rest =
+      block && (block.kind === 'superset' || block.kind === 'circuit') ? block.restSeconds : 1
+    return rest * 1000
+  }
+  return BLOCK_TRANSITION_SECONDS * 1000
+}
+
 function isTimedPhase(state: PlayerState): state is Extract<PlayerState, { endsAt: number }> {
   return state.phase === 'timed' || state.phase === 'rest' || state.phase === 'block_transition'
 }
@@ -254,9 +273,17 @@ export function reduce(plan: WorkoutPlan, state: PlayerState, event: PlayerEvent
     case 'RESUME': {
       if (state.phase !== 'paused') return { state, effects: [] }
       const inner = state.resumeState
-      const resumed = isTimedPhase(inner)
-        ? { ...inner, endsAt: event.now + Math.max(0, inner.endsAt - state.pausedAt) }
-        : inner
+      // A phase paused because it had ALREADY expired (the late-timer rule)
+      // was never performed — restart it in full rather than resuming with
+      // zero remaining, which would instantly advance past it.
+      let resumed: PlayerState = inner
+      if (isTimedPhase(inner)) {
+        const remaining = inner.endsAt - state.pausedAt
+        resumed = {
+          ...inner,
+          endsAt: event.now + (remaining > 0 ? remaining : fullDurationOf(plan, inner)),
+        }
+      }
       return { state: resumed, effects: [{ type: 'PERSIST_SNAPSHOT' }] }
     }
 

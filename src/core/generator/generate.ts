@@ -200,9 +200,10 @@ function workItemSeconds(byId: Map<string, Exercise>, item: WorkItem): number {
 }
 
 export function estimatePlanSeconds(byId: Map<string, Exercise>, blocks: Block[]): number {
-  let total = 0
+  // One transition BETWEEN blocks, not one per block — the last block runs
+  // straight into the celebration.
+  let total = Math.max(0, blocks.length - 1) * TRANSITION_S
   for (const b of blocks) {
-    total += TRANSITION_S
     if (b.kind === 'warmup' || b.kind === 'cooldown' || b.kind === 'mobility') {
       total += b.items.reduce((a, i) => a + i.seconds, 0)
     } else {
@@ -341,6 +342,7 @@ export function generateWorkout(input: GeneratorInput): WorkoutPlan {
     planVersion: 1,
     seed,
     dateISO,
+    mode: 'full',
     dayType,
     participantIds: participants.map((p) => p.userId),
     estimatedSeconds: estimatePlanSeconds(byId, blocks),

@@ -4,7 +4,9 @@ import type { PlayerState, SetLogDraft } from '../core/player/types'
 import type { FeedbackRating, WorkoutPlan } from '../core/generator/types'
 
 const KEYS = {
-  snapshot: 'fitduo.snapshot.v1',
+  // v2: player phases warmup/cooldown were unified into 'timed'; a v1
+  // snapshot would resume into a phase the reducer no longer knows.
+  snapshot: 'fitduo.snapshot.v2',
   setLogs: 'fitduo.setlogs.v1',
   feedback: 'fitduo.feedback.v1',
   sessions: 'fitduo.sessions.v1',
@@ -26,6 +28,7 @@ export interface FeedbackEntry {
 
 export interface SessionRecord {
   dateISO: string
+  mode: 'full' | 'mobility'
   participantIds: string[]
   dayType: string
   startedAt: number
