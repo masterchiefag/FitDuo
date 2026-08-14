@@ -2,7 +2,9 @@ import type { FeedbackRating, PersonTarget } from '../generator/types'
 
 export type PlayerState =
   | { phase: 'idle' }
-  | { phase: 'warmup'; itemIndex: number; endsAt: number }
+  /** Any timed block (warmup, mobility, cooldown) — identified by blockIndex,
+   *  never by scanning the plan for a block kind. */
+  | { phase: 'timed'; blockIndex: number; itemIndex: number; endsAt: number }
   | { phase: 'work'; blockIndex: number; round: number; itemIndex: number }
   | {
       phase: 'rest'
@@ -12,7 +14,6 @@ export type PlayerState =
       endsAt: number
     }
   | { phase: 'block_transition'; nextBlockIndex: number; endsAt: number }
-  | { phase: 'cooldown'; itemIndex: number; endsAt: number }
   | { phase: 'paused'; resumeState: PlayerState; pausedAt: number }
   | { phase: 'complete' }
 

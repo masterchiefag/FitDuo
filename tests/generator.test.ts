@@ -3,17 +3,9 @@ import fc from 'fast-check'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { catalogSchema } from '../src/core/catalog/types'
-import {
-  DURATION_MAX_S,
-  DURATION_MIN_S,
-  generateWorkout,
-} from '../src/core/generator/generate'
+import { DURATION_MAX_S, DURATION_MIN_S, generateWorkout } from '../src/core/generator/generate'
 import { addDays } from '../src/core/dates'
-import type {
-  DayHistory,
-  GeneratorInput,
-  ParticipantInput,
-} from '../src/core/generator/types'
+import type { DayHistory, GeneratorInput, ParticipantInput } from '../src/core/generator/types'
 
 const catalog = catalogSchema.parse(
   JSON.parse(readFileSync(join(__dirname, '..', 'content', 'catalog.json'), 'utf8')),
@@ -143,9 +135,7 @@ describe('generateWorkout properties', () => {
       generatorVersion: 1,
       catalog,
       scheduledDays: [true, true, true, true, true, true, true],
-      participants: [
-        { userId: 'p1', availableWeights: [5, 10], maxTier: 2, progression: {} },
-      ],
+      participants: [{ userId: 'p1', availableWeights: [5, 10], maxTier: 2, progression: {} }],
       recentHistory: [],
     }
     const history: DayHistory[] = []
@@ -159,8 +149,7 @@ describe('generateWorkout properties', () => {
       for (const id of mains) {
         const last = seen.get(id)
         if (last) {
-          const gap =
-            (Date.parse(date) - Date.parse(last)) / 86_400_000
+          const gap = (Date.parse(date) - Date.parse(last)) / 86_400_000
           // Relaxation may shrink the window when pools run dry, but with our
           // catalog a full-week schedule must keep at least a 2-day gap.
           expect(gap, `${id} reused after ${gap} days`).toBeGreaterThan(2)

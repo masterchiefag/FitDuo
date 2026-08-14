@@ -9,8 +9,10 @@ function blockAt(plan: WorkoutPlan, index: number): Block | undefined {
   return plan.blocks[index]
 }
 
-function firstWorkBlockIndex(plan: WorkoutPlan): number {
-  return plan.blocks.findIndex((b) => b.kind === 'superset' || b.kind === 'circuit')
+type TimedBlock = Extract<Block, { kind: 'warmup' | 'mobility' | 'cooldown' }>
+
+export function isTimedBlock(block: Block): block is TimedBlock {
+  return block.kind === 'warmup' || block.kind === 'mobility' || block.kind === 'cooldown'
 }
 
 /** Entry state for a given block index (or complete when past the end). */
@@ -26,29 +28,17 @@ function enterBlock(plan: WorkoutPlan, blockIndex: number, now: number): Transit
       ],
     }
   }
-  switch (block.kind) {
-    case 'warmup': {
-      const item = block.items[0]
-      if (!item) return enterBlock(plan, blockIndex + 1, now)
-      return {
-        state: { phase: 'warmup', itemIndex: 0, endsAt: now + item.seconds * 1000 },
-        effects: [{ type: 'CUE', sound: 'go' }, { type: 'PERSIST_SNAPSHOT' }],
-      }
+  if (isTimedBlock(block)) {
+    const item = block.items[0]
+    if (!item) return enterBlock(plan, blockIndex + 1, now)
+    return {
+      state: { phase: 'timed', blockIndex, itemIndex: 0, endsAt: now + item.seconds * 1000 },
+      effects: [{ type: 'CUE', sound: 'go' }, { type: 'PERSIST_SNAPSHOT' }],
     }
-    case 'cooldown': {
-      const item = block.items[0]
-      if (!item) return enterBlock(plan, blockIndex + 1, now)
-      return {
-        state: { phase: 'cooldown', itemIndex: 0, endsAt: now + item.seconds * 1000 },
-        effects: [{ type: 'CUE', sound: 'go' }, { type: 'PERSIST_SNAPSHOT' }],
-      }
-    }
-    case 'superset':
-    case 'circuit':
-      return {
-        state: { phase: 'work', blockIndex, round: 0, itemIndex: 0 },
-        effects: [{ type: 'CUE', sound: 'go' }, { type: 'PERSIST_SNAPSHOT' }],
-      }
+  }
+  return {
+    state: { phase: 'work', blockIndex, round: 0, itemIndex: 0 },
+    effects: [{ type: 'CUE', sound: 'go' }, { type: 'PERSIST_SNAPSHOT' }],
   }
 }
 
@@ -57,24 +47,30 @@ function enterBlock(plan: WorkoutPlan, blockIndex: number, now: number): Transit
 /** Advance a timed phase whose deadline has passed. */
 function advanceTimed(plan: WorkoutPlan, state: PlayerState, now: number): Transition {
   switch (state.phase) {
-    case 'warmup': {
-      // Warmup is always the first block if present.
-      const warmupIndex = plan.blocks.findIndex((b) => b.kind === 'warmup')
-      const block = blockAt(plan, warmupIndex)
-      if (!block || block.kind !== 'warmup') return enterBlock(plan, warmupIndex + 1, now)
+    case 'timed': {
+      const block = blockAt(plan, state.blockIndex)
+      if (!block || !isTimedBlock(block)) return enterBlock(plan, state.blockIndex + 1, now)
       const next = state.itemIndex + 1
       const item = block.items[next]
       if (item) {
         return {
-          state: { phase: 'warmup', itemIndex: next, endsAt: now + item.seconds * 1000 },
+          state: {
+            phase: 'timed',
+            blockIndex: state.blockIndex,
+            itemIndex: next,
+            endsAt: now + item.seconds * 1000,
+          },
           effects: [{ type: 'CUE', sound: 'go' }, { type: 'PERSIST_SNAPSHOT' }],
         }
       }
-      const workIndex = firstWorkBlockIndex(plan)
+      // Block finished. A following block always gets its transition pause;
+      // the next block may be timed (mobility flow) or work.
+      const nextBlockIndex = state.blockIndex + 1
+      if (!blockAt(plan, nextBlockIndex)) return enterBlock(plan, nextBlockIndex, now)
       return {
         state: {
           phase: 'block_transition',
-          nextBlockIndex: workIndex === -1 ? plan.blocks.length : workIndex,
+          nextBlockIndex,
           endsAt: now + BLOCK_TRANSITION_SECONDS * 1000,
         },
         effects: [{ type: 'CUE', sound: 'rest' }, { type: 'PERSIST_SNAPSHOT' }],
@@ -93,32 +89,13 @@ function advanceTimed(plan: WorkoutPlan, state: PlayerState, now: number): Trans
     }
     case 'block_transition':
       return enterBlock(plan, state.nextBlockIndex, now)
-    case 'cooldown': {
-      const cooldownIndex = plan.blocks.findIndex((b) => b.kind === 'cooldown')
-      const block = blockAt(plan, cooldownIndex)
-      if (!block || block.kind !== 'cooldown') return enterBlock(plan, plan.blocks.length, now)
-      const next = state.itemIndex + 1
-      const item = block.items[next]
-      if (item) {
-        return {
-          state: { phase: 'cooldown', itemIndex: next, endsAt: now + item.seconds * 1000 },
-          effects: [{ type: 'CUE', sound: 'go' }, { type: 'PERSIST_SNAPSHOT' }],
-        }
-      }
-      return enterBlock(plan, plan.blocks.length, now)
-    }
     default:
       return { state, effects: [] }
   }
 }
 
 function isTimedPhase(state: PlayerState): state is Extract<PlayerState, { endsAt: number }> {
-  return (
-    state.phase === 'warmup' ||
-    state.phase === 'rest' ||
-    state.phase === 'block_transition' ||
-    state.phase === 'cooldown'
-  )
+  return state.phase === 'timed' || state.phase === 'rest' || state.phase === 'block_transition'
 }
 
 // ─── the reducer ─────────────────────────────────────────────────────────────

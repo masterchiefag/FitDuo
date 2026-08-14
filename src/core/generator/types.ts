@@ -55,6 +55,7 @@ export interface WorkItem {
 
 export type Block =
   | { kind: 'warmup'; items: TimedItem[] }
+  | { kind: 'mobility'; label: string; items: TimedItem[] }
   | {
       kind: 'superset'
       label: string

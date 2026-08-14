@@ -1,0 +1,47 @@
+{
+  "_comment": "Template. Copy to ./profiles.local.json (gitignored) and put your real details there. Personal data \u2014 names, weights, pain areas \u2014 must never be committed; after M4 it lives in Supabase.",
+  "people": [
+    {
+      "id": "p1",
+      "name": "Person A",
+      "accent": "amber",
+      "availableWeights": [
+        2.5,
+        5,
+        7.5,
+        10
+      ],
+      "painAreas": [],
+      "notes": "",
+      "equipment": [
+        "bodyweight",
+        "dumbbell"
+      ]
+    },
+    {
+      "id": "p2",
+      "name": "Person B",
+      "accent": "teal",
+      "availableWeights": [
+        1,
+        2.5,
+        5
+      ],
+      "painAreas": [],
+      "notes": "",
+      "equipment": [
+        "bodyweight",
+        "dumbbell"
+      ]
+    }
+  ],
+  "schedule": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    false,
+    false
+  ]
+}

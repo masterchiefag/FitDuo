@@ -4,6 +4,8 @@
 
 export interface Curated {
   slug: string
+  /** Explicit when it isn't inferable from the slug prefix (db- => dumbbell). */
+  equipment?: 'bodyweight' | 'dumbbell' | 'band' | 'roller'
   sourceId: string
   displayName: string
   role: 'warmup' | 'main' | 'cooldown'
@@ -945,4 +947,369 @@ export const SELECTION: Curated[] = [
     'Rock gently side to side',
     'Let the low back release',
   ]),
+]
+
+// ─── Mobility & Relief ──────────────────────────────────────────────────────
+// Routines run mobilise → open → activate. Stretching alone does not fix a
+// slouched posture: the stiff segment must move, the tight front must open,
+// and the weak mid-back must switch on.
+
+type MobilityMeta = {
+  phase: 'mobilise' | 'open' | 'activate'
+  regions: ('thoracic' | 'shoulders' | 'neck' | 'chest' | 'lower_back' | 'hips')[]
+  seconds: number
+  focusCue?: string
+  /** 2 = highest-value movement for its regions; picked ahead of the rest.
+   *  Editorial judgement lives in content, not in the generator. */
+  priority?: 1 | 2
+}
+
+/** Mobility metadata layered onto exercises already in the catalog. */
+export const MOBILITY_META: Record<string, MobilityMeta> = {
+  'cat-cow': {
+    phase: 'mobilise',
+    regions: ['thoracic', 'lower_back'],
+    seconds: 45,
+    focusCue: 'Move one vertebra at a time — this is the segment that stiffens when you slouch',
+  },
+  'dynamic-back-stretch': { phase: 'mobilise', regions: ['thoracic'], seconds: 40 },
+  'spinal-twist': { phase: 'mobilise', regions: ['thoracic', 'lower_back'], seconds: 50 },
+  'shoulder-circles': { phase: 'mobilise', regions: ['shoulders'], seconds: 35 },
+  'arm-circles': { phase: 'mobilise', regions: ['shoulders'], seconds: 35 },
+  'hip-circles': { phase: 'mobilise', regions: ['hips'], seconds: 35 },
+  'neck-stretch': { phase: 'open', regions: ['neck'], seconds: 40 },
+  'chest-stretch': {
+    phase: 'open',
+    regions: ['chest', 'shoulders'],
+    seconds: 45,
+    priority: 2,
+    focusCue: 'Tight chest pulls the shoulders forward — breathe out and let them widen',
+  },
+  'dynamic-chest-stretch': { phase: 'open', regions: ['chest', 'shoulders'], seconds: 40 },
+  'cross-shoulder-stretch': { phase: 'open', regions: ['shoulders'], seconds: 40 },
+  'childs-pose': { phase: 'open', regions: ['lower_back', 'thoracic'], seconds: 50 },
+  'knees-to-chest': { phase: 'open', regions: ['lower_back'], seconds: 40 },
+  'kneeling-hip-flexor-stretch': { phase: 'open', regions: ['hips'], seconds: 45 },
+  'figure-four-stretch': { phase: 'open', regions: ['hips'], seconds: 45 },
+  'worlds-greatest-stretch': { phase: 'open', regions: ['hips', 'thoracic'], seconds: 45 },
+  superman: {
+    phase: 'activate',
+    regions: ['thoracic', 'lower_back'],
+    seconds: 35,
+    focusCue: 'Lift from between the shoulder blades, not the neck',
+  },
+  'db-reverse-fly': {
+    phase: 'activate',
+    regions: ['thoracic', 'shoulders'],
+    seconds: 40,
+    focusCue: 'Light or no weight here — squeeze the shoulder blades together, hold a beat',
+  },
+  'dead-bug': { phase: 'activate', regions: ['lower_back'], seconds: 40 },
+}
+
+/** Mobility-only movements — the posture work the strength catalog was missing. */
+export const MOBILITY_ADDITIONS: (Curated & { mobility: MobilityMeta })[] = [
+  {
+    slug: 'elbows-back',
+    sourceId: 'Elbows_Back',
+    displayName: 'Elbows Back Chest Opener',
+    role: 'mobility',
+    pattern: 'mobility',
+    tier: 1,
+    unilateral: false,
+    repRange: [1, 1],
+    secondsPerRep: 40,
+    setupSeconds: 5,
+    cues: [
+      'Elbows squeeze back and together',
+      'Chest lifts, ribs stay down',
+      'Breathe into the front of the chest',
+    ],
+    mobility: { phase: 'open', regions: ['chest', 'shoulders'], seconds: 40 },
+  },
+  {
+    slug: 'lat-wall-stretch',
+    sourceId: 'One_Arm_Against_Wall',
+    displayName: 'Lat Stretch at the Wall',
+    role: 'mobility',
+    pattern: 'mobility',
+    tier: 1,
+    unilateral: true,
+    repRange: [1, 1],
+    secondsPerRep: 40,
+    setupSeconds: 5,
+    cues: [
+      'Hand high on the wall, sink the chest',
+      'Feel it down the side of the back',
+      'Switch sides halfway',
+    ],
+    mobility: { phase: 'open', regions: ['shoulders', 'thoracic'], seconds: 45, priority: 2 },
+  },
+  {
+    slug: 'upper-back-stretch',
+    sourceId: 'Upper_Back_Stretch',
+    displayName: 'Upper Back Stretch',
+    role: 'mobility',
+    pattern: 'mobility',
+    tier: 1,
+    unilateral: false,
+    repRange: [1, 1],
+    secondsPerRep: 40,
+    setupSeconds: 5,
+    cues: [
+      'Clasp hands and push them away',
+      'Round the upper back, open between the blades',
+      'Chin gently tucked',
+    ],
+    mobility: { phase: 'open', regions: ['thoracic'], seconds: 40 },
+  },
+  {
+    slug: 'middle-back-mobiliser',
+    sourceId: 'Middle_Back_Stretch',
+    displayName: 'Mid-Back Mobiliser',
+    role: 'mobility',
+    pattern: 'mobility',
+    tier: 1,
+    unilateral: false,
+    repRange: [1, 1],
+    secondsPerRep: 40,
+    setupSeconds: 5,
+    cues: [
+      'Slow side-to-side through the mid-back',
+      'Hips stay square',
+      'Only as far as comfortable',
+    ],
+    mobility: { phase: 'mobilise', regions: ['thoracic'], seconds: 40 },
+  },
+  {
+    slug: 'chin-tuck',
+    sourceId: 'Chin_To_Chest_Stretch',
+    displayName: 'Chin Tuck',
+    role: 'mobility',
+    pattern: 'mobility',
+    tier: 1,
+    unilateral: false,
+    repRange: [1, 1],
+    secondsPerRep: 35,
+    setupSeconds: 5,
+    cues: [
+      'Draw the chin straight back, make a double chin',
+      'Hold 3 seconds, release',
+      'Directly counters a forward head',
+    ],
+    mobility: {
+      phase: 'activate',
+      regions: ['neck'],
+      seconds: 35,
+      focusCue: 'Head slides back over the shoulders — no tilting up or down',
+    },
+  },
+  {
+    slug: 'scap-retraction',
+    sourceId: 'Middle_Back_Shrug',
+    displayName: 'Scapular Retraction',
+    role: 'mobility',
+    pattern: 'mobility',
+    tier: 1,
+    unilateral: false,
+    repRange: [1, 1],
+    secondsPerRep: 40,
+    setupSeconds: 5,
+    cues: [
+      'Pull the shoulder blades back and down',
+      'Arms stay relaxed — the blades do the work',
+      'Hold 2 seconds each rep',
+    ],
+    mobility: {
+      phase: 'activate',
+      regions: ['thoracic', 'shoulders'],
+      seconds: 40,
+      priority: 2,
+      focusCue: 'This is the muscle that holds you upright — squeeze and hold, no shrugging',
+    },
+  },
+  {
+    slug: 'shoulder-external-rotation',
+    sourceId: 'External_Rotation',
+    displayName: 'Shoulder External Rotation',
+    role: 'mobility',
+    pattern: 'mobility',
+    tier: 1,
+    unilateral: true,
+    repRange: [1, 1],
+    secondsPerRep: 40,
+    setupSeconds: 5,
+    cues: [
+      'Elbow pinned to your side, bent 90°',
+      'Rotate the forearm out slowly',
+      'Very light or no weight',
+    ],
+    mobility: {
+      phase: 'activate',
+      regions: ['shoulders'],
+      seconds: 45,
+      focusCue: 'Small range, slow — this wakes up the cuff that supports the joint',
+    },
+  },
+  {
+    slug: 'prone-rear-delt-raise',
+    sourceId: 'Lying_Rear_Delt_Raise',
+    displayName: 'Prone Rear Delt Raise',
+    role: 'mobility',
+    pattern: 'mobility',
+    tier: 1,
+    unilateral: false,
+    repRange: [1, 1],
+    secondsPerRep: 40,
+    setupSeconds: 10,
+    cues: [
+      'Face down, arms out in a T',
+      'Lift with the shoulder blades, thumbs up',
+      'Little or no weight needed',
+    ],
+    mobility: {
+      phase: 'activate',
+      regions: ['thoracic', 'shoulders'],
+      seconds: 40,
+      focusCue: 'Mid-back does the lifting — keep the neck long and relaxed',
+    },
+  },
+]
+
+/** Band + foam-roller mobility work — high value for scapular/thoracic issues. */
+export const EQUIPMENT_MOBILITY: (Curated & { mobility: MobilityMeta })[] = [
+  {
+    slug: 'band-pull-apart',
+    sourceId: 'Band_Pull_Apart',
+    displayName: 'Band Pull-Apart',
+    equipment: 'band',
+    role: 'mobility',
+    pattern: 'mobility',
+    tier: 1,
+    unilateral: false,
+    repRange: [1, 1],
+    secondsPerRep: 45,
+    setupSeconds: 10,
+    cues: [
+      'Band at chest height, arms straight',
+      'Pull apart until it touches your chest',
+      'Squeeze the shoulder blades, return slowly',
+    ],
+    mobility: {
+      phase: 'activate',
+      regions: ['thoracic', 'shoulders'],
+      seconds: 45,
+      priority: 2,
+      focusCue:
+        'The best single move for the muscles that hold your shoulders back — slow and controlled',
+    },
+  },
+  {
+    slug: 'band-rear-fly',
+    sourceId: 'Back_Flyes_-_With_Bands',
+    displayName: 'Band Rear Fly',
+    equipment: 'band',
+    role: 'mobility',
+    pattern: 'mobility',
+    tier: 1,
+    unilateral: false,
+    repRange: [1, 1],
+    secondsPerRep: 40,
+    setupSeconds: 10,
+    cues: [
+      'Anchor the band in front at chest height',
+      'Open the arms wide and back',
+      'Lead with the elbows, not the hands',
+    ],
+    mobility: { phase: 'activate', regions: ['thoracic', 'shoulders'], seconds: 40 },
+  },
+  {
+    slug: 'band-external-rotation',
+    sourceId: 'External_Rotation_with_Band',
+    displayName: 'Band External Rotation',
+    equipment: 'band',
+    role: 'mobility',
+    pattern: 'mobility',
+    tier: 1,
+    unilateral: true,
+    repRange: [1, 1],
+    secondsPerRep: 45,
+    setupSeconds: 10,
+    cues: [
+      'Elbow tucked at your side, bent 90°',
+      'Rotate the forearm outward against the band',
+      'Light tension, slow return — switch sides halfway',
+    ],
+    mobility: {
+      phase: 'activate',
+      regions: ['shoulders'],
+      seconds: 45,
+      priority: 2,
+      focusCue: 'Strengthens the rotator cuff that supports the joint — small range, no shrugging',
+    },
+  },
+  {
+    slug: 'roller-thoracic-extension',
+    sourceId: 'Rhomboids-SMR',
+    displayName: 'Thoracic Extension on Roller',
+    equipment: 'roller',
+    role: 'mobility',
+    pattern: 'mobility',
+    tier: 1,
+    unilateral: false,
+    repRange: [1, 1],
+    secondsPerRep: 60,
+    setupSeconds: 15,
+    cues: [
+      'Roller across the upper back, hands supporting the head',
+      'Gently arch back over it, breathe out',
+      'Move the roller a little and repeat — stay above the low back',
+    ],
+    mobility: {
+      phase: 'mobilise',
+      regions: ['thoracic'],
+      seconds: 60,
+      priority: 2,
+      focusCue:
+        'The most direct work for a rounded upper back — extend over the roller, do not force it',
+    },
+  },
+  {
+    slug: 'roller-lat-release',
+    sourceId: 'Latissimus_Dorsi-SMR',
+    displayName: 'Lat Release on Roller',
+    equipment: 'roller',
+    role: 'mobility',
+    pattern: 'mobility',
+    tier: 1,
+    unilateral: true,
+    repRange: [1, 1],
+    secondsPerRep: 45,
+    setupSeconds: 10,
+    cues: [
+      'Lie on your side, roller under the armpit',
+      'Roll slowly down the side of the back',
+      'Pause and breathe on tender spots — switch sides',
+    ],
+    mobility: { phase: 'mobilise', regions: ['thoracic', 'shoulders'], seconds: 45 },
+  },
+  {
+    slug: 'roller-lower-back-release',
+    sourceId: 'Lower_Back-SMR',
+    displayName: 'Lower Back Release',
+    equipment: 'roller',
+    role: 'mobility',
+    pattern: 'mobility',
+    tier: 1,
+    unilateral: false,
+    repRange: [1, 1],
+    secondsPerRep: 45,
+    setupSeconds: 10,
+    cues: [
+      'Roller under the low back, knees bent',
+      'Small, slow movements',
+      'Ease off if anything sharpens',
+    ],
+    mobility: { phase: 'mobilise', regions: ['lower_back'], seconds: 45 },
+  },
 ]

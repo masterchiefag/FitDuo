@@ -5,7 +5,63 @@ import { mkdir, readFile, writeFile, access } from 'node:fs/promises'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import sharp from 'sharp'
-import { SELECTION, type Curated } from './selection.ts'
+import {
+  SELECTION,
+  MOBILITY_ADDITIONS,
+  EQUIPMENT_MOBILITY,
+  MOBILITY_META,
+  type Curated,
+} from './selection.ts'
+
+// Which body areas a movement stresses, defaulted from its pattern. Per-slug
+// overrides below. One source of truth for cautions, pain-flag load reduction,
+// and substitution ranking (PLAN A0).
+type Load = { area: string; stress: 'high' | 'moderate' }
+const LOADS_BY_PATTERN: Record<string, Load[]> = {
+  push_v: [{ area: 'shoulder', stress: 'high' }],
+  push_h: [
+    { area: 'shoulder', stress: 'moderate' },
+    { area: 'elbow', stress: 'moderate' },
+  ],
+  pull_h: [
+    { area: 'lower_back', stress: 'moderate' },
+    { area: 'elbow', stress: 'moderate' },
+  ],
+  pull_v: [{ area: 'shoulder', stress: 'moderate' }],
+  hinge: [{ area: 'lower_back', stress: 'high' }],
+  squat: [{ area: 'knee', stress: 'moderate' }],
+  lunge: [{ area: 'knee', stress: 'high' }],
+  core: [{ area: 'lower_back', stress: 'moderate' }],
+  carry: [{ area: 'lower_back', stress: 'moderate' }],
+  mobility: [],
+}
+const LOAD_OVERRIDES: Record<string, Load[]> = {
+  'push-up': [
+    { area: 'wrist', stress: 'high' },
+    { area: 'shoulder', stress: 'moderate' },
+  ],
+  'push-up-feet-elevated': [
+    { area: 'wrist', stress: 'high' },
+    { area: 'shoulder', stress: 'high' },
+  ],
+  'push-up-to-side-plank': [
+    { area: 'wrist', stress: 'high' },
+    { area: 'shoulder', stress: 'high' },
+  ],
+  'db-lateral-raise': [{ area: 'shoulder', stress: 'high' }],
+  'db-front-raise': [{ area: 'shoulder', stress: 'high' }],
+  'db-upright-row': [{ area: 'shoulder', stress: 'high' }],
+  'db-arnold-press': [{ area: 'shoulder', stress: 'high' }],
+  plank: [
+    { area: 'wrist', stress: 'moderate' },
+    { area: 'lower_back', stress: 'moderate' },
+  ],
+  'side-plank': [{ area: 'shoulder', stress: 'moderate' }],
+  'jump-squat': [{ area: 'knee', stress: 'high' }],
+  'split-jump': [{ area: 'knee', stress: 'high' }],
+  'mountain-climber': [{ area: 'wrist', stress: 'moderate' }],
+  'chair-dips': [{ area: 'shoulder', stress: 'high' }],
+}
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..')
 const CACHE = join(ROOT, 'content', '.cache')
@@ -70,7 +126,8 @@ async function main() {
 
   const slugs = new Set<string>()
   const exercises = []
-  for (const sel of SELECTION as Curated[]) {
+  const allSelected: Curated[] = [...SELECTION, ...MOBILITY_ADDITIONS, ...EQUIPMENT_MOBILITY]
+  for (const sel of allSelected) {
     if (slugs.has(sel.slug)) throw new Error(`duplicate slug ${sel.slug}`)
     slugs.add(sel.slug)
     const src = byId.get(sel.sourceId)
@@ -95,7 +152,7 @@ async function main() {
       id: sel.slug,
       name: sel.displayName,
       role: sel.role,
-      equipment: sel.slug.startsWith('db-') ? 'dumbbell' : 'bodyweight',
+      equipment: sel.equipment ?? (sel.slug.startsWith('db-') ? 'dumbbell' : 'bodyweight'),
       pattern: sel.pattern,
       primaryMuscles: mapMuscles(src.primaryMuscles, ['core']),
       secondaryMuscles: mapMuscles(src.secondaryMuscles, []).filter(
@@ -107,6 +164,12 @@ async function main() {
       secondsPerRep: sel.secondsPerRep,
       setupSeconds: sel.setupSeconds,
       media: { images, instructions: sel.cues },
+      loads: LOAD_OVERRIDES[sel.slug] ?? LOADS_BY_PATTERN[sel.pattern] ?? [],
+      // Mobility metadata comes either from the additions themselves or from
+      // the layer applied to exercises that already exist in the catalog.
+      mobility:
+        ('mobility' in sel ? (sel as { mobility?: unknown }).mobility : undefined) ??
+        MOBILITY_META[sel.slug],
     })
     process.stdout.write(`✓ ${sel.slug}\n`)
   }

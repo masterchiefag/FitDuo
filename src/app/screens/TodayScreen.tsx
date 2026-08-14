@@ -1,10 +1,11 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { usePlayerStore } from '../stores/playerStore'
 import { exercisesById } from '../lib/catalog'
 import { PROFILES } from '../lib/profiles'
-import { DAY_TYPE_LABEL, planForToday, statsFor } from '../lib/planner'
+import { DAY_TYPE_LABEL, mobilityPlan, planForToday, statsFor } from '../lib/planner'
 import { localDateISO } from '../../core/dates'
+import { MOBILITY_FOCUS, type MobilityFocus } from '../../core/generator/mobility'
 
 export default function TodayScreen() {
   const navigate = useNavigate()
@@ -18,6 +19,13 @@ export default function TodayScreen() {
     .flatMap((b) => (b.kind === 'superset' || b.kind === 'circuit' ? b.items : []))
     .map((i) => exercisesById.get(i.exerciseId)?.name ?? i.exerciseId)
   const mins = Math.round(previewPlan.estimatedSeconds / 60)
+
+  const [mobilityWho, setMobilityWho] = useState<string[]>([PROFILES[0]!.id])
+
+  const beginMobility = (focus: MobilityFocus) => {
+    start(mobilityPlan(focus, mobilityWho))
+    void navigate('/workout')
+  }
 
   const begin = (participantIds: string[]) => {
     start(planForToday(participantIds))
@@ -67,6 +75,58 @@ export default function TodayScreen() {
               ))}
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Mobility & Relief — standalone, no strength session needed */}
+      <div className="mt-5 rounded-3xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+        <div className="flex items-baseline justify-between gap-3">
+          <h2 className="text-lg font-extrabold">Mobility &amp; Relief</h2>
+          <span className="text-xs font-semibold text-slate-400">~10 min · no weights needed</span>
+        </div>
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+          Loosen up on its own or after a workout. Each session runs mobilise → open → activate.
+        </p>
+        <div className="mt-4 grid gap-2 sm:grid-cols-3">
+          {(Object.keys(MOBILITY_FOCUS) as MobilityFocus[]).map((focus) => {
+            const f = MOBILITY_FOCUS[focus]
+            return (
+              <button
+                key={focus}
+                onClick={() => beginMobility(focus)}
+                className="rounded-2xl border border-slate-200 p-3 text-left transition-colors hover:border-emerald-400 hover:bg-emerald-50 dark:border-slate-700 dark:hover:border-emerald-500 dark:hover:bg-emerald-950"
+              >
+                <p className="font-bold">{f.label}</p>
+                <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{f.blurb}</p>
+              </button>
+            )
+          })}
+        </div>
+        <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-400">
+          <span>Who's doing it?</span>
+          {PROFILES.map((p) => (
+            <button
+              key={p.id}
+              onClick={() => setMobilityWho([p.id])}
+              className={`rounded-full px-2.5 py-1 font-bold transition-colors ${
+                mobilityWho.length === 1 && mobilityWho[0] === p.id
+                  ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
+                  : 'bg-slate-100 text-slate-500 dark:bg-slate-800'
+              }`}
+            >
+              {p.name}
+            </button>
+          ))}
+          <button
+            onClick={() => setMobilityWho(PROFILES.map((p) => p.id))}
+            className={`rounded-full px-2.5 py-1 font-bold transition-colors ${
+              mobilityWho.length > 1
+                ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
+                : 'bg-slate-100 text-slate-500 dark:bg-slate-800'
+            }`}
+          >
+            Both
+          </button>
         </div>
       </div>
 

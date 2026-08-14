@@ -31,6 +31,14 @@
           "Small circles growing to large",
           "Reverse direction halfway"
         ]
+      },
+      "loads": [],
+      "mobility": {
+        "phase": "mobilise",
+        "regions": [
+          "shoulders"
+        ],
+        "seconds": 35
       }
     },
     {
@@ -63,6 +71,14 @@
           "Keep arms relaxed",
           "Big, slow circles"
         ]
+      },
+      "loads": [],
+      "mobility": {
+        "phase": "mobilise",
+        "regions": [
+          "shoulders"
+        ],
+        "seconds": 35
       }
     },
     {
@@ -95,6 +111,15 @@
           "Stay tall, ribs down",
           "Smooth rhythm, no bouncing"
         ]
+      },
+      "loads": [],
+      "mobility": {
+        "phase": "open",
+        "regions": [
+          "chest",
+          "shoulders"
+        ],
+        "seconds": 40
       }
     },
     {
@@ -125,6 +150,14 @@
           "Then open arms and squeeze shoulder blades",
           "Move with your breath"
         ]
+      },
+      "loads": [],
+      "mobility": {
+        "phase": "mobilise",
+        "regions": [
+          "thoracic"
+        ],
+        "seconds": 40
       }
     },
     {
@@ -155,6 +188,14 @@
           "Draw big circles with your hips",
           "Both directions"
         ]
+      },
+      "loads": [],
+      "mobility": {
+        "phase": "mobilise",
+        "regions": [
+          "hips"
+        ],
+        "seconds": 35
       }
     },
     {
@@ -185,7 +226,8 @@
           "Circle the ankle both ways",
           "Switch feet halfway"
         ]
-      }
+      },
+      "loads": []
     },
     {
       "id": "leg-swings",
@@ -215,7 +257,8 @@
           "Swing the leg front to back",
           "Controlled, growing range"
         ]
-      }
+      },
+      "loads": []
     },
     {
       "id": "inchworm",
@@ -245,7 +288,8 @@
           "Keep legs as straight as comfortable",
           "Walk hands back and stand tall"
         ]
-      }
+      },
+      "loads": []
     },
     {
       "id": "groiners",
@@ -275,7 +319,8 @@
           "Sink the hips, chest up",
           "Alternate sides"
         ]
-      }
+      },
+      "loads": []
     },
     {
       "id": "worlds-greatest-stretch",
@@ -309,6 +354,15 @@
           "Rotate chest to the sky, reach up",
           "Alternate sides slowly"
         ]
+      },
+      "loads": [],
+      "mobility": {
+        "phase": "open",
+        "regions": [
+          "hips",
+          "thoracic"
+        ],
+        "seconds": 45
       }
     },
     {
@@ -343,7 +397,8 @@
           "Kick heels toward glutes",
           "Stay springy on the balls of your feet"
         ]
-      }
+      },
+      "loads": []
     },
     {
       "id": "star-jumps",
@@ -378,7 +433,8 @@
           "Land soft with bent knees",
           "Steady pace, keep breathing"
         ]
-      }
+      },
+      "loads": []
     },
     {
       "id": "cat-cow",
@@ -410,6 +466,16 @@
           "Then arch and lift the chest",
           "Move slowly with your breath"
         ]
+      },
+      "loads": [],
+      "mobility": {
+        "phase": "mobilise",
+        "regions": [
+          "thoracic",
+          "lower_back"
+        ],
+        "seconds": 45,
+        "focusCue": "Move one vertebra at a time — this is the segment that stiffens when you slouch"
       }
     },
     {
@@ -443,7 +509,8 @@
           "Light and quick, half depth",
           "Warm up the knees and hips"
         ]
-      }
+      },
+      "loads": []
     },
     {
       "id": "push-up",
@@ -476,7 +543,17 @@
           "Elbows ~45° from body",
           "Chest to the floor, full lockout"
         ]
-      }
+      },
+      "loads": [
+        {
+          "area": "wrist",
+          "stress": "high"
+        },
+        {
+          "area": "shoulder",
+          "stress": "moderate"
+        }
+      ]
     },
     {
       "id": "push-up-feet-elevated",
@@ -509,7 +586,17 @@
           "Brace hard — no sagging hips",
           "Lower under control"
         ]
-      }
+      },
+      "loads": [
+        {
+          "area": "wrist",
+          "stress": "high"
+        },
+        {
+          "area": "shoulder",
+          "stress": "high"
+        }
+      ]
     },
     {
       "id": "push-up-to-side-plank",
@@ -543,7 +630,17 @@
           "Stack shoulders, reach for the ceiling",
           "Alternate sides"
         ]
-      }
+      },
+      "loads": [
+        {
+          "area": "wrist",
+          "stress": "high"
+        },
+        {
+          "area": "shoulder",
+          "stress": "high"
+        }
+      ]
     },
     {
       "id": "db-chest-press",
@@ -576,7 +673,17 @@
           "Press dumbbells over mid-chest",
           "Lower until upper arms touch the floor"
         ]
-      }
+      },
+      "loads": [
+        {
+          "area": "shoulder",
+          "stress": "moderate"
+        },
+        {
+          "area": "elbow",
+          "stress": "moderate"
+        }
+      ]
     },
     {
       "id": "db-chest-fly",
@@ -606,7 +713,17 @@
           "Open arms wide like a hug",
           "Squeeze chest to bring them back"
         ]
-      }
+      },
+      "loads": [
+        {
+          "area": "shoulder",
+          "stress": "moderate"
+        },
+        {
+          "area": "elbow",
+          "stress": "moderate"
+        }
+      ]
     },
     {
       "id": "db-overhead-triceps-extension",
@@ -636,7 +753,17 @@
           "Elbows stay close to your ears",
           "Lower behind head, press up"
         ]
-      }
+      },
+      "loads": [
+        {
+          "area": "shoulder",
+          "stress": "moderate"
+        },
+        {
+          "area": "elbow",
+          "stress": "moderate"
+        }
+      ]
     },
     {
       "id": "db-triceps-kickback",
@@ -666,7 +793,17 @@
           "Pin upper arms to your sides",
           "Straighten fully, squeeze, return slow"
         ]
-      }
+      },
+      "loads": [
+        {
+          "area": "shoulder",
+          "stress": "moderate"
+        },
+        {
+          "area": "elbow",
+          "stress": "moderate"
+        }
+      ]
     },
     {
       "id": "db-skullcrusher",
@@ -699,7 +836,17 @@
           "Bend only at the elbows",
           "Lower beside your head, press back up"
         ]
-      }
+      },
+      "loads": [
+        {
+          "area": "shoulder",
+          "stress": "moderate"
+        },
+        {
+          "area": "elbow",
+          "stress": "moderate"
+        }
+      ]
     },
     {
       "id": "chair-dips",
@@ -732,7 +879,13 @@
           "Lower until elbows hit ~90°",
           "Keep shoulders away from ears"
         ]
-      }
+      },
+      "loads": [
+        {
+          "area": "shoulder",
+          "stress": "high"
+        }
+      ]
     },
     {
       "id": "db-shoulder-press",
@@ -764,7 +917,13 @@
           "Press straight up, biceps by ears",
           "Ribs down — don’t arch the back"
         ]
-      }
+      },
+      "loads": [
+        {
+          "area": "shoulder",
+          "stress": "high"
+        }
+      ]
     },
     {
       "id": "db-arnold-press",
@@ -796,7 +955,13 @@
           "Rotate out as you press up",
           "Reverse the spiral on the way down"
         ]
-      }
+      },
+      "loads": [
+        {
+          "area": "shoulder",
+          "stress": "high"
+        }
+      ]
     },
     {
       "id": "db-lateral-raise",
@@ -826,7 +991,13 @@
           "Raise to shoulder height, no higher",
           "Lead with elbows, pour the jug"
         ]
-      }
+      },
+      "loads": [
+        {
+          "area": "shoulder",
+          "stress": "high"
+        }
+      ]
     },
     {
       "id": "db-front-raise",
@@ -856,7 +1027,13 @@
           "No swinging — strict and slow",
           "Alternate or together"
         ]
-      }
+      },
+      "loads": [
+        {
+          "area": "shoulder",
+          "stress": "high"
+        }
+      ]
     },
     {
       "id": "db-bent-over-row",
@@ -889,7 +1066,17 @@
           "Row to your hips, not your chest",
           "Squeeze shoulder blades together"
         ]
-      }
+      },
+      "loads": [
+        {
+          "area": "lower_back",
+          "stress": "moderate"
+        },
+        {
+          "area": "elbow",
+          "stress": "moderate"
+        }
+      ]
     },
     {
       "id": "db-one-arm-row",
@@ -922,7 +1109,17 @@
           "Pull elbow back past your ribs",
           "No torso twist — stay square"
         ]
-      }
+      },
+      "loads": [
+        {
+          "area": "lower_back",
+          "stress": "moderate"
+        },
+        {
+          "area": "elbow",
+          "stress": "moderate"
+        }
+      ]
     },
     {
       "id": "db-reverse-fly",
@@ -952,6 +1149,25 @@
           "Open arms wide like wings",
           "Squeeze between the shoulder blades"
         ]
+      },
+      "loads": [
+        {
+          "area": "lower_back",
+          "stress": "moderate"
+        },
+        {
+          "area": "elbow",
+          "stress": "moderate"
+        }
+      ],
+      "mobility": {
+        "phase": "activate",
+        "regions": [
+          "thoracic",
+          "shoulders"
+        ],
+        "seconds": 40,
+        "focusCue": "Light or no weight here — squeeze the shoulder blades together, hold a beat"
       }
     },
     {
@@ -982,7 +1198,17 @@
           "Curl up, squeeze at the top",
           "Lower slow — no swinging"
         ]
-      }
+      },
+      "loads": [
+        {
+          "area": "lower_back",
+          "stress": "moderate"
+        },
+        {
+          "area": "elbow",
+          "stress": "moderate"
+        }
+      ]
     },
     {
       "id": "db-hammer-curl",
@@ -1012,7 +1238,17 @@
           "Curl without moving the elbows",
           "Control the way down"
         ]
-      }
+      },
+      "loads": [
+        {
+          "area": "lower_back",
+          "stress": "moderate"
+        },
+        {
+          "area": "elbow",
+          "stress": "moderate"
+        }
+      ]
     },
     {
       "id": "db-concentration-curl",
@@ -1042,7 +1278,17 @@
           "Curl slow, squeeze hard at top",
           "Full stretch at the bottom"
         ]
-      }
+      },
+      "loads": [
+        {
+          "area": "lower_back",
+          "stress": "moderate"
+        },
+        {
+          "area": "elbow",
+          "stress": "moderate"
+        }
+      ]
     },
     {
       "id": "db-pullover",
@@ -1076,7 +1322,13 @@
           "Lower it behind your head, arc slowly",
           "Pull back over your chest — ribs down"
         ]
-      }
+      },
+      "loads": [
+        {
+          "area": "shoulder",
+          "stress": "moderate"
+        }
+      ]
     },
     {
       "id": "db-upright-row",
@@ -1109,7 +1361,13 @@
           "Elbows lead, stop at chest height",
           "Keep wrists relaxed"
         ]
-      }
+      },
+      "loads": [
+        {
+          "area": "shoulder",
+          "stress": "high"
+        }
+      ]
     },
     {
       "id": "db-shrug",
@@ -1139,7 +1397,13 @@
           "Pause a beat at the top",
           "Long arms — no elbow bend"
         ]
-      }
+      },
+      "loads": [
+        {
+          "area": "shoulder",
+          "stress": "moderate"
+        }
+      ]
     },
     {
       "id": "db-squat",
@@ -1174,7 +1438,13 @@
           "Sit back and down, chest proud",
           "Drive through mid-foot to stand"
         ]
-      }
+      },
+      "loads": [
+        {
+          "area": "knee",
+          "stress": "moderate"
+        }
+      ]
     },
     {
       "id": "bodyweight-squat",
@@ -1207,7 +1477,13 @@
           "Hips below parallel if comfortable",
           "Knees track over toes"
         ]
-      }
+      },
+      "loads": [
+        {
+          "area": "knee",
+          "stress": "moderate"
+        }
+      ]
     },
     {
       "id": "db-sumo-squat",
@@ -1242,7 +1518,13 @@
           "Sink straight down between the knees",
           "Squeeze glutes on the way up"
         ]
-      }
+      },
+      "loads": [
+        {
+          "area": "knee",
+          "stress": "moderate"
+        }
+      ]
     },
     {
       "id": "jump-squat",
@@ -1276,7 +1558,13 @@
           "Land soft, sink into the next rep",
           "Arms drive the jump"
         ]
-      }
+      },
+      "loads": [
+        {
+          "area": "knee",
+          "stress": "high"
+        }
+      ]
     },
     {
       "id": "db-calf-raise",
@@ -1306,7 +1594,13 @@
           "Pause at the top",
           "Lower slowly past level if on a step"
         ]
-      }
+      },
+      "loads": [
+        {
+          "area": "knee",
+          "stress": "moderate"
+        }
+      ]
     },
     {
       "id": "db-romanian-deadlift",
@@ -1339,7 +1633,13 @@
           "Dumbbells slide down your thighs",
           "Feel the hamstrings, then stand tall"
         ]
-      }
+      },
+      "loads": [
+        {
+          "area": "lower_back",
+          "stress": "high"
+        }
+      ]
     },
     {
       "id": "db-clean",
@@ -1376,7 +1676,13 @@
           "Pull dumbbells to your shoulders",
           "Catch soft with bent knees"
         ]
-      }
+      },
+      "loads": [
+        {
+          "area": "lower_back",
+          "stress": "high"
+        }
+      ]
     },
     {
       "id": "glute-bridge",
@@ -1408,7 +1714,13 @@
           "Drive hips up, squeeze glutes hard",
           "One line from knees to shoulders"
         ]
-      }
+      },
+      "loads": [
+        {
+          "area": "lower_back",
+          "stress": "high"
+        }
+      ]
     },
     {
       "id": "single-leg-glute-bridge",
@@ -1440,7 +1752,13 @@
           "Hips level — don’t let them tilt",
           "Squeeze at the top each rep"
         ]
-      }
+      },
+      "loads": [
+        {
+          "area": "lower_back",
+          "stress": "high"
+        }
+      ]
     },
     {
       "id": "superman",
@@ -1473,6 +1791,21 @@
           "Lift arms and legs together",
           "Squeeze the whole back line, lower slow"
         ]
+      },
+      "loads": [
+        {
+          "area": "lower_back",
+          "stress": "high"
+        }
+      ],
+      "mobility": {
+        "phase": "activate",
+        "regions": [
+          "thoracic",
+          "lower_back"
+        ],
+        "seconds": 35,
+        "focusCue": "Lift from between the shoulder blades, not the neck"
       }
     },
     {
@@ -1507,7 +1840,13 @@
           "Back knee kisses the floor",
           "Push through the front heel"
         ]
-      }
+      },
+      "loads": [
+        {
+          "area": "knee",
+          "stress": "high"
+        }
+      ]
     },
     {
       "id": "db-reverse-lunge",
@@ -1541,7 +1880,13 @@
           "Front shin stays vertical",
           "Drive up through the front foot"
         ]
-      }
+      },
+      "loads": [
+        {
+          "area": "knee",
+          "stress": "high"
+        }
+      ]
     },
     {
       "id": "db-split-squat",
@@ -1574,7 +1919,13 @@
           "Straight down and up like an elevator",
           "Finish all reps, then switch legs"
         ]
-      }
+      },
+      "loads": [
+        {
+          "area": "knee",
+          "stress": "high"
+        }
+      ]
     },
     {
       "id": "db-step-up",
@@ -1608,7 +1959,13 @@
           "Drive through the top heel",
           "Lower under control — don’t drop"
         ]
-      }
+      },
+      "loads": [
+        {
+          "area": "knee",
+          "stress": "high"
+        }
+      ]
     },
     {
       "id": "split-jump",
@@ -1642,7 +1999,13 @@
           "Land soft into the next lunge",
           "Keep chest tall throughout"
         ]
-      }
+      },
+      "loads": [
+        {
+          "area": "knee",
+          "stress": "high"
+        }
+      ]
     },
     {
       "id": "plank",
@@ -1672,7 +2035,17 @@
           "Squeeze glutes, brace the belly",
           "Breathe — don’t hold your breath"
         ]
-      }
+      },
+      "loads": [
+        {
+          "area": "wrist",
+          "stress": "moderate"
+        },
+        {
+          "area": "lower_back",
+          "stress": "moderate"
+        }
+      ]
     },
     {
       "id": "side-plank",
@@ -1704,7 +2077,13 @@
           "Lift hips into one straight line",
           "Hold, then switch sides"
         ]
-      }
+      },
+      "loads": [
+        {
+          "area": "shoulder",
+          "stress": "moderate"
+        }
+      ]
     },
     {
       "id": "dead-bug",
@@ -1734,6 +2113,19 @@
           "Opposite arm and leg reach away",
           "Slow and controlled, exhale as you extend"
         ]
+      },
+      "loads": [
+        {
+          "area": "lower_back",
+          "stress": "moderate"
+        }
+      ],
+      "mobility": {
+        "phase": "activate",
+        "regions": [
+          "lower_back"
+        ],
+        "seconds": 40
       }
     },
     {
@@ -1764,7 +2156,13 @@
           "Rotate shoulder to shoulder",
           "Add a dumbbell to progress"
         ]
-      }
+      },
+      "loads": [
+        {
+          "area": "lower_back",
+          "stress": "moderate"
+        }
+      ]
     },
     {
       "id": "reverse-crunch",
@@ -1794,7 +2192,13 @@
           "Roll the spine up, not a swing",
           "Lower legs slowly"
         ]
-      }
+      },
+      "loads": [
+        {
+          "area": "lower_back",
+          "stress": "moderate"
+        }
+      ]
     },
     {
       "id": "bent-knee-hip-raise",
@@ -1824,7 +2228,13 @@
           "Draw knees toward your chest",
           "Keep the low back quiet"
         ]
-      }
+      },
+      "loads": [
+        {
+          "area": "lower_back",
+          "stress": "moderate"
+        }
+      ]
     },
     {
       "id": "db-side-bend",
@@ -1854,7 +2264,13 @@
           "Pull back up with the opposite obliques",
           "No leaning forward or back"
         ]
-      }
+      },
+      "loads": [
+        {
+          "area": "lower_back",
+          "stress": "moderate"
+        }
+      ]
     },
     {
       "id": "mountain-climber",
@@ -1888,7 +2304,13 @@
           "Hips low and level",
           "Alternate with rhythm"
         ]
-      }
+      },
+      "loads": [
+        {
+          "area": "wrist",
+          "stress": "moderate"
+        }
+      ]
     },
     {
       "id": "childs-pose",
@@ -1921,6 +2343,15 @@
           "Arms long, forehead to the floor",
           "Slow deep breaths"
         ]
+      },
+      "loads": [],
+      "mobility": {
+        "phase": "open",
+        "regions": [
+          "lower_back",
+          "thoracic"
+        ],
+        "seconds": 50
       }
     },
     {
@@ -1953,7 +2384,8 @@
           "Reach toward your toes",
           "Relax the neck, keep breathing"
         ]
-      }
+      },
+      "loads": []
     },
     {
       "id": "kneeling-hip-flexor-stretch",
@@ -1983,6 +2415,14 @@
           "Shift hips gently forward",
           "Reach the same-side arm overhead"
         ]
+      },
+      "loads": [],
+      "mobility": {
+        "phase": "open",
+        "regions": [
+          "hips"
+        ],
+        "seconds": 45
       }
     },
     {
@@ -2013,7 +2453,8 @@
           "Pull the heel toward your glutes",
           "Keep knees together, hips forward"
         ]
-      }
+      },
+      "loads": []
     },
     {
       "id": "spinal-twist",
@@ -2045,6 +2486,15 @@
           "Both shoulders stay on the floor",
           "Look the opposite way, breathe"
         ]
+      },
+      "loads": [],
+      "mobility": {
+        "phase": "mobilise",
+        "regions": [
+          "thoracic",
+          "lower_back"
+        ],
+        "seconds": 50
       }
     },
     {
@@ -2075,6 +2525,14 @@
           "Pull the lower thigh toward you",
           "Feel it deep in the glute"
         ]
+      },
+      "loads": [],
+      "mobility": {
+        "phase": "open",
+        "regions": [
+          "hips"
+        ],
+        "seconds": 45
       }
     },
     {
@@ -2107,6 +2565,17 @@
           "Lift the knuckles, open the chest",
           "Shoulders down away from ears"
         ]
+      },
+      "loads": [],
+      "mobility": {
+        "phase": "open",
+        "regions": [
+          "chest",
+          "shoulders"
+        ],
+        "seconds": 45,
+        "priority": 2,
+        "focusCue": "Tight chest pulls the shoulders forward — breathe out and let them widen"
       }
     },
     {
@@ -2139,7 +2608,8 @@
           "Gently pull the elbow across",
           "Switch arms halfway"
         ]
-      }
+      },
+      "loads": []
     },
     {
       "id": "cross-shoulder-stretch",
@@ -2169,6 +2639,14 @@
           "Hug it in with the other arm",
           "Keep the shoulder relaxed"
         ]
+      },
+      "loads": [],
+      "mobility": {
+        "phase": "open",
+        "regions": [
+          "shoulders"
+        ],
+        "seconds": 40
       }
     },
     {
@@ -2199,6 +2677,14 @@
           "Opposite arm reaches down",
           "Switch sides halfway"
         ]
+      },
+      "loads": [],
+      "mobility": {
+        "phase": "open",
+        "regions": [
+          "neck"
+        ],
+        "seconds": 40
       }
     },
     {
@@ -2231,7 +2717,8 @@
           "Lean into a wall or chair",
           "Switch legs halfway"
         ]
-      }
+      },
+      "loads": []
     },
     {
       "id": "knees-to-chest",
@@ -2263,6 +2750,576 @@
           "Rock gently side to side",
           "Let the low back release"
         ]
+      },
+      "loads": [],
+      "mobility": {
+        "phase": "open",
+        "regions": [
+          "lower_back"
+        ],
+        "seconds": 40
+      }
+    },
+    {
+      "id": "elbows-back",
+      "name": "Elbows Back Chest Opener",
+      "role": "mobility",
+      "equipment": "bodyweight",
+      "pattern": "mobility",
+      "primaryMuscles": [
+        "chest"
+      ],
+      "secondaryMuscles": [
+        "shoulders"
+      ],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        1,
+        1
+      ],
+      "secondsPerRep": 40,
+      "setupSeconds": 5,
+      "media": {
+        "images": [
+          "/exercise-media/elbows-back_0.webp",
+          "/exercise-media/elbows-back_1.webp"
+        ],
+        "instructions": [
+          "Elbows squeeze back and together",
+          "Chest lifts, ribs stay down",
+          "Breathe into the front of the chest"
+        ]
+      },
+      "loads": [],
+      "mobility": {
+        "phase": "open",
+        "regions": [
+          "chest",
+          "shoulders"
+        ],
+        "seconds": 40
+      }
+    },
+    {
+      "id": "lat-wall-stretch",
+      "name": "Lat Stretch at the Wall",
+      "role": "mobility",
+      "equipment": "bodyweight",
+      "pattern": "mobility",
+      "primaryMuscles": [
+        "back"
+      ],
+      "secondaryMuscles": [],
+      "tier": 1,
+      "unilateral": true,
+      "repRange": [
+        1,
+        1
+      ],
+      "secondsPerRep": 40,
+      "setupSeconds": 5,
+      "media": {
+        "images": [
+          "/exercise-media/lat-wall-stretch_0.webp",
+          "/exercise-media/lat-wall-stretch_1.webp"
+        ],
+        "instructions": [
+          "Hand high on the wall, sink the chest",
+          "Feel it down the side of the back",
+          "Switch sides halfway"
+        ]
+      },
+      "loads": [],
+      "mobility": {
+        "phase": "open",
+        "regions": [
+          "shoulders",
+          "thoracic"
+        ],
+        "seconds": 45,
+        "priority": 2
+      }
+    },
+    {
+      "id": "upper-back-stretch",
+      "name": "Upper Back Stretch",
+      "role": "mobility",
+      "equipment": "bodyweight",
+      "pattern": "mobility",
+      "primaryMuscles": [
+        "back"
+      ],
+      "secondaryMuscles": [],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        1,
+        1
+      ],
+      "secondsPerRep": 40,
+      "setupSeconds": 5,
+      "media": {
+        "images": [
+          "/exercise-media/upper-back-stretch_0.webp",
+          "/exercise-media/upper-back-stretch_1.webp"
+        ],
+        "instructions": [
+          "Clasp hands and push them away",
+          "Round the upper back, open between the blades",
+          "Chin gently tucked"
+        ]
+      },
+      "loads": [],
+      "mobility": {
+        "phase": "open",
+        "regions": [
+          "thoracic"
+        ],
+        "seconds": 40
+      }
+    },
+    {
+      "id": "middle-back-mobiliser",
+      "name": "Mid-Back Mobiliser",
+      "role": "mobility",
+      "equipment": "bodyweight",
+      "pattern": "mobility",
+      "primaryMuscles": [
+        "back"
+      ],
+      "secondaryMuscles": [
+        "core"
+      ],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        1,
+        1
+      ],
+      "secondsPerRep": 40,
+      "setupSeconds": 5,
+      "media": {
+        "images": [
+          "/exercise-media/middle-back-mobiliser_0.webp",
+          "/exercise-media/middle-back-mobiliser_1.webp"
+        ],
+        "instructions": [
+          "Slow side-to-side through the mid-back",
+          "Hips stay square",
+          "Only as far as comfortable"
+        ]
+      },
+      "loads": [],
+      "mobility": {
+        "phase": "mobilise",
+        "regions": [
+          "thoracic"
+        ],
+        "seconds": 40
+      }
+    },
+    {
+      "id": "chin-tuck",
+      "name": "Chin Tuck",
+      "role": "mobility",
+      "equipment": "bodyweight",
+      "pattern": "mobility",
+      "primaryMuscles": [
+        "shoulders"
+      ],
+      "secondaryMuscles": [
+        "back"
+      ],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        1,
+        1
+      ],
+      "secondsPerRep": 35,
+      "setupSeconds": 5,
+      "media": {
+        "images": [
+          "/exercise-media/chin-tuck_0.webp",
+          "/exercise-media/chin-tuck_1.webp"
+        ],
+        "instructions": [
+          "Draw the chin straight back, make a double chin",
+          "Hold 3 seconds, release",
+          "Directly counters a forward head"
+        ]
+      },
+      "loads": [],
+      "mobility": {
+        "phase": "activate",
+        "regions": [
+          "neck"
+        ],
+        "seconds": 35,
+        "focusCue": "Head slides back over the shoulders — no tilting up or down"
+      }
+    },
+    {
+      "id": "scap-retraction",
+      "name": "Scapular Retraction",
+      "role": "mobility",
+      "equipment": "bodyweight",
+      "pattern": "mobility",
+      "primaryMuscles": [
+        "back"
+      ],
+      "secondaryMuscles": [],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        1,
+        1
+      ],
+      "secondsPerRep": 40,
+      "setupSeconds": 5,
+      "media": {
+        "images": [
+          "/exercise-media/scap-retraction_0.webp",
+          "/exercise-media/scap-retraction_1.webp"
+        ],
+        "instructions": [
+          "Pull the shoulder blades back and down",
+          "Arms stay relaxed — the blades do the work",
+          "Hold 2 seconds each rep"
+        ]
+      },
+      "loads": [],
+      "mobility": {
+        "phase": "activate",
+        "regions": [
+          "thoracic",
+          "shoulders"
+        ],
+        "seconds": 40,
+        "priority": 2,
+        "focusCue": "This is the muscle that holds you upright — squeeze and hold, no shrugging"
+      }
+    },
+    {
+      "id": "shoulder-external-rotation",
+      "name": "Shoulder External Rotation",
+      "role": "mobility",
+      "equipment": "bodyweight",
+      "pattern": "mobility",
+      "primaryMuscles": [
+        "shoulders"
+      ],
+      "secondaryMuscles": [],
+      "tier": 1,
+      "unilateral": true,
+      "repRange": [
+        1,
+        1
+      ],
+      "secondsPerRep": 40,
+      "setupSeconds": 5,
+      "media": {
+        "images": [
+          "/exercise-media/shoulder-external-rotation_0.webp",
+          "/exercise-media/shoulder-external-rotation_1.webp"
+        ],
+        "instructions": [
+          "Elbow pinned to your side, bent 90°",
+          "Rotate the forearm out slowly",
+          "Very light or no weight"
+        ]
+      },
+      "loads": [],
+      "mobility": {
+        "phase": "activate",
+        "regions": [
+          "shoulders"
+        ],
+        "seconds": 45,
+        "focusCue": "Small range, slow — this wakes up the cuff that supports the joint"
+      }
+    },
+    {
+      "id": "prone-rear-delt-raise",
+      "name": "Prone Rear Delt Raise",
+      "role": "mobility",
+      "equipment": "bodyweight",
+      "pattern": "mobility",
+      "primaryMuscles": [
+        "shoulders"
+      ],
+      "secondaryMuscles": [],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        1,
+        1
+      ],
+      "secondsPerRep": 40,
+      "setupSeconds": 10,
+      "media": {
+        "images": [
+          "/exercise-media/prone-rear-delt-raise_0.webp",
+          "/exercise-media/prone-rear-delt-raise_1.webp"
+        ],
+        "instructions": [
+          "Face down, arms out in a T",
+          "Lift with the shoulder blades, thumbs up",
+          "Little or no weight needed"
+        ]
+      },
+      "loads": [],
+      "mobility": {
+        "phase": "activate",
+        "regions": [
+          "thoracic",
+          "shoulders"
+        ],
+        "seconds": 40,
+        "focusCue": "Mid-back does the lifting — keep the neck long and relaxed"
+      }
+    },
+    {
+      "id": "band-pull-apart",
+      "name": "Band Pull-Apart",
+      "role": "mobility",
+      "equipment": "band",
+      "pattern": "mobility",
+      "primaryMuscles": [
+        "shoulders"
+      ],
+      "secondaryMuscles": [
+        "back"
+      ],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        1,
+        1
+      ],
+      "secondsPerRep": 45,
+      "setupSeconds": 10,
+      "media": {
+        "images": [
+          "/exercise-media/band-pull-apart_0.webp",
+          "/exercise-media/band-pull-apart_1.webp"
+        ],
+        "instructions": [
+          "Band at chest height, arms straight",
+          "Pull apart until it touches your chest",
+          "Squeeze the shoulder blades, return slowly"
+        ]
+      },
+      "loads": [],
+      "mobility": {
+        "phase": "activate",
+        "regions": [
+          "thoracic",
+          "shoulders"
+        ],
+        "seconds": 45,
+        "priority": 2,
+        "focusCue": "The best single move for the muscles that hold your shoulders back — slow and controlled"
+      }
+    },
+    {
+      "id": "band-rear-fly",
+      "name": "Band Rear Fly",
+      "role": "mobility",
+      "equipment": "band",
+      "pattern": "mobility",
+      "primaryMuscles": [
+        "shoulders"
+      ],
+      "secondaryMuscles": [
+        "back",
+        "triceps"
+      ],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        1,
+        1
+      ],
+      "secondsPerRep": 40,
+      "setupSeconds": 10,
+      "media": {
+        "images": [
+          "/exercise-media/band-rear-fly_0.webp",
+          "/exercise-media/band-rear-fly_1.webp"
+        ],
+        "instructions": [
+          "Anchor the band in front at chest height",
+          "Open the arms wide and back",
+          "Lead with the elbows, not the hands"
+        ]
+      },
+      "loads": [],
+      "mobility": {
+        "phase": "activate",
+        "regions": [
+          "thoracic",
+          "shoulders"
+        ],
+        "seconds": 40
+      }
+    },
+    {
+      "id": "band-external-rotation",
+      "name": "Band External Rotation",
+      "role": "mobility",
+      "equipment": "band",
+      "pattern": "mobility",
+      "primaryMuscles": [
+        "shoulders"
+      ],
+      "secondaryMuscles": [],
+      "tier": 1,
+      "unilateral": true,
+      "repRange": [
+        1,
+        1
+      ],
+      "secondsPerRep": 45,
+      "setupSeconds": 10,
+      "media": {
+        "images": [
+          "/exercise-media/band-external-rotation_0.webp",
+          "/exercise-media/band-external-rotation_1.webp"
+        ],
+        "instructions": [
+          "Elbow tucked at your side, bent 90°",
+          "Rotate the forearm outward against the band",
+          "Light tension, slow return — switch sides halfway"
+        ]
+      },
+      "loads": [],
+      "mobility": {
+        "phase": "activate",
+        "regions": [
+          "shoulders"
+        ],
+        "seconds": 45,
+        "priority": 2,
+        "focusCue": "Strengthens the rotator cuff that supports the joint — small range, no shrugging"
+      }
+    },
+    {
+      "id": "roller-thoracic-extension",
+      "name": "Thoracic Extension on Roller",
+      "role": "mobility",
+      "equipment": "roller",
+      "pattern": "mobility",
+      "primaryMuscles": [
+        "back"
+      ],
+      "secondaryMuscles": [],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        1,
+        1
+      ],
+      "secondsPerRep": 60,
+      "setupSeconds": 15,
+      "media": {
+        "images": [
+          "/exercise-media/roller-thoracic-extension_0.webp",
+          "/exercise-media/roller-thoracic-extension_1.webp"
+        ],
+        "instructions": [
+          "Roller across the upper back, hands supporting the head",
+          "Gently arch back over it, breathe out",
+          "Move the roller a little and repeat — stay above the low back"
+        ]
+      },
+      "loads": [],
+      "mobility": {
+        "phase": "mobilise",
+        "regions": [
+          "thoracic"
+        ],
+        "seconds": 60,
+        "priority": 2,
+        "focusCue": "The most direct work for a rounded upper back — extend over the roller, do not force it"
+      }
+    },
+    {
+      "id": "roller-lat-release",
+      "name": "Lat Release on Roller",
+      "role": "mobility",
+      "equipment": "roller",
+      "pattern": "mobility",
+      "primaryMuscles": [
+        "back"
+      ],
+      "secondaryMuscles": [],
+      "tier": 1,
+      "unilateral": true,
+      "repRange": [
+        1,
+        1
+      ],
+      "secondsPerRep": 45,
+      "setupSeconds": 10,
+      "media": {
+        "images": [
+          "/exercise-media/roller-lat-release_0.webp",
+          "/exercise-media/roller-lat-release_1.webp"
+        ],
+        "instructions": [
+          "Lie on your side, roller under the armpit",
+          "Roll slowly down the side of the back",
+          "Pause and breathe on tender spots — switch sides"
+        ]
+      },
+      "loads": [],
+      "mobility": {
+        "phase": "mobilise",
+        "regions": [
+          "thoracic",
+          "shoulders"
+        ],
+        "seconds": 45
+      }
+    },
+    {
+      "id": "roller-lower-back-release",
+      "name": "Lower Back Release",
+      "role": "mobility",
+      "equipment": "roller",
+      "pattern": "mobility",
+      "primaryMuscles": [
+        "core"
+      ],
+      "secondaryMuscles": [],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        1,
+        1
+      ],
+      "secondsPerRep": 45,
+      "setupSeconds": 10,
+      "media": {
+        "images": [
+          "/exercise-media/roller-lower-back-release_0.webp",
+          "/exercise-media/roller-lower-back-release_1.webp"
+        ],
+        "instructions": [
+          "Roller under the low back, knees bent",
+          "Small, slow movements",
+          "Ease off if anything sharpens"
+        ]
+      },
+      "loads": [],
+      "mobility": {
+        "phase": "mobilise",
+        "regions": [
+          "lower_back"
+        ],
+        "seconds": 45
       }
     }
   ]

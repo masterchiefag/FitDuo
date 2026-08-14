@@ -17,13 +17,11 @@ const holdSeconds = (ex: Exercise) => (ex.repRange[1] === 1 ? ex.secondsPerRep :
 
 function phaseTotalSeconds(plan: WorkoutPlan, state: PlayerState): number {
   switch (state.phase) {
-    case 'warmup': {
-      const b = plan.blocks.find((x) => x.kind === 'warmup')
-      return b?.kind === 'warmup' ? (b.items[state.itemIndex]?.seconds ?? 1) : 1
-    }
-    case 'cooldown': {
-      const b = plan.blocks.find((x) => x.kind === 'cooldown')
-      return b?.kind === 'cooldown' ? (b.items[state.itemIndex]?.seconds ?? 1) : 1
+    case 'timed': {
+      const b = plan.blocks[state.blockIndex]
+      return b && 'items' in b && 'seconds' in (b.items[state.itemIndex] ?? {})
+        ? ((b.items[state.itemIndex] as { seconds: number }).seconds ?? 1)
+        : 1
     }
     case 'rest': {
       const b = plan.blocks[state.blockIndex]
@@ -39,7 +37,7 @@ function phaseTotalSeconds(plan: WorkoutPlan, state: PlayerState): number {
 /** Linear progress through the whole session, 0..1. */
 function sessionProgress(plan: WorkoutPlan, state: PlayerState): number {
   const steps: number[] = plan.blocks.map((b) =>
-    b.kind === 'warmup' || b.kind === 'cooldown' ? b.items.length : b.rounds * b.items.length,
+    b.kind === 'superset' || b.kind === 'circuit' ? b.rounds * b.items.length : b.items.length,
   )
   const total = steps.reduce((a, b) => a + b, 0)
   if (total === 0) return 0
@@ -48,8 +46,8 @@ function sessionProgress(plan: WorkoutPlan, state: PlayerState): number {
   switch (s.phase) {
     case 'idle':
       return 0
-    case 'warmup':
-      return before(plan.blocks.findIndex((b) => b.kind === 'warmup')) + s.itemIndex / total
+    case 'timed':
+      return (before(s.blockIndex) + s.itemIndex) / total
     case 'work': {
       const b = plan.blocks[s.blockIndex]
       const items = b && 'items' in b ? b.items.length : 1
@@ -62,8 +60,7 @@ function sessionProgress(plan: WorkoutPlan, state: PlayerState): number {
     }
     case 'block_transition':
       return before(s.nextBlockIndex) / total
-    case 'cooldown':
-      return (before(plan.blocks.findIndex((b) => b.kind === 'cooldown')) + s.itemIndex) / total
+
     case 'complete':
       return 1
     default:
@@ -142,6 +139,7 @@ function TimedView({
   remaining,
   total,
   nextLabel,
+  focusCue,
   onSkip,
 }: {
   title: string
@@ -149,6 +147,7 @@ function TimedView({
   remaining: number
   total: number
   nextLabel: string | null
+  focusCue?: string | undefined
   onSkip: () => void
 }) {
   return (
@@ -163,6 +162,11 @@ function TimedView({
       <div className="mt-4">
         <RingTimer remaining={remaining} total={total} />
       </div>
+      {focusCue && (
+        <p className="mx-auto mt-3 max-w-md rounded-xl bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200">
+          {focusCue}
+        </p>
+      )}
       {exercise && <Cues ex={exercise} />}
       {nextLabel && (
         <p className="mt-4 text-sm text-slate-500">
@@ -688,38 +692,35 @@ export default function PlayerScreen() {
               </p>
             </div>
           )}
-          {state.phase === 'warmup' &&
+          {state.phase === 'timed' &&
             (() => {
-              const b = plan.blocks.find((x) => x.kind === 'warmup')
-              if (b?.kind !== 'warmup') return null
-              const item = b.items[state.itemIndex]
-              const next = b.items[state.itemIndex + 1]
+              const b = plan.blocks[state.blockIndex]
+              if (!b || !('items' in b) || b.kind === 'superset' || b.kind === 'circuit')
+                return null
+              const item = b.items[state.itemIndex] as { exerciseId: string } | undefined
+              const next = b.items[state.itemIndex + 1] as { exerciseId: string } | undefined
+              const heading =
+                b.kind === 'warmup' ? 'Warm-up' : b.kind === 'cooldown' ? 'Cool-down' : b.label
+              const nextBlock = plan.blocks[state.blockIndex + 1]
+              const afterLabel = !nextBlock
+                ? 'Done! 🎉'
+                : nextBlock.kind === 'cooldown'
+                  ? 'Cool-down'
+                  : nextBlock.kind === 'mobility'
+                    ? nextBlock.label
+                    : 'Strength blocks'
               return (
                 <TimedView
-                  title={`Warm-up · ${state.itemIndex + 1}/${b.items.length}`}
+                  title={`${heading} · ${state.itemIndex + 1}/${b.items.length}`}
                   exercise={item ? exercisesById.get(item.exerciseId) : undefined}
                   remaining={remaining}
                   total={total}
-                  nextLabel={
-                    next ? (exercisesById.get(next.exerciseId)?.name ?? null) : 'Strength blocks'
+                  nextLabel={next ? (exercisesById.get(next.exerciseId)?.name ?? null) : afterLabel}
+                  focusCue={
+                    b.kind === 'mobility' && item
+                      ? exercisesById.get(item.exerciseId)?.mobility?.focusCue
+                      : undefined
                   }
-                  onSkip={() => dispatch({ type: 'SKIP', now: Date.now() })}
-                />
-              )
-            })()}
-          {state.phase === 'cooldown' &&
-            (() => {
-              const b = plan.blocks.find((x) => x.kind === 'cooldown')
-              if (b?.kind !== 'cooldown') return null
-              const item = b.items[state.itemIndex]
-              const next = b.items[state.itemIndex + 1]
-              return (
-                <TimedView
-                  title={`Cool-down · ${state.itemIndex + 1}/${b.items.length}`}
-                  exercise={item ? exercisesById.get(item.exerciseId) : undefined}
-                  remaining={remaining}
-                  total={total}
-                  nextLabel={next ? (exercisesById.get(next.exerciseId)?.name ?? null) : 'Done! 🎉'}
                   onSkip={() => dispatch({ type: 'SKIP', now: Date.now() })}
                 />
               )

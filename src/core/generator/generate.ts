@@ -203,7 +203,7 @@ export function estimatePlanSeconds(byId: Map<string, Exercise>, blocks: Block[]
   let total = 0
   for (const b of blocks) {
     total += TRANSITION_S
-    if (b.kind === 'warmup' || b.kind === 'cooldown') {
+    if (b.kind === 'warmup' || b.kind === 'cooldown' || b.kind === 'mobility') {
       total += b.items.reduce((a, i) => a + i.seconds, 0)
     } else {
       const round = b.items.reduce((a, i) => a + workItemSeconds(byId, i), 0)

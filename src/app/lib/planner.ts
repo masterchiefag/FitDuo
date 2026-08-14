@@ -1,5 +1,5 @@
 import { catalog, exercisesById } from './catalog'
-import { PROFILES } from './profiles'
+import { PROFILES, HOUSEHOLD_EQUIPMENT } from './profiles'
 import { loadFeedback, loadSessions, loadSetLogs } from '../../infra/localstore'
 import {
   deriveProgression,
@@ -9,6 +9,7 @@ import {
   type SetEvent,
 } from '../../core/gamification/derive'
 import { generateWorkout } from '../../core/generator/generate'
+import { generateMobilitySession, type MobilityFocus } from '../../core/generator/mobility'
 import { localDateISO, type LocalDateISO } from '../../core/dates'
 import type { DayHistory, DayType, GeneratorInput, WorkoutPlan } from '../../core/generator/types'
 
@@ -96,6 +97,24 @@ export function generatorInputFor(participantIds: string[], dateISO: LocalDateIS
     }),
     recentHistory: buildRecentHistory(dateISO),
   }
+}
+
+export function mobilityPlan(focus: MobilityFocus, participantIds: string[]): WorkoutPlan {
+  return generateMobilitySession({
+    householdId: HOUSEHOLD_ID,
+    dateISO: localDateISO(Date.now()),
+    generatorVersion: GENERATOR_VERSION,
+    catalog: catalog.exercises,
+    focus,
+    participantIds,
+    equipment: participantIds.length
+      ? [
+          ...new Set(
+            participantIds.flatMap((id) => PROFILES.find((p) => p.id === id)?.equipment ?? []),
+          ),
+        ]
+      : HOUSEHOLD_EQUIPMENT,
+  })
 }
 
 export function planForToday(participantIds: string[]): WorkoutPlan {

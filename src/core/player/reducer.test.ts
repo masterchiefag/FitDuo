@@ -63,7 +63,7 @@ function run(events: PlayerEvent[], from: PlayerState = idle) {
 describe('player reducer', () => {
   it('START enters warmup with a wall-clock deadline', () => {
     const { state } = run([{ type: 'START', now: 1000 }])
-    expect(state).toEqual({ phase: 'warmup', itemIndex: 0, endsAt: 1000 + 40_000 })
+    expect(state).toEqual({ phase: 'timed', blockIndex: 0, itemIndex: 0, endsAt: 1000 + 40_000 })
   })
 
   it('TIMER_FIRED before the deadline is a no-op', () => {
@@ -71,7 +71,7 @@ describe('player reducer', () => {
       { type: 'START', now: 0 },
       { type: 'TIMER_FIRED', now: 39_999 },
     ])
-    expect(state).toEqual({ phase: 'warmup', itemIndex: 0, endsAt: 40_000 })
+    expect(state).toEqual({ phase: 'timed', blockIndex: 0, itemIndex: 0, endsAt: 40_000 })
   })
 
   it('warmup items advance, then a block transition leads into work', () => {
@@ -140,7 +140,7 @@ describe('player reducer', () => {
   })
 
   it('finishing the final cooldown item completes the session', () => {
-    const lastStretch: PlayerState = { phase: 'cooldown', itemIndex: 0, endsAt: 60_000 }
+    const lastStretch: PlayerState = { phase: 'timed', blockIndex: 3, itemIndex: 0, endsAt: 60_000 }
     const { state, effects } = run([{ type: 'TIMER_FIRED', now: 60_000 }], lastStretch)
     expect(state).toEqual({ phase: 'complete' })
     expect(effects.some((e) => e.type === 'SESSION_COMPLETE' && !e.abandoned)).toBe(true)
@@ -162,7 +162,7 @@ describe('player reducer', () => {
       { type: 'PAUSE', now: 10_000 }, // 30s remaining
       { type: 'RESUME', now: 100_000 },
     ])
-    expect(state).toEqual({ phase: 'warmup', itemIndex: 0, endsAt: 130_000 })
+    expect(state).toEqual({ phase: 'timed', blockIndex: 0, itemIndex: 0, endsAt: 130_000 })
   })
 
   it('SKIP during rest starts work immediately', () => {
@@ -220,11 +220,10 @@ describe('player reducer', () => {
     )
     const phases = new Set([
       'idle',
-      'warmup',
+      'timed',
       'work',
       'rest',
       'block_transition',
-      'cooldown',
       'paused',
       'complete',
     ])

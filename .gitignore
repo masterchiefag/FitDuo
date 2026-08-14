@@ -38,3 +38,6 @@ content/.cache
 
 # Grok review scratch
 .grok-review-latest.md
+
+# Personal data — never checked in (real profiles live here pre-M4, in Supabase after)
+profiles.local.json
