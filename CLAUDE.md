@@ -1,6 +1,8 @@
 # FitDuo
 
-Duolingo-style guided dumbbell workout PWA for exactly two users (a couple sharing one laptop during workouts). Plan: `~/.claude/plans/i-want-to-experiment-piped-emerson.md`.
+Duolingo-style guided dumbbell workout PWA for exactly two users (a couple sharing one laptop during workouts). Plan: [docs/PLAN.md](docs/PLAN.md) (canonical; mirror of `~/.claude/plans/i-want-to-experiment-piped-emerson.md`).
+
+**Execution model:** Opus executes milestones from docs/PLAN.md. Milestone tail, in order: `npm run typecheck && npm run test -- --run && npm run e2e` → `/code-review` (medium) → Grok second opinion `scripts/dev/grok-review.sh diff <range>` → fix findings → commit.
 
 ## Commands
 
