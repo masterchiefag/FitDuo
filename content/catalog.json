@@ -1,0 +1,2269 @@
+{
+  "version": 1,
+  "exercises": [
+    {
+      "id": "arm-circles",
+      "name": "Arm Circles",
+      "role": "warmup",
+      "equipment": "bodyweight",
+      "pattern": "mobility",
+      "primaryMuscles": [
+        "shoulders"
+      ],
+      "secondaryMuscles": [
+        "back"
+      ],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        1,
+        1
+      ],
+      "secondsPerRep": 1,
+      "setupSeconds": 5,
+      "media": {
+        "images": [
+          "/exercise-media/arm-circles_0.webp",
+          "/exercise-media/arm-circles_1.webp"
+        ],
+        "instructions": [
+          "Arms straight out to the sides",
+          "Small circles growing to large",
+          "Reverse direction halfway"
+        ]
+      }
+    },
+    {
+      "id": "shoulder-circles",
+      "name": "Shoulder Rolls",
+      "role": "warmup",
+      "equipment": "bodyweight",
+      "pattern": "mobility",
+      "primaryMuscles": [
+        "shoulders"
+      ],
+      "secondaryMuscles": [
+        "back"
+      ],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        1,
+        1
+      ],
+      "secondsPerRep": 1,
+      "setupSeconds": 5,
+      "media": {
+        "images": [
+          "/exercise-media/shoulder-circles_0.webp",
+          "/exercise-media/shoulder-circles_1.webp"
+        ],
+        "instructions": [
+          "Roll shoulders up, back, and down",
+          "Keep arms relaxed",
+          "Big, slow circles"
+        ]
+      }
+    },
+    {
+      "id": "dynamic-chest-stretch",
+      "name": "Dynamic Chest Opener",
+      "role": "warmup",
+      "equipment": "bodyweight",
+      "pattern": "mobility",
+      "primaryMuscles": [
+        "chest"
+      ],
+      "secondaryMuscles": [
+        "back"
+      ],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        1,
+        1
+      ],
+      "secondsPerRep": 1,
+      "setupSeconds": 5,
+      "media": {
+        "images": [
+          "/exercise-media/dynamic-chest-stretch_0.webp",
+          "/exercise-media/dynamic-chest-stretch_1.webp"
+        ],
+        "instructions": [
+          "Swing arms wide, then cross over",
+          "Stay tall, ribs down",
+          "Smooth rhythm, no bouncing"
+        ]
+      }
+    },
+    {
+      "id": "dynamic-back-stretch",
+      "name": "Dynamic Back Reach",
+      "role": "warmup",
+      "equipment": "bodyweight",
+      "pattern": "mobility",
+      "primaryMuscles": [
+        "back"
+      ],
+      "secondaryMuscles": [],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        1,
+        1
+      ],
+      "secondsPerRep": 1,
+      "setupSeconds": 5,
+      "media": {
+        "images": [
+          "/exercise-media/dynamic-back-stretch_0.webp",
+          "/exercise-media/dynamic-back-stretch_1.webp"
+        ],
+        "instructions": [
+          "Reach forward and round the upper back",
+          "Then open arms and squeeze shoulder blades",
+          "Move with your breath"
+        ]
+      }
+    },
+    {
+      "id": "hip-circles",
+      "name": "Hip Circles",
+      "role": "warmup",
+      "equipment": "bodyweight",
+      "pattern": "mobility",
+      "primaryMuscles": [
+        "glutes"
+      ],
+      "secondaryMuscles": [],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        1,
+        1
+      ],
+      "secondsPerRep": 1,
+      "setupSeconds": 5,
+      "media": {
+        "images": [
+          "/exercise-media/hip-circles_0.webp",
+          "/exercise-media/hip-circles_1.webp"
+        ],
+        "instructions": [
+          "Hands on hips, feet shoulder-width",
+          "Draw big circles with your hips",
+          "Both directions"
+        ]
+      }
+    },
+    {
+      "id": "ankle-circles",
+      "name": "Ankle Circles",
+      "role": "warmup",
+      "equipment": "bodyweight",
+      "pattern": "mobility",
+      "primaryMuscles": [
+        "calves"
+      ],
+      "secondaryMuscles": [],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        1,
+        1
+      ],
+      "secondsPerRep": 1,
+      "setupSeconds": 5,
+      "media": {
+        "images": [
+          "/exercise-media/ankle-circles_0.webp",
+          "/exercise-media/ankle-circles_1.webp"
+        ],
+        "instructions": [
+          "Balance on one leg or hold support",
+          "Circle the ankle both ways",
+          "Switch feet halfway"
+        ]
+      }
+    },
+    {
+      "id": "leg-swings",
+      "name": "Leg Swings",
+      "role": "warmup",
+      "equipment": "bodyweight",
+      "pattern": "mobility",
+      "primaryMuscles": [
+        "hamstrings"
+      ],
+      "secondaryMuscles": [],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        1,
+        1
+      ],
+      "secondsPerRep": 1,
+      "setupSeconds": 5,
+      "media": {
+        "images": [
+          "/exercise-media/leg-swings_0.webp",
+          "/exercise-media/leg-swings_1.webp"
+        ],
+        "instructions": [
+          "Hold a wall for balance",
+          "Swing the leg front to back",
+          "Controlled, growing range"
+        ]
+      }
+    },
+    {
+      "id": "inchworm",
+      "name": "Inchworm Walkout",
+      "role": "warmup",
+      "equipment": "bodyweight",
+      "pattern": "mobility",
+      "primaryMuscles": [
+        "hamstrings"
+      ],
+      "secondaryMuscles": [],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        1,
+        1
+      ],
+      "secondsPerRep": 1,
+      "setupSeconds": 5,
+      "media": {
+        "images": [
+          "/exercise-media/inchworm_0.webp",
+          "/exercise-media/inchworm_1.webp"
+        ],
+        "instructions": [
+          "Fold, walk hands out to plank",
+          "Keep legs as straight as comfortable",
+          "Walk hands back and stand tall"
+        ]
+      }
+    },
+    {
+      "id": "groiners",
+      "name": "Hip Opener Lunges",
+      "role": "warmup",
+      "equipment": "bodyweight",
+      "pattern": "mobility",
+      "primaryMuscles": [
+        "glutes"
+      ],
+      "secondaryMuscles": [],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        1,
+        1
+      ],
+      "secondsPerRep": 1,
+      "setupSeconds": 5,
+      "media": {
+        "images": [
+          "/exercise-media/groiners_0.webp",
+          "/exercise-media/groiners_1.webp"
+        ],
+        "instructions": [
+          "From plank, step foot outside hand",
+          "Sink the hips, chest up",
+          "Alternate sides"
+        ]
+      }
+    },
+    {
+      "id": "worlds-greatest-stretch",
+      "name": "World's Greatest Stretch",
+      "role": "warmup",
+      "equipment": "bodyweight",
+      "pattern": "mobility",
+      "primaryMuscles": [
+        "hamstrings"
+      ],
+      "secondaryMuscles": [
+        "calves",
+        "glutes",
+        "quads"
+      ],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        1,
+        1
+      ],
+      "secondsPerRep": 1,
+      "setupSeconds": 5,
+      "media": {
+        "images": [
+          "/exercise-media/worlds-greatest-stretch_0.webp",
+          "/exercise-media/worlds-greatest-stretch_1.webp"
+        ],
+        "instructions": [
+          "Deep lunge, opposite hand down",
+          "Rotate chest to the sky, reach up",
+          "Alternate sides slowly"
+        ]
+      }
+    },
+    {
+      "id": "butt-kicks",
+      "name": "Butt Kicks",
+      "role": "warmup",
+      "equipment": "bodyweight",
+      "pattern": "mobility",
+      "primaryMuscles": [
+        "quads"
+      ],
+      "secondaryMuscles": [
+        "glutes",
+        "calves",
+        "hamstrings"
+      ],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        1,
+        1
+      ],
+      "secondsPerRep": 1,
+      "setupSeconds": 5,
+      "media": {
+        "images": [
+          "/exercise-media/butt-kicks_0.webp",
+          "/exercise-media/butt-kicks_1.webp"
+        ],
+        "instructions": [
+          "Light jog in place",
+          "Kick heels toward glutes",
+          "Stay springy on the balls of your feet"
+        ]
+      }
+    },
+    {
+      "id": "star-jumps",
+      "name": "Star Jumps",
+      "role": "warmup",
+      "equipment": "bodyweight",
+      "pattern": "mobility",
+      "primaryMuscles": [
+        "quads"
+      ],
+      "secondaryMuscles": [
+        "calves",
+        "glutes",
+        "hamstrings",
+        "shoulders"
+      ],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        1,
+        1
+      ],
+      "secondsPerRep": 1,
+      "setupSeconds": 5,
+      "media": {
+        "images": [
+          "/exercise-media/star-jumps_0.webp",
+          "/exercise-media/star-jumps_1.webp"
+        ],
+        "instructions": [
+          "Jump arms and legs wide",
+          "Land soft with bent knees",
+          "Steady pace, keep breathing"
+        ]
+      }
+    },
+    {
+      "id": "cat-cow",
+      "name": "Cat-Cow",
+      "role": "warmup",
+      "equipment": "bodyweight",
+      "pattern": "mobility",
+      "primaryMuscles": [
+        "core"
+      ],
+      "secondaryMuscles": [
+        "back"
+      ],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        1,
+        1
+      ],
+      "secondsPerRep": 1,
+      "setupSeconds": 5,
+      "media": {
+        "images": [
+          "/exercise-media/cat-cow_0.webp",
+          "/exercise-media/cat-cow_1.webp"
+        ],
+        "instructions": [
+          "On all fours, round the spine up",
+          "Then arch and lift the chest",
+          "Move slowly with your breath"
+        ]
+      }
+    },
+    {
+      "id": "sit-squats",
+      "name": "Air Squat Pulses",
+      "role": "warmup",
+      "equipment": "bodyweight",
+      "pattern": "mobility",
+      "primaryMuscles": [
+        "quads"
+      ],
+      "secondaryMuscles": [
+        "glutes",
+        "hamstrings"
+      ],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        1,
+        1
+      ],
+      "secondsPerRep": 1,
+      "setupSeconds": 5,
+      "media": {
+        "images": [
+          "/exercise-media/sit-squats_0.webp",
+          "/exercise-media/sit-squats_1.webp"
+        ],
+        "instructions": [
+          "Sit back like reaching for a chair",
+          "Light and quick, half depth",
+          "Warm up the knees and hips"
+        ]
+      }
+    },
+    {
+      "id": "push-up",
+      "name": "Push-Up",
+      "role": "main",
+      "equipment": "bodyweight",
+      "pattern": "push_h",
+      "primaryMuscles": [
+        "chest"
+      ],
+      "secondaryMuscles": [
+        "shoulders",
+        "triceps"
+      ],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        6,
+        15
+      ],
+      "secondsPerRep": 3,
+      "setupSeconds": 10,
+      "media": {
+        "images": [
+          "/exercise-media/push-up_0.webp",
+          "/exercise-media/push-up_1.webp"
+        ],
+        "instructions": [
+          "Body in one straight line",
+          "Elbows ~45° from body",
+          "Chest to the floor, full lockout"
+        ]
+      }
+    },
+    {
+      "id": "push-up-feet-elevated",
+      "name": "Feet-Elevated Push-Up",
+      "role": "main",
+      "equipment": "bodyweight",
+      "pattern": "push_h",
+      "primaryMuscles": [
+        "chest"
+      ],
+      "secondaryMuscles": [
+        "shoulders",
+        "triceps"
+      ],
+      "tier": 3,
+      "unilateral": false,
+      "repRange": [
+        6,
+        12
+      ],
+      "secondsPerRep": 3,
+      "setupSeconds": 15,
+      "media": {
+        "images": [
+          "/exercise-media/push-up-feet-elevated_0.webp",
+          "/exercise-media/push-up-feet-elevated_1.webp"
+        ],
+        "instructions": [
+          "Feet on a sturdy chair or step",
+          "Brace hard — no sagging hips",
+          "Lower under control"
+        ]
+      }
+    },
+    {
+      "id": "push-up-to-side-plank",
+      "name": "Push-Up to Side Plank",
+      "role": "main",
+      "equipment": "bodyweight",
+      "pattern": "push_h",
+      "primaryMuscles": [
+        "chest"
+      ],
+      "secondaryMuscles": [
+        "core",
+        "shoulders",
+        "triceps"
+      ],
+      "tier": 2,
+      "unilateral": false,
+      "repRange": [
+        6,
+        12
+      ],
+      "secondsPerRep": 4,
+      "setupSeconds": 10,
+      "media": {
+        "images": [
+          "/exercise-media/push-up-to-side-plank_0.webp",
+          "/exercise-media/push-up-to-side-plank_1.webp"
+        ],
+        "instructions": [
+          "Push up, then rotate to one arm",
+          "Stack shoulders, reach for the ceiling",
+          "Alternate sides"
+        ]
+      }
+    },
+    {
+      "id": "db-chest-press",
+      "name": "Dumbbell Chest Press",
+      "role": "main",
+      "equipment": "dumbbell",
+      "pattern": "push_h",
+      "primaryMuscles": [
+        "chest"
+      ],
+      "secondaryMuscles": [
+        "shoulders",
+        "triceps"
+      ],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        8,
+        15
+      ],
+      "secondsPerRep": 3,
+      "setupSeconds": 15,
+      "media": {
+        "images": [
+          "/exercise-media/db-chest-press_0.webp",
+          "/exercise-media/db-chest-press_1.webp"
+        ],
+        "instructions": [
+          "Lie on a mat or bench, feet planted",
+          "Press dumbbells over mid-chest",
+          "Lower until upper arms touch the floor"
+        ]
+      }
+    },
+    {
+      "id": "db-chest-fly",
+      "name": "Dumbbell Chest Fly",
+      "role": "main",
+      "equipment": "dumbbell",
+      "pattern": "push_h",
+      "primaryMuscles": [
+        "chest"
+      ],
+      "secondaryMuscles": [],
+      "tier": 2,
+      "unilateral": false,
+      "repRange": [
+        10,
+        15
+      ],
+      "secondsPerRep": 3,
+      "setupSeconds": 15,
+      "media": {
+        "images": [
+          "/exercise-media/db-chest-fly_0.webp",
+          "/exercise-media/db-chest-fly_1.webp"
+        ],
+        "instructions": [
+          "Slight bend in elbows, keep it",
+          "Open arms wide like a hug",
+          "Squeeze chest to bring them back"
+        ]
+      }
+    },
+    {
+      "id": "db-overhead-triceps-extension",
+      "name": "Overhead Triceps Extension",
+      "role": "main",
+      "equipment": "dumbbell",
+      "pattern": "push_h",
+      "primaryMuscles": [
+        "triceps"
+      ],
+      "secondaryMuscles": [],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        10,
+        15
+      ],
+      "secondsPerRep": 3,
+      "setupSeconds": 10,
+      "media": {
+        "images": [
+          "/exercise-media/db-overhead-triceps-extension_0.webp",
+          "/exercise-media/db-overhead-triceps-extension_1.webp"
+        ],
+        "instructions": [
+          "One dumbbell, both hands overhead",
+          "Elbows stay close to your ears",
+          "Lower behind head, press up"
+        ]
+      }
+    },
+    {
+      "id": "db-triceps-kickback",
+      "name": "Triceps Kickback",
+      "role": "main",
+      "equipment": "dumbbell",
+      "pattern": "push_h",
+      "primaryMuscles": [
+        "triceps"
+      ],
+      "secondaryMuscles": [],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        10,
+        15
+      ],
+      "secondsPerRep": 3,
+      "setupSeconds": 10,
+      "media": {
+        "images": [
+          "/exercise-media/db-triceps-kickback_0.webp",
+          "/exercise-media/db-triceps-kickback_1.webp"
+        ],
+        "instructions": [
+          "Hinge forward, flat back",
+          "Pin upper arms to your sides",
+          "Straighten fully, squeeze, return slow"
+        ]
+      }
+    },
+    {
+      "id": "db-skullcrusher",
+      "name": "Lying Triceps Extension",
+      "role": "main",
+      "equipment": "dumbbell",
+      "pattern": "push_h",
+      "primaryMuscles": [
+        "triceps"
+      ],
+      "secondaryMuscles": [
+        "chest",
+        "shoulders"
+      ],
+      "tier": 2,
+      "unilateral": false,
+      "repRange": [
+        8,
+        15
+      ],
+      "secondsPerRep": 3,
+      "setupSeconds": 15,
+      "media": {
+        "images": [
+          "/exercise-media/db-skullcrusher_0.webp",
+          "/exercise-media/db-skullcrusher_1.webp"
+        ],
+        "instructions": [
+          "Lie down, dumbbells over shoulders",
+          "Bend only at the elbows",
+          "Lower beside your head, press back up"
+        ]
+      }
+    },
+    {
+      "id": "chair-dips",
+      "name": "Chair Dips",
+      "role": "main",
+      "equipment": "bodyweight",
+      "pattern": "push_h",
+      "primaryMuscles": [
+        "triceps"
+      ],
+      "secondaryMuscles": [
+        "chest",
+        "shoulders"
+      ],
+      "tier": 2,
+      "unilateral": false,
+      "repRange": [
+        8,
+        15
+      ],
+      "secondsPerRep": 3,
+      "setupSeconds": 15,
+      "media": {
+        "images": [
+          "/exercise-media/chair-dips_0.webp",
+          "/exercise-media/chair-dips_1.webp"
+        ],
+        "instructions": [
+          "Hands on a sturdy chair edge",
+          "Lower until elbows hit ~90°",
+          "Keep shoulders away from ears"
+        ]
+      }
+    },
+    {
+      "id": "db-shoulder-press",
+      "name": "Standing Shoulder Press",
+      "role": "main",
+      "equipment": "dumbbell",
+      "pattern": "push_v",
+      "primaryMuscles": [
+        "shoulders"
+      ],
+      "secondaryMuscles": [
+        "triceps"
+      ],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        8,
+        15
+      ],
+      "secondsPerRep": 3,
+      "setupSeconds": 10,
+      "media": {
+        "images": [
+          "/exercise-media/db-shoulder-press_0.webp",
+          "/exercise-media/db-shoulder-press_1.webp"
+        ],
+        "instructions": [
+          "Dumbbells at shoulder height",
+          "Press straight up, biceps by ears",
+          "Ribs down — don’t arch the back"
+        ]
+      }
+    },
+    {
+      "id": "db-arnold-press",
+      "name": "Arnold Press",
+      "role": "main",
+      "equipment": "dumbbell",
+      "pattern": "push_v",
+      "primaryMuscles": [
+        "shoulders"
+      ],
+      "secondaryMuscles": [
+        "triceps"
+      ],
+      "tier": 2,
+      "unilateral": false,
+      "repRange": [
+        8,
+        12
+      ],
+      "secondsPerRep": 4,
+      "setupSeconds": 10,
+      "media": {
+        "images": [
+          "/exercise-media/db-arnold-press_0.webp",
+          "/exercise-media/db-arnold-press_1.webp"
+        ],
+        "instructions": [
+          "Start palms facing you",
+          "Rotate out as you press up",
+          "Reverse the spiral on the way down"
+        ]
+      }
+    },
+    {
+      "id": "db-lateral-raise",
+      "name": "Lateral Raise",
+      "role": "main",
+      "equipment": "dumbbell",
+      "pattern": "push_v",
+      "primaryMuscles": [
+        "shoulders"
+      ],
+      "secondaryMuscles": [],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        10,
+        18
+      ],
+      "secondsPerRep": 3,
+      "setupSeconds": 10,
+      "media": {
+        "images": [
+          "/exercise-media/db-lateral-raise_0.webp",
+          "/exercise-media/db-lateral-raise_1.webp"
+        ],
+        "instructions": [
+          "Slight bend in the elbows",
+          "Raise to shoulder height, no higher",
+          "Lead with elbows, pour the jug"
+        ]
+      }
+    },
+    {
+      "id": "db-front-raise",
+      "name": "Front Raise",
+      "role": "main",
+      "equipment": "dumbbell",
+      "pattern": "push_v",
+      "primaryMuscles": [
+        "shoulders"
+      ],
+      "secondaryMuscles": [],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        10,
+        15
+      ],
+      "secondsPerRep": 3,
+      "setupSeconds": 10,
+      "media": {
+        "images": [
+          "/exercise-media/db-front-raise_0.webp",
+          "/exercise-media/db-front-raise_1.webp"
+        ],
+        "instructions": [
+          "Raise to eye level, arms straight",
+          "No swinging — strict and slow",
+          "Alternate or together"
+        ]
+      }
+    },
+    {
+      "id": "db-bent-over-row",
+      "name": "Bent-Over Row",
+      "role": "main",
+      "equipment": "dumbbell",
+      "pattern": "pull_h",
+      "primaryMuscles": [
+        "back"
+      ],
+      "secondaryMuscles": [
+        "biceps",
+        "shoulders"
+      ],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        8,
+        15
+      ],
+      "secondsPerRep": 3,
+      "setupSeconds": 10,
+      "media": {
+        "images": [
+          "/exercise-media/db-bent-over-row_0.webp",
+          "/exercise-media/db-bent-over-row_1.webp"
+        ],
+        "instructions": [
+          "Hinge to ~45°, flat back",
+          "Row to your hips, not your chest",
+          "Squeeze shoulder blades together"
+        ]
+      }
+    },
+    {
+      "id": "db-one-arm-row",
+      "name": "One-Arm Row",
+      "role": "main",
+      "equipment": "dumbbell",
+      "pattern": "pull_h",
+      "primaryMuscles": [
+        "back"
+      ],
+      "secondaryMuscles": [
+        "biceps",
+        "shoulders"
+      ],
+      "tier": 1,
+      "unilateral": true,
+      "repRange": [
+        8,
+        15
+      ],
+      "secondsPerRep": 3,
+      "setupSeconds": 15,
+      "media": {
+        "images": [
+          "/exercise-media/db-one-arm-row_0.webp",
+          "/exercise-media/db-one-arm-row_1.webp"
+        ],
+        "instructions": [
+          "Support on a chair or knee",
+          "Pull elbow back past your ribs",
+          "No torso twist — stay square"
+        ]
+      }
+    },
+    {
+      "id": "db-reverse-fly",
+      "name": "Reverse Fly",
+      "role": "main",
+      "equipment": "dumbbell",
+      "pattern": "pull_h",
+      "primaryMuscles": [
+        "shoulders"
+      ],
+      "secondaryMuscles": [],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        10,
+        18
+      ],
+      "secondsPerRep": 3,
+      "setupSeconds": 10,
+      "media": {
+        "images": [
+          "/exercise-media/db-reverse-fly_0.webp",
+          "/exercise-media/db-reverse-fly_1.webp"
+        ],
+        "instructions": [
+          "Hinge forward, soft elbows",
+          "Open arms wide like wings",
+          "Squeeze between the shoulder blades"
+        ]
+      }
+    },
+    {
+      "id": "db-bicep-curl",
+      "name": "Biceps Curl",
+      "role": "main",
+      "equipment": "dumbbell",
+      "pattern": "pull_h",
+      "primaryMuscles": [
+        "biceps"
+      ],
+      "secondaryMuscles": [],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        8,
+        15
+      ],
+      "secondsPerRep": 3,
+      "setupSeconds": 5,
+      "media": {
+        "images": [
+          "/exercise-media/db-bicep-curl_0.webp",
+          "/exercise-media/db-bicep-curl_1.webp"
+        ],
+        "instructions": [
+          "Elbows pinned to your sides",
+          "Curl up, squeeze at the top",
+          "Lower slow — no swinging"
+        ]
+      }
+    },
+    {
+      "id": "db-hammer-curl",
+      "name": "Hammer Curl",
+      "role": "main",
+      "equipment": "dumbbell",
+      "pattern": "pull_h",
+      "primaryMuscles": [
+        "biceps"
+      ],
+      "secondaryMuscles": [],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        8,
+        15
+      ],
+      "secondsPerRep": 3,
+      "setupSeconds": 5,
+      "media": {
+        "images": [
+          "/exercise-media/db-hammer-curl_0.webp",
+          "/exercise-media/db-hammer-curl_1.webp"
+        ],
+        "instructions": [
+          "Palms face each other",
+          "Curl without moving the elbows",
+          "Control the way down"
+        ]
+      }
+    },
+    {
+      "id": "db-concentration-curl",
+      "name": "Concentration Curl",
+      "role": "main",
+      "equipment": "dumbbell",
+      "pattern": "pull_h",
+      "primaryMuscles": [
+        "biceps"
+      ],
+      "secondaryMuscles": [],
+      "tier": 2,
+      "unilateral": true,
+      "repRange": [
+        8,
+        12
+      ],
+      "secondsPerRep": 3,
+      "setupSeconds": 15,
+      "media": {
+        "images": [
+          "/exercise-media/db-concentration-curl_0.webp",
+          "/exercise-media/db-concentration-curl_1.webp"
+        ],
+        "instructions": [
+          "Seated, elbow braced on inner thigh",
+          "Curl slow, squeeze hard at top",
+          "Full stretch at the bottom"
+        ]
+      }
+    },
+    {
+      "id": "db-pullover",
+      "name": "Dumbbell Pullover",
+      "role": "main",
+      "equipment": "dumbbell",
+      "pattern": "pull_v",
+      "primaryMuscles": [
+        "chest"
+      ],
+      "secondaryMuscles": [
+        "back",
+        "shoulders",
+        "triceps"
+      ],
+      "tier": 2,
+      "unilateral": false,
+      "repRange": [
+        8,
+        12
+      ],
+      "secondsPerRep": 4,
+      "setupSeconds": 15,
+      "media": {
+        "images": [
+          "/exercise-media/db-pullover_0.webp",
+          "/exercise-media/db-pullover_1.webp"
+        ],
+        "instructions": [
+          "Lie down, one dumbbell in both hands",
+          "Lower it behind your head, arc slowly",
+          "Pull back over your chest — ribs down"
+        ]
+      }
+    },
+    {
+      "id": "db-upright-row",
+      "name": "Upright Row",
+      "role": "main",
+      "equipment": "dumbbell",
+      "pattern": "pull_v",
+      "primaryMuscles": [
+        "back"
+      ],
+      "secondaryMuscles": [
+        "biceps",
+        "shoulders"
+      ],
+      "tier": 2,
+      "unilateral": false,
+      "repRange": [
+        10,
+        15
+      ],
+      "secondsPerRep": 3,
+      "setupSeconds": 5,
+      "media": {
+        "images": [
+          "/exercise-media/db-upright-row_0.webp",
+          "/exercise-media/db-upright-row_1.webp"
+        ],
+        "instructions": [
+          "Pull dumbbells up your body line",
+          "Elbows lead, stop at chest height",
+          "Keep wrists relaxed"
+        ]
+      }
+    },
+    {
+      "id": "db-shrug",
+      "name": "Dumbbell Shrug",
+      "role": "main",
+      "equipment": "dumbbell",
+      "pattern": "pull_v",
+      "primaryMuscles": [
+        "back"
+      ],
+      "secondaryMuscles": [],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        10,
+        18
+      ],
+      "secondsPerRep": 2,
+      "setupSeconds": 5,
+      "media": {
+        "images": [
+          "/exercise-media/db-shrug_0.webp",
+          "/exercise-media/db-shrug_1.webp"
+        ],
+        "instructions": [
+          "Shoulders straight up to your ears",
+          "Pause a beat at the top",
+          "Long arms — no elbow bend"
+        ]
+      }
+    },
+    {
+      "id": "db-squat",
+      "name": "Dumbbell Squat",
+      "role": "main",
+      "equipment": "dumbbell",
+      "pattern": "squat",
+      "primaryMuscles": [
+        "quads"
+      ],
+      "secondaryMuscles": [
+        "calves",
+        "glutes",
+        "hamstrings",
+        "core"
+      ],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        8,
+        15
+      ],
+      "secondsPerRep": 3,
+      "setupSeconds": 10,
+      "media": {
+        "images": [
+          "/exercise-media/db-squat_0.webp",
+          "/exercise-media/db-squat_1.webp"
+        ],
+        "instructions": [
+          "Dumbbells at your sides or shoulders",
+          "Sit back and down, chest proud",
+          "Drive through mid-foot to stand"
+        ]
+      }
+    },
+    {
+      "id": "bodyweight-squat",
+      "name": "Bodyweight Squat",
+      "role": "main",
+      "equipment": "bodyweight",
+      "pattern": "squat",
+      "primaryMuscles": [
+        "quads"
+      ],
+      "secondaryMuscles": [
+        "glutes",
+        "hamstrings"
+      ],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        10,
+        20
+      ],
+      "secondsPerRep": 3,
+      "setupSeconds": 5,
+      "media": {
+        "images": [
+          "/exercise-media/bodyweight-squat_0.webp",
+          "/exercise-media/bodyweight-squat_1.webp"
+        ],
+        "instructions": [
+          "Feet shoulder-width, toes slightly out",
+          "Hips below parallel if comfortable",
+          "Knees track over toes"
+        ]
+      }
+    },
+    {
+      "id": "db-sumo-squat",
+      "name": "Sumo Squat",
+      "role": "main",
+      "equipment": "dumbbell",
+      "pattern": "squat",
+      "primaryMuscles": [
+        "quads"
+      ],
+      "secondaryMuscles": [
+        "core",
+        "calves",
+        "glutes",
+        "hamstrings"
+      ],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        10,
+        15
+      ],
+      "secondsPerRep": 3,
+      "setupSeconds": 10,
+      "media": {
+        "images": [
+          "/exercise-media/db-sumo-squat_0.webp",
+          "/exercise-media/db-sumo-squat_1.webp"
+        ],
+        "instructions": [
+          "Wide stance, toes out, one dumbbell",
+          "Sink straight down between the knees",
+          "Squeeze glutes on the way up"
+        ]
+      }
+    },
+    {
+      "id": "jump-squat",
+      "name": "Jump Squat",
+      "role": "main",
+      "equipment": "bodyweight",
+      "pattern": "squat",
+      "primaryMuscles": [
+        "quads"
+      ],
+      "secondaryMuscles": [
+        "calves",
+        "glutes",
+        "hamstrings"
+      ],
+      "tier": 2,
+      "unilateral": false,
+      "repRange": [
+        8,
+        15
+      ],
+      "secondsPerRep": 3,
+      "setupSeconds": 5,
+      "media": {
+        "images": [
+          "/exercise-media/jump-squat_0.webp",
+          "/exercise-media/jump-squat_1.webp"
+        ],
+        "instructions": [
+          "Squat down, explode up",
+          "Land soft, sink into the next rep",
+          "Arms drive the jump"
+        ]
+      }
+    },
+    {
+      "id": "db-calf-raise",
+      "name": "Standing Calf Raise",
+      "role": "main",
+      "equipment": "dumbbell",
+      "pattern": "squat",
+      "primaryMuscles": [
+        "calves"
+      ],
+      "secondaryMuscles": [],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        12,
+        20
+      ],
+      "secondsPerRep": 2,
+      "setupSeconds": 5,
+      "media": {
+        "images": [
+          "/exercise-media/db-calf-raise_0.webp",
+          "/exercise-media/db-calf-raise_1.webp"
+        ],
+        "instructions": [
+          "Rise high onto the balls of your feet",
+          "Pause at the top",
+          "Lower slowly past level if on a step"
+        ]
+      }
+    },
+    {
+      "id": "db-romanian-deadlift",
+      "name": "Romanian Deadlift",
+      "role": "main",
+      "equipment": "dumbbell",
+      "pattern": "hinge",
+      "primaryMuscles": [
+        "hamstrings"
+      ],
+      "secondaryMuscles": [
+        "glutes",
+        "core"
+      ],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        8,
+        15
+      ],
+      "secondsPerRep": 3,
+      "setupSeconds": 10,
+      "media": {
+        "images": [
+          "/exercise-media/db-romanian-deadlift_0.webp",
+          "/exercise-media/db-romanian-deadlift_1.webp"
+        ],
+        "instructions": [
+          "Push hips back, soft knees",
+          "Dumbbells slide down your thighs",
+          "Feel the hamstrings, then stand tall"
+        ]
+      }
+    },
+    {
+      "id": "db-clean",
+      "name": "Dumbbell Clean",
+      "role": "main",
+      "equipment": "dumbbell",
+      "pattern": "hinge",
+      "primaryMuscles": [
+        "hamstrings"
+      ],
+      "secondaryMuscles": [
+        "calves",
+        "glutes",
+        "core",
+        "quads",
+        "shoulders",
+        "back"
+      ],
+      "tier": 3,
+      "unilateral": false,
+      "repRange": [
+        6,
+        10
+      ],
+      "secondsPerRep": 3,
+      "setupSeconds": 10,
+      "media": {
+        "images": [
+          "/exercise-media/db-clean_0.webp",
+          "/exercise-media/db-clean_1.webp"
+        ],
+        "instructions": [
+          "Hinge, then explode hips forward",
+          "Pull dumbbells to your shoulders",
+          "Catch soft with bent knees"
+        ]
+      }
+    },
+    {
+      "id": "glute-bridge",
+      "name": "Glute Bridge",
+      "role": "main",
+      "equipment": "bodyweight",
+      "pattern": "hinge",
+      "primaryMuscles": [
+        "glutes"
+      ],
+      "secondaryMuscles": [
+        "hamstrings"
+      ],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        10,
+        20
+      ],
+      "secondsPerRep": 3,
+      "setupSeconds": 10,
+      "media": {
+        "images": [
+          "/exercise-media/glute-bridge_0.webp",
+          "/exercise-media/glute-bridge_1.webp"
+        ],
+        "instructions": [
+          "Heels close to your hips",
+          "Drive hips up, squeeze glutes hard",
+          "One line from knees to shoulders"
+        ]
+      }
+    },
+    {
+      "id": "single-leg-glute-bridge",
+      "name": "Single-Leg Glute Bridge",
+      "role": "main",
+      "equipment": "bodyweight",
+      "pattern": "hinge",
+      "primaryMuscles": [
+        "glutes"
+      ],
+      "secondaryMuscles": [
+        "hamstrings"
+      ],
+      "tier": 2,
+      "unilateral": true,
+      "repRange": [
+        8,
+        15
+      ],
+      "secondsPerRep": 3,
+      "setupSeconds": 10,
+      "media": {
+        "images": [
+          "/exercise-media/single-leg-glute-bridge_0.webp",
+          "/exercise-media/single-leg-glute-bridge_1.webp"
+        ],
+        "instructions": [
+          "One foot down, other leg extended",
+          "Hips level — don’t let them tilt",
+          "Squeeze at the top each rep"
+        ]
+      }
+    },
+    {
+      "id": "superman",
+      "name": "Superman Hold",
+      "role": "main",
+      "equipment": "bodyweight",
+      "pattern": "hinge",
+      "primaryMuscles": [
+        "core"
+      ],
+      "secondaryMuscles": [
+        "glutes",
+        "hamstrings"
+      ],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        8,
+        15
+      ],
+      "secondsPerRep": 3,
+      "setupSeconds": 10,
+      "media": {
+        "images": [
+          "/exercise-media/superman_0.webp",
+          "/exercise-media/superman_1.webp"
+        ],
+        "instructions": [
+          "Lie face down, arms extended",
+          "Lift arms and legs together",
+          "Squeeze the whole back line, lower slow"
+        ]
+      }
+    },
+    {
+      "id": "db-lunge",
+      "name": "Walking Lunge",
+      "role": "main",
+      "equipment": "dumbbell",
+      "pattern": "lunge",
+      "primaryMuscles": [
+        "quads"
+      ],
+      "secondaryMuscles": [
+        "calves",
+        "glutes",
+        "hamstrings"
+      ],
+      "tier": 1,
+      "unilateral": true,
+      "repRange": [
+        8,
+        12
+      ],
+      "secondsPerRep": 3,
+      "setupSeconds": 10,
+      "media": {
+        "images": [
+          "/exercise-media/db-lunge_0.webp",
+          "/exercise-media/db-lunge_1.webp"
+        ],
+        "instructions": [
+          "Long step, both knees to 90°",
+          "Back knee kisses the floor",
+          "Push through the front heel"
+        ]
+      }
+    },
+    {
+      "id": "db-reverse-lunge",
+      "name": "Reverse Lunge",
+      "role": "main",
+      "equipment": "dumbbell",
+      "pattern": "lunge",
+      "primaryMuscles": [
+        "quads"
+      ],
+      "secondaryMuscles": [
+        "calves",
+        "glutes",
+        "hamstrings"
+      ],
+      "tier": 1,
+      "unilateral": true,
+      "repRange": [
+        8,
+        12
+      ],
+      "secondsPerRep": 3,
+      "setupSeconds": 10,
+      "media": {
+        "images": [
+          "/exercise-media/db-reverse-lunge_0.webp",
+          "/exercise-media/db-reverse-lunge_1.webp"
+        ],
+        "instructions": [
+          "Step back, drop the back knee",
+          "Front shin stays vertical",
+          "Drive up through the front foot"
+        ]
+      }
+    },
+    {
+      "id": "db-split-squat",
+      "name": "Split Squat",
+      "role": "main",
+      "equipment": "dumbbell",
+      "pattern": "lunge",
+      "primaryMuscles": [
+        "quads"
+      ],
+      "secondaryMuscles": [
+        "glutes",
+        "hamstrings"
+      ],
+      "tier": 2,
+      "unilateral": true,
+      "repRange": [
+        8,
+        12
+      ],
+      "secondsPerRep": 3,
+      "setupSeconds": 15,
+      "media": {
+        "images": [
+          "/exercise-media/db-split-squat_0.webp",
+          "/exercise-media/db-split-squat_1.webp"
+        ],
+        "instructions": [
+          "Staggered stance, stay in place",
+          "Straight down and up like an elevator",
+          "Finish all reps, then switch legs"
+        ]
+      }
+    },
+    {
+      "id": "db-step-up",
+      "name": "Step-Up",
+      "role": "main",
+      "equipment": "dumbbell",
+      "pattern": "lunge",
+      "primaryMuscles": [
+        "quads"
+      ],
+      "secondaryMuscles": [
+        "calves",
+        "glutes",
+        "hamstrings"
+      ],
+      "tier": 2,
+      "unilateral": true,
+      "repRange": [
+        8,
+        12
+      ],
+      "secondsPerRep": 4,
+      "setupSeconds": 15,
+      "media": {
+        "images": [
+          "/exercise-media/db-step-up_0.webp",
+          "/exercise-media/db-step-up_1.webp"
+        ],
+        "instructions": [
+          "Use a sturdy step or low bench",
+          "Drive through the top heel",
+          "Lower under control — don’t drop"
+        ]
+      }
+    },
+    {
+      "id": "split-jump",
+      "name": "Jumping Lunge",
+      "role": "main",
+      "equipment": "bodyweight",
+      "pattern": "lunge",
+      "primaryMuscles": [
+        "quads"
+      ],
+      "secondaryMuscles": [
+        "calves",
+        "glutes",
+        "hamstrings"
+      ],
+      "tier": 3,
+      "unilateral": false,
+      "repRange": [
+        8,
+        14
+      ],
+      "secondsPerRep": 2,
+      "setupSeconds": 5,
+      "media": {
+        "images": [
+          "/exercise-media/split-jump_0.webp",
+          "/exercise-media/split-jump_1.webp"
+        ],
+        "instructions": [
+          "Lunge, jump, switch legs mid-air",
+          "Land soft into the next lunge",
+          "Keep chest tall throughout"
+        ]
+      }
+    },
+    {
+      "id": "plank",
+      "name": "Plank",
+      "role": "main",
+      "equipment": "bodyweight",
+      "pattern": "core",
+      "primaryMuscles": [
+        "core"
+      ],
+      "secondaryMuscles": [],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        1,
+        1
+      ],
+      "secondsPerRep": 40,
+      "setupSeconds": 10,
+      "media": {
+        "images": [
+          "/exercise-media/plank_0.webp",
+          "/exercise-media/plank_1.webp"
+        ],
+        "instructions": [
+          "Forearms down, body in one line",
+          "Squeeze glutes, brace the belly",
+          "Breathe — don’t hold your breath"
+        ]
+      }
+    },
+    {
+      "id": "side-plank",
+      "name": "Side Plank",
+      "role": "main",
+      "equipment": "bodyweight",
+      "pattern": "core",
+      "primaryMuscles": [
+        "core"
+      ],
+      "secondaryMuscles": [
+        "shoulders"
+      ],
+      "tier": 2,
+      "unilateral": true,
+      "repRange": [
+        1,
+        1
+      ],
+      "secondsPerRep": 30,
+      "setupSeconds": 10,
+      "media": {
+        "images": [
+          "/exercise-media/side-plank_0.webp",
+          "/exercise-media/side-plank_1.webp"
+        ],
+        "instructions": [
+          "Elbow under shoulder, feet stacked",
+          "Lift hips into one straight line",
+          "Hold, then switch sides"
+        ]
+      }
+    },
+    {
+      "id": "dead-bug",
+      "name": "Dead Bug",
+      "role": "main",
+      "equipment": "bodyweight",
+      "pattern": "core",
+      "primaryMuscles": [
+        "core"
+      ],
+      "secondaryMuscles": [],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        8,
+        14
+      ],
+      "secondsPerRep": 4,
+      "setupSeconds": 10,
+      "media": {
+        "images": [
+          "/exercise-media/dead-bug_0.webp",
+          "/exercise-media/dead-bug_1.webp"
+        ],
+        "instructions": [
+          "Low back pressed into the floor",
+          "Opposite arm and leg reach away",
+          "Slow and controlled, exhale as you extend"
+        ]
+      }
+    },
+    {
+      "id": "russian-twist",
+      "name": "Russian Twist",
+      "role": "main",
+      "equipment": "bodyweight",
+      "pattern": "core",
+      "primaryMuscles": [
+        "core"
+      ],
+      "secondaryMuscles": [],
+      "tier": 2,
+      "unilateral": false,
+      "repRange": [
+        10,
+        20
+      ],
+      "secondsPerRep": 2,
+      "setupSeconds": 10,
+      "media": {
+        "images": [
+          "/exercise-media/russian-twist_0.webp",
+          "/exercise-media/russian-twist_1.webp"
+        ],
+        "instructions": [
+          "Lean back, chest proud",
+          "Rotate shoulder to shoulder",
+          "Add a dumbbell to progress"
+        ]
+      }
+    },
+    {
+      "id": "reverse-crunch",
+      "name": "Reverse Crunch",
+      "role": "main",
+      "equipment": "bodyweight",
+      "pattern": "core",
+      "primaryMuscles": [
+        "core"
+      ],
+      "secondaryMuscles": [],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        10,
+        18
+      ],
+      "secondsPerRep": 3,
+      "setupSeconds": 10,
+      "media": {
+        "images": [
+          "/exercise-media/reverse-crunch_0.webp",
+          "/exercise-media/reverse-crunch_1.webp"
+        ],
+        "instructions": [
+          "Knees to chest, lift the hips",
+          "Roll the spine up, not a swing",
+          "Lower legs slowly"
+        ]
+      }
+    },
+    {
+      "id": "bent-knee-hip-raise",
+      "name": "Lying Knee Raise",
+      "role": "main",
+      "equipment": "bodyweight",
+      "pattern": "core",
+      "primaryMuscles": [
+        "core"
+      ],
+      "secondaryMuscles": [],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        10,
+        18
+      ],
+      "secondsPerRep": 3,
+      "setupSeconds": 10,
+      "media": {
+        "images": [
+          "/exercise-media/bent-knee-hip-raise_0.webp",
+          "/exercise-media/bent-knee-hip-raise_1.webp"
+        ],
+        "instructions": [
+          "Hands by your sides, knees bent",
+          "Draw knees toward your chest",
+          "Keep the low back quiet"
+        ]
+      }
+    },
+    {
+      "id": "db-side-bend",
+      "name": "Dumbbell Side Bend",
+      "role": "main",
+      "equipment": "dumbbell",
+      "pattern": "core",
+      "primaryMuscles": [
+        "core"
+      ],
+      "secondaryMuscles": [],
+      "tier": 1,
+      "unilateral": true,
+      "repRange": [
+        10,
+        15
+      ],
+      "secondsPerRep": 3,
+      "setupSeconds": 5,
+      "media": {
+        "images": [
+          "/exercise-media/db-side-bend_0.webp",
+          "/exercise-media/db-side-bend_1.webp"
+        ],
+        "instructions": [
+          "One dumbbell, slide down your side",
+          "Pull back up with the opposite obliques",
+          "No leaning forward or back"
+        ]
+      }
+    },
+    {
+      "id": "mountain-climber",
+      "name": "Spider Climbers",
+      "role": "main",
+      "equipment": "bodyweight",
+      "pattern": "core",
+      "primaryMuscles": [
+        "core"
+      ],
+      "secondaryMuscles": [
+        "chest",
+        "shoulders",
+        "triceps"
+      ],
+      "tier": 2,
+      "unilateral": false,
+      "repRange": [
+        10,
+        20
+      ],
+      "secondsPerRep": 2,
+      "setupSeconds": 10,
+      "media": {
+        "images": [
+          "/exercise-media/mountain-climber_0.webp",
+          "/exercise-media/mountain-climber_1.webp"
+        ],
+        "instructions": [
+          "From plank, knee to outside elbow",
+          "Hips low and level",
+          "Alternate with rhythm"
+        ]
+      }
+    },
+    {
+      "id": "childs-pose",
+      "name": "Child's Pose",
+      "role": "cooldown",
+      "equipment": "bodyweight",
+      "pattern": "mobility",
+      "primaryMuscles": [
+        "core"
+      ],
+      "secondaryMuscles": [
+        "glutes",
+        "back"
+      ],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        1,
+        1
+      ],
+      "secondsPerRep": 1,
+      "setupSeconds": 5,
+      "media": {
+        "images": [
+          "/exercise-media/childs-pose_0.webp",
+          "/exercise-media/childs-pose_1.webp"
+        ],
+        "instructions": [
+          "Knees wide, sit back on your heels",
+          "Arms long, forehead to the floor",
+          "Slow deep breaths"
+        ]
+      }
+    },
+    {
+      "id": "seated-hamstring-stretch",
+      "name": "Seated Hamstring Stretch",
+      "role": "cooldown",
+      "equipment": "bodyweight",
+      "pattern": "mobility",
+      "primaryMuscles": [
+        "hamstrings"
+      ],
+      "secondaryMuscles": [
+        "calves"
+      ],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        1,
+        1
+      ],
+      "secondsPerRep": 1,
+      "setupSeconds": 5,
+      "media": {
+        "images": [
+          "/exercise-media/seated-hamstring-stretch_0.webp",
+          "/exercise-media/seated-hamstring-stretch_1.webp"
+        ],
+        "instructions": [
+          "Legs long, hinge from the hips",
+          "Reach toward your toes",
+          "Relax the neck, keep breathing"
+        ]
+      }
+    },
+    {
+      "id": "kneeling-hip-flexor-stretch",
+      "name": "Kneeling Hip Flexor Stretch",
+      "role": "cooldown",
+      "equipment": "bodyweight",
+      "pattern": "mobility",
+      "primaryMuscles": [
+        "quads"
+      ],
+      "secondaryMuscles": [],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        1,
+        1
+      ],
+      "secondsPerRep": 1,
+      "setupSeconds": 5,
+      "media": {
+        "images": [
+          "/exercise-media/kneeling-hip-flexor-stretch_0.webp",
+          "/exercise-media/kneeling-hip-flexor-stretch_1.webp"
+        ],
+        "instructions": [
+          "Half-kneel, tuck the tailbone",
+          "Shift hips gently forward",
+          "Reach the same-side arm overhead"
+        ]
+      }
+    },
+    {
+      "id": "side-quad-stretch",
+      "name": "Side-Lying Quad Stretch",
+      "role": "cooldown",
+      "equipment": "bodyweight",
+      "pattern": "mobility",
+      "primaryMuscles": [
+        "quads"
+      ],
+      "secondaryMuscles": [],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        1,
+        1
+      ],
+      "secondsPerRep": 1,
+      "setupSeconds": 5,
+      "media": {
+        "images": [
+          "/exercise-media/side-quad-stretch_0.webp",
+          "/exercise-media/side-quad-stretch_1.webp"
+        ],
+        "instructions": [
+          "Lie on your side, grab the top ankle",
+          "Pull the heel toward your glutes",
+          "Keep knees together, hips forward"
+        ]
+      }
+    },
+    {
+      "id": "spinal-twist",
+      "name": "Lying Spinal Twist",
+      "role": "cooldown",
+      "equipment": "bodyweight",
+      "pattern": "mobility",
+      "primaryMuscles": [
+        "glutes"
+      ],
+      "secondaryMuscles": [
+        "core"
+      ],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        1,
+        1
+      ],
+      "secondsPerRep": 1,
+      "setupSeconds": 5,
+      "media": {
+        "images": [
+          "/exercise-media/spinal-twist_0.webp",
+          "/exercise-media/spinal-twist_1.webp"
+        ],
+        "instructions": [
+          "On your back, drop one knee across",
+          "Both shoulders stay on the floor",
+          "Look the opposite way, breathe"
+        ]
+      }
+    },
+    {
+      "id": "figure-four-stretch",
+      "name": "Figure-4 Glute Stretch",
+      "role": "cooldown",
+      "equipment": "bodyweight",
+      "pattern": "mobility",
+      "primaryMuscles": [
+        "glutes"
+      ],
+      "secondaryMuscles": [],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        1,
+        1
+      ],
+      "secondsPerRep": 1,
+      "setupSeconds": 5,
+      "media": {
+        "images": [
+          "/exercise-media/figure-four-stretch_0.webp",
+          "/exercise-media/figure-four-stretch_1.webp"
+        ],
+        "instructions": [
+          "Ankle over the opposite knee",
+          "Pull the lower thigh toward you",
+          "Feel it deep in the glute"
+        ]
+      }
+    },
+    {
+      "id": "chest-stretch",
+      "name": "Chest & Shoulder Stretch",
+      "role": "cooldown",
+      "equipment": "bodyweight",
+      "pattern": "mobility",
+      "primaryMuscles": [
+        "chest"
+      ],
+      "secondaryMuscles": [
+        "shoulders"
+      ],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        1,
+        1
+      ],
+      "secondsPerRep": 1,
+      "setupSeconds": 5,
+      "media": {
+        "images": [
+          "/exercise-media/chest-stretch_0.webp",
+          "/exercise-media/chest-stretch_1.webp"
+        ],
+        "instructions": [
+          "Clasp hands behind your back",
+          "Lift the knuckles, open the chest",
+          "Shoulders down away from ears"
+        ]
+      }
+    },
+    {
+      "id": "overhead-triceps-stretch",
+      "name": "Overhead Triceps Stretch",
+      "role": "cooldown",
+      "equipment": "bodyweight",
+      "pattern": "mobility",
+      "primaryMuscles": [
+        "triceps"
+      ],
+      "secondaryMuscles": [
+        "back"
+      ],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        1,
+        1
+      ],
+      "secondsPerRep": 1,
+      "setupSeconds": 5,
+      "media": {
+        "images": [
+          "/exercise-media/overhead-triceps-stretch_0.webp",
+          "/exercise-media/overhead-triceps-stretch_1.webp"
+        ],
+        "instructions": [
+          "Elbow up, hand down your back",
+          "Gently pull the elbow across",
+          "Switch arms halfway"
+        ]
+      }
+    },
+    {
+      "id": "cross-shoulder-stretch",
+      "name": "Cross-Body Shoulder Stretch",
+      "role": "cooldown",
+      "equipment": "bodyweight",
+      "pattern": "mobility",
+      "primaryMuscles": [
+        "shoulders"
+      ],
+      "secondaryMuscles": [],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        1,
+        1
+      ],
+      "secondsPerRep": 1,
+      "setupSeconds": 5,
+      "media": {
+        "images": [
+          "/exercise-media/cross-shoulder-stretch_0.webp",
+          "/exercise-media/cross-shoulder-stretch_1.webp"
+        ],
+        "instructions": [
+          "Arm across the chest",
+          "Hug it in with the other arm",
+          "Keep the shoulder relaxed"
+        ]
+      }
+    },
+    {
+      "id": "neck-stretch",
+      "name": "Side Neck Stretch",
+      "role": "cooldown",
+      "equipment": "bodyweight",
+      "pattern": "mobility",
+      "primaryMuscles": [
+        "shoulders"
+      ],
+      "secondaryMuscles": [],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        1,
+        1
+      ],
+      "secondsPerRep": 1,
+      "setupSeconds": 5,
+      "media": {
+        "images": [
+          "/exercise-media/neck-stretch_0.webp",
+          "/exercise-media/neck-stretch_1.webp"
+        ],
+        "instructions": [
+          "Ear toward shoulder, gently",
+          "Opposite arm reaches down",
+          "Switch sides halfway"
+        ]
+      }
+    },
+    {
+      "id": "standing-calf-stretch",
+      "name": "Calf Stretch",
+      "role": "cooldown",
+      "equipment": "bodyweight",
+      "pattern": "mobility",
+      "primaryMuscles": [
+        "calves"
+      ],
+      "secondaryMuscles": [
+        "hamstrings"
+      ],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        1,
+        1
+      ],
+      "secondsPerRep": 1,
+      "setupSeconds": 5,
+      "media": {
+        "images": [
+          "/exercise-media/standing-calf-stretch_0.webp",
+          "/exercise-media/standing-calf-stretch_1.webp"
+        ],
+        "instructions": [
+          "Back leg straight, heel down",
+          "Lean into a wall or chair",
+          "Switch legs halfway"
+        ]
+      }
+    },
+    {
+      "id": "knees-to-chest",
+      "name": "Knees-to-Chest Hug",
+      "role": "cooldown",
+      "equipment": "bodyweight",
+      "pattern": "mobility",
+      "primaryMuscles": [
+        "core"
+      ],
+      "secondaryMuscles": [
+        "glutes"
+      ],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        1,
+        1
+      ],
+      "secondsPerRep": 1,
+      "setupSeconds": 5,
+      "media": {
+        "images": [
+          "/exercise-media/knees-to-chest_0.webp",
+          "/exercise-media/knees-to-chest_1.webp"
+        ],
+        "instructions": [
+          "On your back, hug both knees in",
+          "Rock gently side to side",
+          "Let the low back release"
+        ]
+      }
+    }
+  ]
+}

@@ -34,3 +34,4 @@ playwright-report
 
 # PWA dev
 dev-dist
+content/.cache

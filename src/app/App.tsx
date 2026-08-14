@@ -4,6 +4,7 @@ import PlayerScreen from './screens/PlayerScreen'
 import HistoryScreen from './screens/HistoryScreen'
 import StatsScreen from './screens/StatsScreen'
 import SettingsScreen from './screens/SettingsScreen'
+import CatalogScreen from './screens/CatalogScreen'
 
 const NAV = [
   { to: '/', label: 'Today', emoji: '🏠' },
@@ -45,6 +46,7 @@ export default function App() {
           <Route path="/history" element={<HistoryScreen />} />
           <Route path="/stats" element={<StatsScreen />} />
           <Route path="/settings" element={<SettingsScreen />} />
+          <Route path="/catalog" element={<CatalogScreen />} />
         </Routes>
       </main>
     </div>
