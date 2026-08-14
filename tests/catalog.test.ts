@@ -110,6 +110,28 @@ describe('exercise catalog', () => {
     }
   })
 
+  /**
+   * The invariant that makes the exercise-scoped `isWeighted` correct, asserted
+   * rather than assumed. A movement whose kits disagree about dumbbells —
+   * `[['dumbbell'], ['band']]` — cannot have its load decided without knowing
+   * whose kit it is, and `isWeighted` would call it unloaded for everyone,
+   * including the person holding 15 kg.
+   *
+   * This is the guard for that accepted risk. Pool depth is NOT: adding a band
+   * alternative to a thin pattern makes the pool *deeper*, so a depth test goes
+   * green while the load bug ships. Breaking this test is the signal to make
+   * load person-scoped, not to widen the test.
+   */
+  it('no exercise mixes loaded and unloaded kits', () => {
+    for (const ex of catalog.exercises) {
+      const loaded = ex.requires.map((kit) => kit.includes('dumbbell'))
+      expect(
+        new Set(loaded).size,
+        `${ex.id} has kits that disagree about dumbbells: ${JSON.stringify(ex.requires)} — load must become person-scoped (see isWeighted)`,
+      ).toBe(1)
+    }
+  })
+
   it('ids are unique', () => {
     const ids = catalog.exercises.map((e) => e.id)
     expect(new Set(ids).size).toBe(ids.length)
