@@ -1,3 +1,4 @@
+import { canPerform } from '../catalog/equipment'
 import type { Equipment, Exercise, MobilityPhase, MobilityRegion } from '../catalog/types'
 import { estimatePlanSeconds } from './generate'
 import { fnv1a32, mulberry32, shuffle } from './prng'
@@ -79,15 +80,13 @@ function poolFor(
   return catalog
     .filter((ex) => ex.mobility?.phase === phase)
     .filter((ex) => ex.mobility!.regions.some((r) => regions.includes(r)))
-    .filter((ex) => equipment.includes(ex.equipment))
+    .filter((ex) => canPerform(ex, equipment))
     .sort((a, b) => (a.id < b.id ? -1 : 1)) // total order before any PRNG use
 }
 
 export function generateMobilitySession(input: MobilityInput): WorkoutPlan {
-  const { catalog, dateISO, focus, generatorVersion, householdId, participantIds } = input
-  const equipment: Equipment[] = input.equipment.includes('bodyweight')
-    ? input.equipment
-    : ['bodyweight', ...input.equipment]
+  const { catalog, dateISO, equipment, focus, generatorVersion, householdId, participantIds } =
+    input
   const targetSeconds = input.targetSeconds ?? DEFAULT_MOBILITY_MINUTES * 60
   const seed = fnv1a32(
     `${householdId}|${dateISO}|mobility|${focus}|${targetSeconds}|v${generatorVersion}`,

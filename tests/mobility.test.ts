@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { canPerform } from '../src/core/catalog/equipment'
 import { catalogSchema, type Equipment } from '../src/core/catalog/types'
 import {
   MOBILITY_FOCUS,
@@ -140,7 +141,8 @@ describe('mobility sessions', () => {
     const plan = gen('posture', ['bodyweight'])
     for (const b of plan.blocks) {
       for (const item of b.items) {
-        expect(byId.get(item.exerciseId)!.equipment).toBe('bodyweight')
+        const ex = byId.get(item.exerciseId)!
+        expect(canPerform(ex, ['bodyweight']), `${ex.id} needs gear`).toBe(true)
       }
     }
   })
@@ -148,7 +150,9 @@ describe('mobility sessions', () => {
   it('band and roller work appears when that kit is available', () => {
     const withKit = gen('posture').blocks.flatMap((b) => b.items.map((i) => i.exerciseId))
     const byId = new Map(catalog.map((e) => [e.id, e]))
-    const kitUsed = withKit.filter((id) => ['band', 'roller'].includes(byId.get(id)!.equipment))
+    const kitUsed = withKit.filter((id) =>
+      byId.get(id)!.requires.some((kit) => kit.some((eq) => eq === 'band' || eq === 'roller')),
+    )
     expect(kitUsed.length).toBeGreaterThan(0)
   })
 

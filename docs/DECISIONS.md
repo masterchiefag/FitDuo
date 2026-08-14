@@ -185,6 +185,53 @@ a fix commit forces another review, which is what the tail always claimed.
 
 ---
 
+## 2026-08-14 — PR #3: exercises declare their gear, as alternatives
+
+"Shoulder External Rotation" showed a photo of someone lying on a **bench**
+while our cues said "elbow pinned to your side". The cause was structural:
+`Exercise.equipment` was a single value copied from free-exercise-db, which
+names only the *primary implement*. "Dumbbell Bench Press" is tagged
+`dumbbell`; the bench was invisible to the generator, to eligibility checks,
+and to the reader.
+
+**The trap in the obvious fix.** Replacing one value with a flat `requires`
+list would have tagged 12 movements as needing a bench and deleted them from a
+household that has none — solving a photo mismatch by shrinking the catalog.
+The audit said otherwise: of 19 flagged entries only **6** genuinely need gear.
+The rest are ordinary floor movements that merely *happen to be photographed*
+on a bench (floor press, floor fly, floor skullcrusher, standing Arnold press,
+hinged reverse fly, thigh-braced row). They were re-cued for the floor and keep
+`requires: [['dumbbell']]`. Nothing was lost. *Class: when accurate metadata
+would delete content, check whether the metadata is wrong or the content is —
+here it was the cues, not the exercise.*
+
+**Why `requires` is a list of lists.** A chair dip works on a chair *or* a step
+*or* a bench. A flat AND-list forces an arbitrary pick, which silently drops
+the movement for whoever owns a different one — the same class of bug, one
+level down. So `requires: Equipment[][]` means "every item of any one kit", and
+`canPerform` is one `some(every)`. `[['dumbbell','bench']]` and
+`[['chair'],['step']]` are both expressible; a flat list could only express the
+first.
+
+**Deliberately not built:** per-variant cue sets (bench cues *and* floor cues on
+one exercise). The only beneficiary is a bench owner, and nobody here owns one —
+PLAN §A1 names this failure mode. The predicate is already "any kit", so
+variants would be additive later.
+
+**Gym and home are presets, not modes.** `EQUIPMENT_PRESETS` lives in the app
+layer and only fills in a person's `equipment` list. The generator has never
+heard of "home" or "gym" and must not, or every new kit becomes a branch.
+
+**Mutation-checked** (the rule from PR #1): reverting `canPerform` to
+single-value matching fails three tests. The property test needed fixing first
+— it called `canPerform` on both sides, so it agreed with any bug the predicate
+contained. It now checks the raw `requires` data independently. *Class: a test
+that reuses the implementation as its own oracle cannot fail.*
+
+Also: the strength generator had **no equipment filtering at all** — it was
+mobility-only. And `curate.ts` now skips re-encoding frames that already exist,
+so a metadata-only re-curation needs neither the network nor `sharp`.
+
 ## 2026-08-14 — PR #1: the review tail, applied to itself
 
 The tail (frame → build → browser-verify → Grok → self-review → suite → merge)

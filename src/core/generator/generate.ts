@@ -1,3 +1,4 @@
+import { canPerform } from '../catalog/equipment'
 import type { Exercise, Pattern } from '../catalog/types'
 import { daysBetween, weekdayIndex } from '../dates'
 import { BLOCK_TRANSITION_SECONDS } from '../player/reducer'
@@ -289,9 +290,14 @@ export function generateWorkout(input: GeneratorInput): WorkoutPlan {
     }
   }
 
+  // Equipment is filtered ONCE, before any selection: the relaxation ladder in
+  // selectForSlot may drop the no-repeat window and the tier cap, but it must
+  // never reach for a movement the household cannot physically do.
+  const performable = catalog.filter((e) => canPerform(e, input.equipment))
+
   const ctx: SelectionCtx = {
     rng,
-    mains: catalog.filter((e) => e.role === 'main'),
+    mains: performable.filter((e) => e.role === 'main'),
     maxTier,
     usedToday: new Set(),
     lastUsed,
@@ -322,8 +328,8 @@ export function generateWorkout(input: GeneratorInput): WorkoutPlan {
     items: template.circuit.map((p) => toWorkItem(selectForSlot(p, ctx))),
   }
 
-  const warmupPool = catalog.filter((e) => e.role === 'warmup')
-  const cooldownPool = catalog.filter((e) => e.role === 'cooldown')
+  const warmupPool = performable.filter((e) => e.role === 'warmup')
+  const cooldownPool = performable.filter((e) => e.role === 'cooldown')
   const warmup: TimedItem[] = shuffle(rng, warmupPool)
     .slice(0, WARMUP_ITEMS)
     .map((e) => ({ exerciseId: e.id, seconds: WARMUP_SECONDS }))

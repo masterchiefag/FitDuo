@@ -1,4 +1,4 @@
-import type { Exercise, MuscleGroup } from '../catalog/types'
+import type { Equipment, Exercise, MuscleGroup } from '../catalog/types'
 
 export type DayType = 'full_a' | 'full_b' | 'full_c' | 'upper' | 'lower' | 'push' | 'pull' | 'legs'
 
@@ -33,6 +33,13 @@ export interface GeneratorInput {
   generatorVersion: number
   catalog: Exercise[]
   scheduledDays: boolean[] // Mon..Sun (household schedule for day-type rotation)
+  /**
+   * Kit available for this session. Everyone performs the same movement at the
+   * same time, so for a duo this is the INTERSECTION of what each owns — a
+   * union would prescribe someone a band they do not have. Weight targets are
+   * the opposite case and stay per-participant.
+   */
+  equipment: Equipment[]
   participants: ParticipantInput[] // 1 = solo, 2 = duo
   recentHistory: DayHistory[] // merged household history, last 14 days, oldest first
 }

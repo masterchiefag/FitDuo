@@ -76,7 +76,7 @@ function ExerciseMedia({ ex, size = 'large' }: { ex: Exercise; size?: 'large' | 
     const t = setInterval(() => setFrame((f) => (f === 0 ? 1 : 0)), 1100)
     return () => clearInterval(t)
   }, [])
-  return (
+  const img = (
     <img
       src={ex.media.images[frame]}
       alt={ex.name}
@@ -86,6 +86,17 @@ function ExerciseMedia({ ex, size = 'large' }: { ex: Exercise; size?: 'large' | 
           : 'h-16 w-20 rounded-lg bg-white object-contain'
       }
     />
+  )
+  // The demo frames come from a gym dataset, so the picture can show a bench we
+  // do not ask for. Say so right under it, or the photo quietly overrides the cues.
+  if (size === 'small' || !ex.setupNote) return img
+  return (
+    <>
+      {img}
+      <p className="mx-auto mt-2 max-w-md text-xs text-slate-500 italic dark:text-slate-400">
+        {ex.setupNote}
+      </p>
+    </>
   )
 }
 

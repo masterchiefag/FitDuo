@@ -91,6 +91,7 @@ export function generatorInputFor(participantIds: string[], dateISO: LocalDateIS
     generatorVersion: GENERATOR_VERSION,
     catalog: catalog.exercises,
     scheduledDays: DEFAULT_SCHEDULE,
+    equipment: participantIds.length ? sharedEquipment(participantIds) : HOUSEHOLD_EQUIPMENT,
     participants: participantIds.map((id) => {
       const profile = PROFILES.find((p) => p.id === id)!
       return {
@@ -104,6 +105,12 @@ export function generatorInputFor(participantIds: string[], dateISO: LocalDateIS
   }
 }
 
+/**
+ * What every participant owns. Everyone performs the same movement at the same
+ * time, so eligibility is the INTERSECTION — a union would hand someone a band
+ * they do not have. (Per-person weight targets are the opposite case and stay
+ * per-person; see PLAN R1 "never intersect the two weight arrays".)
+ */
 function sharedEquipment(participantIds: string[]): Equipment[] {
   const lists = participantIds.map((id) => PROFILES.find((p) => p.id === id)?.equipment ?? [])
   const [first, ...others] = lists
@@ -123,10 +130,6 @@ export function mobilityPlan(
     focus,
     participantIds,
     targetSeconds: minutes * 60,
-    // Everyone performs the same movement at the same time, so eligibility is
-    // what ALL participants own — a union would hand someone a band they do
-    // not have. (Per-person weight targets are the opposite case, and stay
-    // per-person.)
     equipment: participantIds.length ? sharedEquipment(participantIds) : HOUSEHOLD_EQUIPMENT,
   })
 }

@@ -4,7 +4,6 @@
 import { mkdir, readFile, writeFile, access } from 'node:fs/promises'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import sharp from 'sharp'
 import {
   SELECTION,
   MOBILITY_ADDITIONS,
@@ -110,6 +109,15 @@ function mapMuscles(source: string[], fallback: string[]): string[] {
   return mapped.length > 0 ? mapped : fallback
 }
 
+async function exists(path: string): Promise<boolean> {
+  try {
+    await access(path)
+    return true
+  } catch {
+    return false
+  }
+}
+
 async function fetchCached(url: string, cachePath: string): Promise<Buffer> {
   try {
     await access(cachePath)
@@ -143,15 +151,22 @@ async function main() {
 
     const images: string[] = []
     for (const [i, img] of src.images.slice(0, 2).entries()) {
-      const jpg = await fetchCached(
-        `${RAW}/exercises/${encodeURIComponent(img).replace(/%2F/g, '/')}`,
-        join(CACHE, 'img', img),
-      )
       const out = `${sel.slug}_${i}.webp`
-      await sharp(jpg)
-        .resize({ width: 640, withoutEnlargement: true })
-        .webp({ quality: 72 })
-        .toFile(join(MEDIA_OUT, out))
+      // Media is derived once and committed. Metadata-only re-runs (re-cues,
+      // equipment retagging) are the common case, so skip the download and the
+      // re-encode when the frame already exists — same bytes, no network, and
+      // `sharp` only has to be installed when there is genuinely new media.
+      if (!(await exists(join(MEDIA_OUT, out)))) {
+        const jpg = await fetchCached(
+          `${RAW}/exercises/${encodeURIComponent(img).replace(/%2F/g, '/')}`,
+          join(CACHE, 'img', img),
+        )
+        const { default: sharp } = await import('sharp')
+        await sharp(jpg)
+          .resize({ width: 640, withoutEnlargement: true })
+          .webp({ quality: 72 })
+          .toFile(join(MEDIA_OUT, out))
+      }
       images.push(`/exercise-media/${out}`)
     }
 
@@ -159,7 +174,7 @@ async function main() {
       id: sel.slug,
       name: sel.displayName,
       role: sel.role,
-      equipment: sel.equipment ?? (sel.slug.startsWith('db-') ? 'dumbbell' : 'bodyweight'),
+      requires: sel.requires ?? (sel.slug.startsWith('db-') ? [['dumbbell']] : [['bodyweight']]),
       pattern: sel.pattern,
       primaryMuscles: mapMuscles(src.primaryMuscles, ['core']),
       secondaryMuscles: mapMuscles(src.secondaryMuscles, []).filter(
@@ -170,6 +185,7 @@ async function main() {
       repRange: sel.repRange,
       secondsPerRep: sel.secondsPerRep,
       setupSeconds: sel.setupSeconds,
+      ...(sel.setupNote ? { setupNote: sel.setupNote } : {}),
       media: { images, instructions: sel.cues },
       loads: LOAD_OVERRIDES[sel.slug] ?? LOADS_BY_PATTERN[sel.pattern] ?? [],
       // Mobility metadata comes either from the additions themselves or from

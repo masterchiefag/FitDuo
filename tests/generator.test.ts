@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest'
 import fc from 'fast-check'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { catalogSchema } from '../src/core/catalog/types'
+import { canPerform } from '../src/core/catalog/equipment'
+import { catalogSchema, type Equipment, type Exercise } from '../src/core/catalog/types'
 import { DURATION_MAX_S, DURATION_MIN_S, generateWorkout } from '../src/core/generator/generate'
 import { addDays } from '../src/core/dates'
 import type { DayHistory, GeneratorInput, ParticipantInput } from '../src/core/generator/types'
@@ -38,20 +39,28 @@ const dateArb = fc
   })
   .map((d) => d.toISOString().slice(0, 10))
 
+/** The kits a real household actually has, leanest first. */
+const MINIMAL_KIT: Equipment[] = ['bodyweight', 'dumbbell']
+const HOME_KIT: Equipment[] = ['bodyweight', 'dumbbell', 'band', 'roller', 'chair', 'wall', 'step']
+const GYM_KIT: Equipment[] = [...HOME_KIT, 'bench', 'pullup_bar']
+const equipmentArb = fc.constantFrom(MINIMAL_KIT, HOME_KIT, GYM_KIT)
+
 const inputArb: fc.Arbitrary<GeneratorInput> = fc
   .record({
     dateISO: dateArb,
     scheduledDays: scheduleArb,
+    equipment: equipmentArb,
     p1: participantArb('p1'),
     p2: participantArb('p2'),
     duo: fc.boolean(),
   })
-  .map(({ dateISO, scheduledDays, p1, p2, duo }) => ({
+  .map(({ dateISO, scheduledDays, equipment, p1, p2, duo }) => ({
     householdId: 'home',
     dateISO,
     generatorVersion: 1,
     catalog,
     scheduledDays,
+    equipment: [...equipment],
     participants: duo ? [p1, p2] : [p1],
     recentHistory: [],
   }))
@@ -128,6 +137,31 @@ describe('generateWorkout properties', () => {
     )
   })
 
+  it('never prescribes a movement the household cannot perform', () => {
+    const byId = new Map(catalog.map((e) => [e.id, e]))
+    fc.assert(
+      fc.property(inputArb, (input) => {
+        const plan = generateWorkout(input)
+        for (const b of plan.blocks) {
+          for (const item of b.items) {
+            const ex = byId.get(item.exerciseId)!
+            // Checked against the raw `requires` data, NOT via canPerform:
+            // calling the same predicate the generator used would make this
+            // assertion agree with any bug it contains.
+            const usable = ex.requires.some((kit) =>
+              kit.every((need) => need === 'bodyweight' || input.equipment.includes(need)),
+            )
+            expect(
+              usable,
+              `${ex.id} needs ${JSON.stringify(ex.requires)}, kit is ${input.equipment.join(',')}`,
+            ).toBe(true)
+          }
+        }
+      }),
+      { numRuns: 150 },
+    )
+  })
+
   it('honors the 3-day no-repeat window when simulating consecutive days', () => {
     const base: GeneratorInput = {
       householdId: 'home',
@@ -135,6 +169,7 @@ describe('generateWorkout properties', () => {
       generatorVersion: 1,
       catalog,
       scheduledDays: [true, true, true, true, true, true, true],
+      equipment: [...HOME_KIT],
       participants: [{ userId: 'p1', availableWeights: [5, 10], maxTier: 2, progression: {} }],
       recentHistory: [],
     }
@@ -165,5 +200,69 @@ describe('generateWorkout properties', () => {
       if (history.length > 14) history.shift()
       date = addDays(date, 1)
     }
+  })
+})
+
+/**
+ * Multi-item requirements are the case a single-equipment field could not
+ * express, and the reason "Dumbbell Bench Press" used to look like a movement
+ * you could do with dumbbells alone.
+ *
+ * MUTATION-CHECKED (see docs/DECISIONS.md): reverting `canPerform` to the old
+ * single-value match — e.g. `owned.includes(ex.requires[0][0])` — makes the
+ * first two cases below fail, because a dumbbell-only household then passes the
+ * check on the dumbbell alone and gets prescribed a bench press.
+ */
+describe('equipment eligibility', () => {
+  const exercise = (id: string, requires: Equipment[][]): Exercise =>
+    ({
+      id,
+      name: id,
+      role: 'main',
+      requires,
+      pattern: 'push_h',
+      primaryMuscles: ['chest'],
+      secondaryMuscles: [],
+      tier: 1,
+      unilateral: false,
+      repRange: [8, 12],
+      secondsPerRep: 3,
+      setupSeconds: 10,
+      media: { images: [], instructions: [] },
+      loads: [],
+    }) as Exercise
+
+  const DUMBBELL_ONLY: Equipment[] = ['bodyweight', 'dumbbell']
+
+  it('excludes a movement needing dumbbell AND bench from a dumbbell-only kit', () => {
+    expect(canPerform(exercise('bench-press', [['dumbbell', 'bench']]), DUMBBELL_ONLY)).toBe(false)
+  })
+
+  it('excludes it whichever order the kit lists the items in', () => {
+    expect(canPerform(exercise('bench-press', [['bench', 'dumbbell']]), DUMBBELL_ONLY)).toBe(false)
+    expect(canPerform(exercise('bench-press', [['dumbbell', 'bench']]), ['bench'])).toBe(false)
+  })
+
+  it('includes it once the missing item is owned', () => {
+    expect(
+      canPerform(exercise('bench-press', [['dumbbell', 'bench']]), [...DUMBBELL_ONLY, 'bench']),
+    ).toBe(true)
+  })
+
+  it('accepts any ONE of the alternative kits', () => {
+    const dips = exercise('chair-dips', [['chair'], ['bench'], ['step']])
+    expect(canPerform(dips, ['bodyweight', 'step'])).toBe(true)
+    expect(canPerform(dips, ['bodyweight', 'chair'])).toBe(true)
+    expect(canPerform(dips, DUMBBELL_ONLY)).toBe(false)
+  })
+
+  it('treats bodyweight as owned even when a profile forgets to list it', () => {
+    expect(canPerform(exercise('push-up', [['bodyweight']]), ['dumbbell'])).toBe(true)
+  })
+
+  it('keeps the real catalog free of bench-only movements for a home kit', () => {
+    const HOME: Equipment[] = ['bodyweight', 'dumbbell', 'band', 'roller', 'chair', 'wall', 'step']
+    const unreachable = catalog.filter((ex) => !canPerform(ex, HOME))
+    expect(unreachable.map((e) => e.id)).toEqual([])
   })
 })
