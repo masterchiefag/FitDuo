@@ -72,7 +72,12 @@ PR="$(gh pr view --json number --jq .number 2>/dev/null || true)"
 
 # Refuse to publish anything that quotes local personal data (tests/leak-check.test.ts
 # is this guard's proof-of-bite — a guard that stops matching is a silent leak).
-LEAK="$(node scripts/dev/lib/leak-check.mjs "$OUT")"
+if ! LEAK="$(node scripts/dev/lib/leak-check.mjs "$OUT")"; then
+  # The check could not run (missing, renamed, unreadable). `set -e` would abort
+  # here with no explanation; not posting is the safe reading of "unknown".
+  echo "grok-review: NOT posted — leak check failed to run. Review is at $OUT." >&2
+  exit 0
+fi
 if [ -n "$LEAK" ]; then
   echo "grok-review: NOT posted — the review quotes local personal data ($(printf '%.20s' "$LEAK")...)." >&2
   echo "grok-review: review is at $OUT. Read it, then post by hand if it is a false positive." >&2

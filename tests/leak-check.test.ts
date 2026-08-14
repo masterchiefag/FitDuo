@@ -38,6 +38,9 @@ beforeAll(() => {
     }),
   )
   writeFileSync(join(sandbox, '.env'), 'VITE_SUPABASE_KEY="sk-not-a-real-key-2f9a"\n')
+  // Vite's own convention, and gitignored here via `.env.*`.
+  writeFileSync(join(sandbox, '.env.local'), "VITE_LOCAL_TOKEN='tok-local-8b31'\n")
+  writeFileSync(join(sandbox, '.env.example'), 'VITE_SUPABASE_KEY=your-key-here\n')
 })
 
 afterAll(() => rmSync(sandbox, { recursive: true, force: true }))
@@ -65,6 +68,39 @@ describe('leak check', () => {
 
   it('stays quiet for an ordinary code review', () => {
     expect(check('`endsAt` should be absolute; the countdown accumulates drift.')).toBe('')
+  })
+
+  // A substring whitelist exempted these against the real catalog: each sits
+  // inside ordinary catalog prose ("same", "bend", "iron", "every", "time").
+  // Short first names are exactly what this guard is for, so they get a test.
+  it.each(['Sam', 'Ben', 'Ron', 'Eve', 'Tim'])('catches the short name %s', (name) => {
+    const local = join(sandbox, 'profiles.local.json')
+    writeFileSync(local, JSON.stringify({ people: [{ id: 'p1', name }] }))
+    expect(check(`${name} skips the warmup on rest days.`)).toBe(name)
+    writeFileSync(local, JSON.stringify({ people: [{ id: 'p1', name: 'Zebediah Quux' }] }))
+  })
+
+  it('catches a secret from .env.local, not only .env', () => {
+    expect(check('The token tok-local-8b31 is inlined at build time.')).toBe('tok-local-8b31')
+  })
+
+  it('ignores the checked-in .env.example', () => {
+    expect(check('Set VITE_SUPABASE_KEY=your-key-here in your env file.')).toBe('')
+  })
+
+  // Fail closed: the caller cannot tell "clean" from "never ran" by stdout alone,
+  // so a check that cannot run must exit non-zero rather than print nothing.
+  it('exits non-zero rather than approving when it cannot scan', () => {
+    const attempt = (args: string[]) => {
+      try {
+        execFileSync('node', [SCRIPT, ...args], { encoding: 'utf8', stdio: 'pipe' })
+        return 0
+      } catch (e) {
+        return (e as { status: number }).status
+      }
+    }
+    expect(attempt(['--root', sandbox])).toBe(2) // no file to scan
+    expect(attempt([join(sandbox, 'nope.md'), '--root', sandbox])).toBe(2) // unreadable
   })
 
   it('is quiet when there is no local profile at all', () => {

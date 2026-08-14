@@ -76,12 +76,23 @@ have.
 comment — and this repo has already shipped personal data once by reading
 "gitignored" as "unpublished". That is a bit that has bitten, silent when it
 fails, and mechanically checkable, so posting is checked against local profile
-and env values and fails closed (`scripts/dev/lib/leak-check.mjs`, proof-of-bite
-in `tests/leak-check.test.ts`). Deliberately not an opt-out flag: a flag does
-not get set under the same velocity that skipped the review tail. The check only
+and env *string* values (bare numbers would fire on every rep count) and fails
+closed (`scripts/dev/lib/leak-check.mjs`, proof-of-bite in
+`tests/leak-check.test.ts`). Deliberately not an opt-out flag: a flag does not
+get set under the same velocity that skipped the review tail. The check only
 counts a value as personal if it is absent from the checked-in template and
 catalog — a guard that fires on "dumbbell" blocks every post and gets deleted
 within a day.
+
+*Two things self-review caught in that guard, both worth remembering.* The
+whitelist compared by **substring**, which exempted any value sitting inside
+catalog prose — measured against the real catalog, that silently exempted the
+names Sam, Ben, Ron, Eve, Tim, Lou and Art ("same", "bend", "iron", "every",
+"time", "cloud", "start"). A privacy guard with a hole exactly at short first
+names is worse than none, because it is trusted. And it **failed open**: with an
+unreadable or missing target it printed nothing, which the caller could not
+distinguish from "scanned, clean". *For a guard, the interesting question is not
+"does it catch?" but "what does it do when it cannot run?"*
 
 ---
 
