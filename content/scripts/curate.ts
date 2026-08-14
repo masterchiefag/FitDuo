@@ -61,6 +61,13 @@ const LOAD_OVERRIDES: Record<string, Load[]> = {
   'split-jump': [{ area: 'knee', stress: 'high' }],
   'mountain-climber': [{ area: 'wrist', stress: 'moderate' }],
   'chair-dips': [{ area: 'shoulder', stress: 'high' }],
+  // Mobility work is unloaded by default (pattern 'mobility' => no loads). The
+  // neck isometrics are the exception: self-limited, but they do load the neck,
+  // so declare it and let the pain-flag mechanism see them like anything else.
+  'isometric-neck-front-back': [{ area: 'neck', stress: 'moderate' }],
+  'isometric-neck-sides': [{ area: 'neck', stress: 'moderate' }],
+  // Same reasoning: a prone extension loads the low back, unloaded or not.
+  'prone-chest-lift': [{ area: 'lower_back', stress: 'moderate' }],
 }
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..')
