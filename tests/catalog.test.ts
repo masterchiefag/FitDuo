@@ -3,6 +3,22 @@ import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { canPerform } from '../src/core/catalog/equipment'
 import { catalogSchema, type Equipment } from '../src/core/catalog/types'
+import { TEMPLATES } from '../src/core/generator/generate'
+
+/**
+ * The most distinct movements any single day type asks of one pattern. The
+ * generator never repeats a movement within a day (`usedToday`), so this — not
+ * a round number — is the depth below which generation throws `ThinKitError`.
+ */
+const SLOTS_PER_DAY: Record<string, number> = (() => {
+  const worst: Record<string, number> = {}
+  for (const t of Object.values(TEMPLATES)) {
+    const day: Record<string, number> = {}
+    for (const p of [...t.supersets.flat(), ...t.circuit]) day[p] = (day[p] ?? 0) + 1
+    for (const [p, n] of Object.entries(day)) worst[p] = Math.max(worst[p] ?? 0, n)
+  }
+  return worst
+})()
 
 /**
  * Pool depth has to hold for the kit people actually own, not for the catalog
@@ -61,13 +77,17 @@ describe('exercise catalog', () => {
     expect(warmups.length, `warmups on ${kitName}`).toBeGreaterThanOrEqual(10)
     expect(cooldowns.length, `cooldowns on ${kitName}`).toBeGreaterThanOrEqual(10)
 
-    // Each main movement pattern needs enough candidates to honor a 3-day
-    // no-repeat window; tier-1 depth guards the beginner path.
     const mains = performable.filter((e) => e.role === 'main')
-    const patterns = ['push_h', 'push_v', 'pull_h', 'pull_v', 'squat', 'hinge', 'lunge', 'core']
-    for (const p of patterns) {
+    for (const [p, needed] of Object.entries(SLOTS_PER_DAY)) {
       const pool = mains.filter((e) => e.pattern === p)
-      expect(pool.length, `${kitName}: pattern ${p}`).toBeGreaterThanOrEqual(3)
+      // A flat ">= 3" was the floor here and it was below what a day actually
+      // eats: `usedToday` never repeats a movement, so a pull day needs FIVE
+      // distinct pull_h or generation throws. Derived from TEMPLATES so a new
+      // day type cannot outgrow the check silently.
+      expect(
+        pool.length,
+        `${kitName}: ${p} needs ${needed} distinct per day`,
+      ).toBeGreaterThanOrEqual(needed)
       expect(
         pool.filter((e) => e.tier === 1).length,
         `${kitName}: tier-1 pool for ${p}`,

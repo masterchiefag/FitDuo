@@ -264,6 +264,15 @@ badge and the `setupNote` read. *Class: "the data is now accurate" and "the
 product got worse" can both be true; a requirement nobody would think to
 declare needs a default, not a gate.*
 
+**A guard set to a round number instead of the real one.** The pool-depth test
+asserted `>= 3` candidates per pattern. A *pull* day selects **five** distinct
+`pull_h` (three superset slots plus two circuit slots) and `usedToday` never
+repeats, so four candidates throws. The margin was real today (six) and this is
+the PR that retags `requires` — exactly how such a margin dies quietly, with
+the test still green. The floor is now derived from `TEMPLATES`, so a new day
+type cannot outgrow its own check. *Class: a threshold that was picked rather
+than derived is a guess, and it silently stops matching the thing it guards.*
+
 **The audit method was itself the bug.** The 19 flagged entries came from
 grepping the source dataset's `instructions` for bench/step/platform. That
 found every entry whose *text* mentions gear and none whose *photograph* shows

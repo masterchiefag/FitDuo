@@ -52,8 +52,15 @@ export function dayTypeFor(scheduledDays: boolean[], dateISO: string): DayType {
   return rotation[before % rotation.length]!
 }
 
-// Slot templates: 3 superset pairs + 1 circuit triple per day type.
-const TEMPLATES: Record<DayType, { supersets: [Pattern, Pattern][]; circuit: Pattern[] }> = {
+/**
+ * Slot templates: 3 superset pairs + 1 circuit triple per day type.
+ *
+ * Exported because it defines how many DISTINCT movements a day consumes per
+ * pattern (a pull day wants five different `pull_h`), which is the real floor
+ * for catalog pool depth — see tests/catalog.test.ts. PLAN A0 moves this to
+ * content/day-templates.json.
+ */
+export const TEMPLATES: Record<DayType, { supersets: [Pattern, Pattern][]; circuit: Pattern[] }> = {
   full_a: {
     supersets: [
       ['squat', 'pull_h'],
