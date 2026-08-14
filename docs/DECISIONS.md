@@ -252,9 +252,25 @@ remember; and checking solo separately, because the duo pool is the *smaller*
 one. *Class: a `try/catch` at one call site is a local patch, not a boundary —
 and a fix for "the pair cannot train" must not assume neither can.*
 
-**Mutation-checked** (the rule from PR #1): reverting `canPerform` to
-single-value matching fails three tests; reverting `allCanPerform` to
-intersect-then-check fails the divergent-kit test. The property test needed fixing first
+**Third Grok pass: a chair is not equipment.** Making `chair`/`wall` real
+requirements was correct data and a bad outcome — nobody lists furniture, and
+gitignored real profiles cannot be migrated, so five movements would have
+silently vanished from a household that plainly has chairs and walls.
+`ownedEquipment` now assumes a small `ASSUMED` set (bodyweight, chair, wall)
+present for everyone, while `step` and `bench` stay declared: stairs are common
+but not universal, and a knee-height surface that holds your weight is worth
+asking about. The declaration still earns its place — it is what the catalog
+badge and the `setupNote` read. *Class: "the data is now accurate" and "the
+product got worse" can both be true; a requirement nobody would think to
+declare needs a default, not a gate.*
+
+**Mutation-checked** (the rule from PR #1), all three re-run after the assumed
+fixtures changed the fixtures underneath them: single-value `canPerform` fails
+4 tests; intersect-then-check `allCanPerform` fails the divergent-kit test; an
+untyped `throw` in `selectForSlot` fails the `ThinKitError` test. The
+divergent-kit test had to move from chair/step to step/bench to keep biting —
+once chair is assumed for everyone, a chair/step pair passes under *either*
+rule, and the test would have quietly stopped testing anything. The property test needed fixing first
 — it called `canPerform` on both sides, so it agreed with any bug the predicate
 contained. It now checks the raw `requires` data independently. *Class: a test
 that reuses the implementation as its own oracle cannot fail.*

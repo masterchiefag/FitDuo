@@ -53,8 +53,11 @@ export default function SettingsScreen() {
           <strong>
             Together: {togetherCount} of {total} movements.
           </strong>{' '}
-          {togetherCount < Math.min(...PROFILES.map((p) => performableCount(p.equipment)))
-            ? 'Lower than either of you alone — something one of you owns is missing from the other’s list, so shared sessions skip it. Adding it to both unlocks it.'
+          {/* Compared against the BEST-equipped person, not the worst: the pair
+              loses something the moment anyone can do more alone than together,
+              which is the usual shape (one owns a band, the other does not). */}
+          {togetherCount < Math.max(...PROFILES.map((p) => performableCount(p.equipment)))
+            ? 'Fewer than one of you can do alone — every shared movement has to suit both kits, so anything only one of you owns is skipped. Listing it for both unlocks it.'
             : 'Nothing is lost to the gap between your two kits.'}
         </p>
       )}

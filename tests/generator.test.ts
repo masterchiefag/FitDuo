@@ -4,7 +4,12 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { allCanPerform, canPerform } from '../src/core/catalog/equipment'
 import { catalogSchema, type Equipment, type Exercise } from '../src/core/catalog/types'
-import { DURATION_MAX_S, DURATION_MIN_S, generateWorkout } from '../src/core/generator/generate'
+import {
+  DURATION_MAX_S,
+  DURATION_MIN_S,
+  ThinKitError,
+  generateWorkout,
+} from '../src/core/generator/generate'
 import { addDays } from '../src/core/dates'
 import type { DayHistory, GeneratorInput, ParticipantInput } from '../src/core/generator/types'
 
@@ -146,10 +151,12 @@ describe('generateWorkout properties', () => {
             const ex = byId.get(item.exerciseId)!
             // Checked against the raw `requires` data, NOT via canPerform:
             // calling the same predicate the generator used would make this
-            // assertion agree with any bug it contains.
+            // assertion agree with any bug it contains. The assumed-fixture
+            // list is restated here for the same reason.
+            const ASSUMED = ['bodyweight', 'chair', 'wall']
             const usableBy = (owned: Equipment[]) =>
               ex.requires.some((kit) =>
-                kit.every((need) => need === 'bodyweight' || owned.includes(need)),
+                kit.every((need) => ASSUMED.includes(need) || owned.includes(need)),
               )
             expect(
               input.participants.every((p) => usableBy(p.equipment)),
@@ -257,30 +264,50 @@ describe('equipment eligibility', () => {
   })
 
   it('accepts any ONE of the alternative kits', () => {
-    const dips = exercise('chair-dips', [['chair'], ['bench'], ['step']])
-    expect(canPerform(dips, ['bodyweight', 'step'])).toBe(true)
-    expect(canPerform(dips, ['bodyweight', 'chair'])).toBe(true)
-    expect(canPerform(dips, DUMBBELL_ONLY)).toBe(false)
+    const stepUp = exercise('db-step-up', [
+      ['dumbbell', 'step'],
+      ['dumbbell', 'bench'],
+    ])
+    expect(canPerform(stepUp, ['bodyweight', 'dumbbell', 'step'])).toBe(true)
+    expect(canPerform(stepUp, ['bodyweight', 'dumbbell', 'bench'])).toBe(true)
+    expect(canPerform(stepUp, DUMBBELL_ONLY)).toBe(false)
+  })
+
+  it('assumes the fixtures every home has, and only those', () => {
+    // chair/wall are assumed present — nobody lists furniture as equipment, and
+    // gating on it silently deletes chair dips from a household with chairs.
+    expect(canPerform(exercise('dips', [['chair']]), ['dumbbell'])).toBe(true)
+    expect(canPerform(exercise('lat-stretch', [['wall']]), ['dumbbell'])).toBe(true)
+    // A step and a bench are not furniture everyone has. Still declared.
+    expect(canPerform(exercise('step-up', [['step']]), ['dumbbell'])).toBe(false)
+    expect(canPerform(exercise('press', [['bench']]), ['dumbbell'])).toBe(false)
   })
 
   /**
    * The bug alternative kits introduced, and the reason `allCanPerform` is not
    * `canPerform(ex, A ∩ B)`.
    *
+   * Uses step vs bench deliberately: chair and wall are assumed present for
+   * everyone, so a chair/step pair would pass under either rule and the test
+   * would not bite.
+   *
    * MUTATION-CHECKED: reverting the app + generator to "intersect the two
-   * equipment lists, then check that" fails the first case — A on a chair and
-   * B on a step can both do a chair dip, but their intersected list holds
-   * neither, so the movement silently disappears for a pair who can do it.
+   * equipment lists, then check that" fails the first case — one person on a
+   * step and the other on a bench can both do the movement, but their
+   * intersected list holds neither, so it vanishes for a pair who can do it.
    */
   it('a shared session keeps what each person can do with their OWN kit', () => {
-    const dips = exercise('chair-dips', [['chair'], ['bench'], ['step']])
-    const withChair: Equipment[] = ['bodyweight', 'dumbbell', 'chair']
+    const stepUp = exercise('db-step-up', [
+      ['dumbbell', 'step'],
+      ['dumbbell', 'bench'],
+    ])
     const withStep: Equipment[] = ['bodyweight', 'dumbbell', 'step']
+    const withBench: Equipment[] = ['bodyweight', 'dumbbell', 'bench']
 
-    expect(allCanPerform(dips, [withChair, withStep])).toBe(true)
+    expect(allCanPerform(stepUp, [withStep, withBench])).toBe(true)
     // ...and the intersection, which is what a merged list would have produced:
-    const intersection = withChair.filter((e) => withStep.includes(e))
-    expect(canPerform(dips, intersection)).toBe(false)
+    const intersection = withStep.filter((e) => withBench.includes(e))
+    expect(canPerform(stepUp, intersection)).toBe(false)
   })
 
   it('a shared session still drops what only ONE person can do', () => {
@@ -300,6 +327,47 @@ describe('equipment eligibility', () => {
    * a bug fix into a permanent content ceiling; pool depth per kit is asserted
    * in tests/catalog.test.ts and is what actually protects the sessions.
    */
+  /**
+   * The blank home screen, locked at the type level.
+   *
+   * `tryPlanForToday` turns exactly `ThinKitError` into `null` and rethrows the
+   * rest — so if this throw degrades to a plain `Error`, Today white-screens
+   * again and every other test still passes. That regression has now happened
+   * twice in this PR's history (docs/DECISIONS.md), hence a test on the class
+   * rather than on the message.
+   *
+   * MUTATION-CHECKED: `throw new Error(...)` in selectForSlot fails this.
+   */
+  it('a kit too thin to fill a pattern throws ThinKitError, naming the pattern', () => {
+    const thin = () =>
+      generateWorkout({
+        householdId: 'home',
+        dateISO: '2026-08-14',
+        generatorVersion: 1,
+        catalog,
+        scheduledDays: [true, true, true, true, true, false, false],
+        participants: [
+          {
+            userId: 'p1',
+            availableWeights: [],
+            equipment: ['bodyweight'],
+            maxTier: 2,
+            progression: {},
+          },
+        ],
+        recentHistory: [],
+      })
+    expect(thin).toThrow(ThinKitError)
+    let caught: unknown
+    try {
+      thin()
+    } catch (err) {
+      caught = err
+    }
+    // PreviewScreen renders this field, so it has to survive.
+    expect((caught as ThinKitError).pattern).toBe('pull_h')
+  })
+
   it('the movements re-cued for the floor need nothing beyond dumbbells', () => {
     const RECUED_FOR_THE_FLOOR = [
       'db-chest-press',

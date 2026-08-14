@@ -5,9 +5,23 @@ import type { Equipment, Exercise } from './types'
  * that needs gear must be invisible to selection, not merely awkward to do.
  */
 
-/** Everyone owns their own body; a profile never has to declare it. */
+/**
+ * Fixtures every home already has, which nobody thinks of as equipment and so
+ * never lists. Assumed present rather than required, because the alternative is
+ * worse in both directions: gate on them and a real household silently loses
+ * chair dips and wall stretches it can obviously do; leave them out of
+ * `requires` entirely and the catalog goes back to not saying what a movement
+ * needs.
+ *
+ * `step` and `bench` are NOT here. Stairs are common but not universal, and a
+ * knee-height surface that takes your bodyweight is exactly the kind of thing
+ * worth asking about.
+ */
+const ASSUMED: Equipment[] = ['bodyweight', 'chair', 'wall']
+
+/** What a person can actually reach, given the fixtures nobody declares. */
 export function ownedEquipment(owned: readonly Equipment[]): Equipment[] {
-  return owned.includes('bodyweight') ? [...owned] : ['bodyweight', ...owned]
+  return [...new Set<Equipment>([...ASSUMED, ...owned])]
 }
 
 /**
