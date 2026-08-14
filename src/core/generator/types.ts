@@ -1,4 +1,4 @@
-import type { Exercise, MuscleGroup } from '../catalog/types'
+import type { Equipment, Exercise, MuscleGroup } from '../catalog/types'
 
 export type DayType = 'full_a' | 'full_b' | 'full_c' | 'upper' | 'lower' | 'push' | 'pull' | 'legs'
 
@@ -23,6 +23,8 @@ export interface DayHistory {
 export interface ParticipantInput {
   userId: string
   availableWeights: number[] // per-dumbbell, sorted asc
+  /** What this person owns. Per-person, like weights — see `allCanPerform`. */
+  equipment: Equipment[]
   maxTier: 1 | 2 | 3
   progression: Record<string, ExerciseProgress> // keyed by exercise id
 }

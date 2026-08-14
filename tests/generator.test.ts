@@ -2,8 +2,14 @@ import { describe, expect, it } from 'vitest'
 import fc from 'fast-check'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { catalogSchema } from '../src/core/catalog/types'
-import { DURATION_MAX_S, DURATION_MIN_S, generateWorkout } from '../src/core/generator/generate'
+import { allCanPerform, canPerform } from '../src/core/catalog/equipment'
+import { catalogSchema, type Equipment, type Exercise } from '../src/core/catalog/types'
+import {
+  DURATION_MAX_S,
+  DURATION_MIN_S,
+  ThinKitError,
+  generateWorkout,
+} from '../src/core/generator/generate'
 import { addDays } from '../src/core/dates'
 import type { DayHistory, GeneratorInput, ParticipantInput } from '../src/core/generator/types'
 
@@ -18,10 +24,17 @@ const weightsArb = fc
   })
   .map((w) => [...w].sort((a, b) => a - b))
 
+/** The kits a real household actually has, leanest first. */
+const MINIMAL_KIT: Equipment[] = ['bodyweight', 'dumbbell']
+const HOME_KIT: Equipment[] = ['bodyweight', 'dumbbell', 'band', 'roller', 'chair', 'wall', 'step']
+const GYM_KIT: Equipment[] = [...HOME_KIT, 'bench', 'pullup_bar']
+const equipmentArb = fc.constantFrom(MINIMAL_KIT, HOME_KIT, GYM_KIT)
+
 const participantArb = (userId: string): fc.Arbitrary<ParticipantInput> =>
   fc.record({
     userId: fc.constant(userId),
     availableWeights: weightsArb,
+    equipment: equipmentArb.map((k) => [...k]),
     maxTier: fc.constantFrom(1 as const, 2 as const, 3 as const),
     progression: fc.constant({}),
   })
@@ -128,6 +141,34 @@ describe('generateWorkout properties', () => {
     )
   })
 
+  it('never prescribes a movement the household cannot perform', () => {
+    const byId = new Map(catalog.map((e) => [e.id, e]))
+    fc.assert(
+      fc.property(inputArb, (input) => {
+        const plan = generateWorkout(input)
+        for (const b of plan.blocks) {
+          for (const item of b.items) {
+            const ex = byId.get(item.exerciseId)!
+            // Checked against the raw `requires` data, NOT via canPerform:
+            // calling the same predicate the generator used would make this
+            // assertion agree with any bug it contains. The assumed-fixture
+            // list is restated here for the same reason.
+            const ASSUMED = ['bodyweight', 'chair', 'wall']
+            const usableBy = (owned: Equipment[]) =>
+              ex.requires.some((kit) =>
+                kit.every((need) => ASSUMED.includes(need) || owned.includes(need)),
+              )
+            expect(
+              input.participants.every((p) => usableBy(p.equipment)),
+              `${ex.id} needs ${JSON.stringify(ex.requires)}`,
+            ).toBe(true)
+          }
+        }
+      }),
+      { numRuns: 150 },
+    )
+  })
+
   it('honors the 3-day no-repeat window when simulating consecutive days', () => {
     const base: GeneratorInput = {
       householdId: 'home',
@@ -135,7 +176,15 @@ describe('generateWorkout properties', () => {
       generatorVersion: 1,
       catalog,
       scheduledDays: [true, true, true, true, true, true, true],
-      participants: [{ userId: 'p1', availableWeights: [5, 10], maxTier: 2, progression: {} }],
+      participants: [
+        {
+          userId: 'p1',
+          availableWeights: [5, 10],
+          equipment: [...HOME_KIT],
+          maxTier: 2,
+          progression: {},
+        },
+      ],
       recentHistory: [],
     }
     const history: DayHistory[] = []
@@ -164,6 +213,183 @@ describe('generateWorkout properties', () => {
       })
       if (history.length > 14) history.shift()
       date = addDays(date, 1)
+    }
+  })
+})
+
+/**
+ * Multi-item requirements are the case a single-equipment field could not
+ * express, and the reason "Dumbbell Bench Press" used to look like a movement
+ * you could do with dumbbells alone.
+ *
+ * MUTATION-CHECKED (see docs/DECISIONS.md): reverting `canPerform` to the old
+ * single-value match — e.g. `owned.includes(ex.requires[0][0])` — makes the
+ * first two cases below fail, because a dumbbell-only household then passes the
+ * check on the dumbbell alone and gets prescribed a bench press.
+ */
+describe('equipment eligibility', () => {
+  const exercise = (id: string, requires: Equipment[][]): Exercise =>
+    ({
+      id,
+      name: id,
+      role: 'main',
+      requires,
+      pattern: 'push_h',
+      primaryMuscles: ['chest'],
+      secondaryMuscles: [],
+      tier: 1,
+      unilateral: false,
+      repRange: [8, 12],
+      secondsPerRep: 3,
+      setupSeconds: 10,
+      media: { images: [], instructions: [] },
+      loads: [],
+    }) as Exercise
+
+  const DUMBBELL_ONLY: Equipment[] = ['bodyweight', 'dumbbell']
+
+  it('excludes a movement needing dumbbell AND bench from a dumbbell-only kit', () => {
+    expect(canPerform(exercise('bench-press', [['dumbbell', 'bench']]), DUMBBELL_ONLY)).toBe(false)
+  })
+
+  it('excludes it whichever order the kit lists the items in', () => {
+    expect(canPerform(exercise('bench-press', [['bench', 'dumbbell']]), DUMBBELL_ONLY)).toBe(false)
+    expect(canPerform(exercise('bench-press', [['dumbbell', 'bench']]), ['bench'])).toBe(false)
+  })
+
+  it('includes it once the missing item is owned', () => {
+    expect(
+      canPerform(exercise('bench-press', [['dumbbell', 'bench']]), [...DUMBBELL_ONLY, 'bench']),
+    ).toBe(true)
+  })
+
+  it('accepts any ONE of the alternative kits', () => {
+    const stepUp = exercise('db-step-up', [
+      ['dumbbell', 'step'],
+      ['dumbbell', 'bench'],
+    ])
+    expect(canPerform(stepUp, ['bodyweight', 'dumbbell', 'step'])).toBe(true)
+    expect(canPerform(stepUp, ['bodyweight', 'dumbbell', 'bench'])).toBe(true)
+    expect(canPerform(stepUp, DUMBBELL_ONLY)).toBe(false)
+  })
+
+  it('assumes the fixtures every home has, and only those', () => {
+    // chair/wall are assumed present — nobody lists furniture as equipment, and
+    // gating on it silently deletes chair dips from a household with chairs.
+    expect(canPerform(exercise('dips', [['chair']]), ['dumbbell'])).toBe(true)
+    expect(canPerform(exercise('lat-stretch', [['wall']]), ['dumbbell'])).toBe(true)
+    // A step and a bench are not furniture everyone has. Still declared.
+    expect(canPerform(exercise('step-up', [['step']]), ['dumbbell'])).toBe(false)
+    expect(canPerform(exercise('press', [['bench']]), ['dumbbell'])).toBe(false)
+  })
+
+  /**
+   * The bug alternative kits introduced, and the reason `allCanPerform` is not
+   * `canPerform(ex, A ∩ B)`.
+   *
+   * Uses step vs bench deliberately: chair and wall are assumed present for
+   * everyone, so a chair/step pair would pass under either rule and the test
+   * would not bite.
+   *
+   * MUTATION-CHECKED: reverting the app + generator to "intersect the two
+   * equipment lists, then check that" fails the first case — one person on a
+   * step and the other on a bench can both do the movement, but their
+   * intersected list holds neither, so it vanishes for a pair who can do it.
+   */
+  it('a shared session keeps what each person can do with their OWN kit', () => {
+    const stepUp = exercise('db-step-up', [
+      ['dumbbell', 'step'],
+      ['dumbbell', 'bench'],
+    ])
+    const withStep: Equipment[] = ['bodyweight', 'dumbbell', 'step']
+    const withBench: Equipment[] = ['bodyweight', 'dumbbell', 'bench']
+
+    expect(allCanPerform(stepUp, [withStep, withBench])).toBe(true)
+    // ...and the intersection, which is what a merged list would have produced:
+    const intersection = withStep.filter((e) => withBench.includes(e))
+    expect(canPerform(stepUp, intersection)).toBe(false)
+  })
+
+  it('a shared session still drops what only ONE person can do', () => {
+    const bandPull = exercise('band-pull-apart', [['band']])
+    expect(allCanPerform(bandPull, [['bodyweight', 'band'], ['bodyweight']])).toBe(false)
+    expect(allCanPerform(bandPull, [['bodyweight', 'band']])).toBe(true)
+  })
+
+  it('treats bodyweight as owned even when a profile forgets to list it', () => {
+    expect(canPerform(exercise('push-up', [['bodyweight']]), ['dumbbell'])).toBe(true)
+  })
+
+  /**
+   * The regression this PR exists to prevent, stated as the specific movements
+   * it re-cued rather than as "nothing may need a bench". A blanket rule would
+   * also forbid ever curating a genuine bench press or pull-up, quietly turning
+   * a bug fix into a permanent content ceiling; pool depth per kit is asserted
+   * in tests/catalog.test.ts and is what actually protects the sessions.
+   */
+  /**
+   * The blank home screen, locked at the type level.
+   *
+   * `tryPlanForToday` turns exactly `ThinKitError` into `null` and rethrows the
+   * rest — so if this throw degrades to a plain `Error`, Today white-screens
+   * again and every other test still passes. That regression has now happened
+   * twice in this PR's history (docs/DECISIONS.md), hence a test on the class
+   * rather than on the message.
+   *
+   * MUTATION-CHECKED: `throw new Error(...)` in selectForSlot fails this.
+   */
+  it('a kit too thin to fill a pattern throws ThinKitError, naming the pattern', () => {
+    const thin = () =>
+      generateWorkout({
+        householdId: 'home',
+        dateISO: '2026-08-14',
+        generatorVersion: 1,
+        catalog,
+        scheduledDays: [true, true, true, true, true, false, false],
+        participants: [
+          {
+            userId: 'p1',
+            availableWeights: [],
+            equipment: ['bodyweight'],
+            maxTier: 2,
+            progression: {},
+          },
+        ],
+        recentHistory: [],
+      })
+    expect(thin).toThrow(ThinKitError)
+    let caught: unknown
+    try {
+      thin()
+    } catch (err) {
+      caught = err
+    }
+    // PreviewScreen renders this field, so it has to survive.
+    expect((caught as ThinKitError).pattern).toBe('pull_h')
+  })
+
+  it('the movements re-cued for the floor need nothing beyond dumbbells', () => {
+    const RECUED_FOR_THE_FLOOR = [
+      'db-chest-press',
+      'db-chest-fly',
+      'db-skullcrusher',
+      'db-pullover',
+      'db-arnold-press',
+      'db-reverse-fly',
+      'db-one-arm-row',
+      'scap-retraction',
+      'shoulder-external-rotation',
+      'prone-rear-delt-raise',
+      // Found only by looking at the frames: the source text for these never
+      // says "bench", so the grep-based audit missed both. See the setupNote
+      // doc-comment in content/scripts/selection.ts.
+      'db-split-squat',
+      'db-triceps-kickback',
+    ]
+    for (const id of RECUED_FOR_THE_FLOOR) {
+      const ex = catalog.find((e) => e.id === id)
+      expect(ex, `${id} missing from the catalog`).toBeDefined()
+      expect(canPerform(ex!, ['bodyweight', 'dumbbell']), id).toBe(true)
     }
   })
 })

@@ -4,7 +4,6 @@
 import { mkdir, readFile, writeFile, access } from 'node:fs/promises'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import sharp from 'sharp'
 import {
   SELECTION,
   MOBILITY_ADDITIONS,
@@ -110,6 +109,23 @@ function mapMuscles(source: string[], fallback: string[]): string[] {
   return mapped.length > 0 ? mapped : fallback
 }
 
+async function exists(path: string): Promise<boolean> {
+  try {
+    await access(path)
+    return true
+  } catch {
+    return false
+  }
+}
+
+async function readIfPresent(path: string): Promise<string | null> {
+  try {
+    return await readFile(path, 'utf8')
+  } catch {
+    return null
+  }
+}
+
 async function fetchCached(url: string, cachePath: string): Promise<Buffer> {
   try {
     await access(cachePath)
@@ -131,6 +147,12 @@ async function main() {
   const db: SourceExercise[] = JSON.parse(dbRaw.toString())
   const byId = new Map(db.map((e) => [e.id, e]))
 
+  // Which source frame each committed .webp was derived from. Lives beside the
+  // catalog rather than in public/ — anything under public/ ends up in the PWA
+  // precache, and build metadata is not app payload.
+  const ORIGINS = join(ROOT, 'content', 'media-origin.json')
+  const origins: Record<string, string> = JSON.parse((await readIfPresent(ORIGINS)) ?? '{}')
+
   const slugs = new Set<string>()
   const exercises = []
   const allSelected: Curated[] = [...SELECTION, ...MOBILITY_ADDITIONS, ...EQUIPMENT_MOBILITY]
@@ -143,15 +165,31 @@ async function main() {
 
     const images: string[] = []
     for (const [i, img] of src.images.slice(0, 2).entries()) {
-      const jpg = await fetchCached(
-        `${RAW}/exercises/${encodeURIComponent(img).replace(/%2F/g, '/')}`,
-        join(CACHE, 'img', img),
-      )
       const out = `${sel.slug}_${i}.webp`
-      await sharp(jpg)
-        .resize({ width: 640, withoutEnlargement: true })
-        .webp({ quality: 72 })
-        .toFile(join(MEDIA_OUT, out))
+      // Media is derived once and committed. Metadata-only re-runs (re-cues,
+      // equipment retagging) are the common case, so skip the download and the
+      // re-encode when the frame already exists — same bytes, no network, and
+      // `sharp` only has to be installed when there is genuinely new media.
+      //
+      // Keyed on the SOURCE FRAME, not just the slug. Repointing an entry's
+      // `sourceId` is exactly how you fix a demo that shows the wrong setup,
+      // and a slug-only check would skip the download and leave the old photo
+      // in place — silently, since catalog.test.ts only asserts the file exists.
+      // `img` is the source-relative path, e.g. Dumbbell_Squat/0.jpg — it already
+      // identifies both the source entry and which of its frames this is.
+      const want = img
+      if (!(await exists(join(MEDIA_OUT, out))) || origins[out] !== want) {
+        const jpg = await fetchCached(
+          `${RAW}/exercises/${encodeURIComponent(img).replace(/%2F/g, '/')}`,
+          join(CACHE, 'img', img),
+        )
+        const { default: sharp } = await import('sharp')
+        await sharp(jpg)
+          .resize({ width: 640, withoutEnlargement: true })
+          .webp({ quality: 72 })
+          .toFile(join(MEDIA_OUT, out))
+      }
+      origins[out] = want
       images.push(`/exercise-media/${out}`)
     }
 
@@ -159,7 +197,7 @@ async function main() {
       id: sel.slug,
       name: sel.displayName,
       role: sel.role,
-      equipment: sel.equipment ?? (sel.slug.startsWith('db-') ? 'dumbbell' : 'bodyweight'),
+      requires: sel.requires,
       pattern: sel.pattern,
       primaryMuscles: mapMuscles(src.primaryMuscles, ['core']),
       secondaryMuscles: mapMuscles(src.secondaryMuscles, []).filter(
@@ -170,6 +208,7 @@ async function main() {
       repRange: sel.repRange,
       secondsPerRep: sel.secondsPerRep,
       setupSeconds: sel.setupSeconds,
+      ...(sel.setupNote ? { setupNote: sel.setupNote } : {}),
       media: { images, instructions: sel.cues },
       loads: LOAD_OVERRIDES[sel.slug] ?? LOADS_BY_PATTERN[sel.pattern] ?? [],
       // Mobility metadata comes either from the additions themselves or from
@@ -183,6 +222,7 @@ async function main() {
 
   const catalog = { version: 1, exercises }
   await writeFile(join(ROOT, 'content', 'catalog.json'), JSON.stringify(catalog, null, 2))
+  await writeFile(ORIGINS, JSON.stringify(origins, null, 2) + '\n')
   const counts: Record<string, number> = {}
   for (const e of exercises) counts[e.role] = (counts[e.role] ?? 0) + 1
   console.log(`\ncatalog.json written: ${exercises.length} exercises`, counts)

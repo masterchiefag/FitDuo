@@ -5,7 +5,11 @@
       "id": "arm-circles",
       "name": "Arm Circles",
       "role": "warmup",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
       "pattern": "mobility",
       "primaryMuscles": [
         "shoulders"
@@ -45,7 +49,11 @@
       "id": "shoulder-circles",
       "name": "Shoulder Rolls",
       "role": "warmup",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
       "pattern": "mobility",
       "primaryMuscles": [
         "shoulders"
@@ -85,7 +93,11 @@
       "id": "dynamic-chest-stretch",
       "name": "Dynamic Chest Opener",
       "role": "warmup",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
       "pattern": "mobility",
       "primaryMuscles": [
         "chest"
@@ -126,7 +138,11 @@
       "id": "dynamic-back-stretch",
       "name": "Dynamic Back Reach",
       "role": "warmup",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
       "pattern": "mobility",
       "primaryMuscles": [
         "back"
@@ -164,7 +180,11 @@
       "id": "hip-circles",
       "name": "Hip Circles",
       "role": "warmup",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
       "pattern": "mobility",
       "primaryMuscles": [
         "glutes"
@@ -202,7 +222,11 @@
       "id": "ankle-circles",
       "name": "Ankle Circles",
       "role": "warmup",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
       "pattern": "mobility",
       "primaryMuscles": [
         "calves"
@@ -233,7 +257,11 @@
       "id": "leg-swings",
       "name": "Leg Swings",
       "role": "warmup",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
       "pattern": "mobility",
       "primaryMuscles": [
         "hamstrings"
@@ -247,6 +275,7 @@
       ],
       "secondsPerRep": 1,
       "setupSeconds": 5,
+      "setupNote": "Shown holding a chair — a wall or a doorframe works just as well.",
       "media": {
         "images": [
           "/exercise-media/leg-swings_0.webp",
@@ -264,7 +293,11 @@
       "id": "inchworm",
       "name": "Inchworm Walkout",
       "role": "warmup",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
       "pattern": "mobility",
       "primaryMuscles": [
         "hamstrings"
@@ -295,7 +328,11 @@
       "id": "groiners",
       "name": "Hip Opener Lunges",
       "role": "warmup",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
       "pattern": "mobility",
       "primaryMuscles": [
         "glutes"
@@ -326,7 +363,11 @@
       "id": "worlds-greatest-stretch",
       "name": "World's Greatest Stretch",
       "role": "warmup",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
       "pattern": "mobility",
       "primaryMuscles": [
         "hamstrings"
@@ -369,7 +410,11 @@
       "id": "butt-kicks",
       "name": "Butt Kicks",
       "role": "warmup",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
       "pattern": "mobility",
       "primaryMuscles": [
         "quads"
@@ -404,7 +449,11 @@
       "id": "star-jumps",
       "name": "Star Jumps",
       "role": "warmup",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
       "pattern": "mobility",
       "primaryMuscles": [
         "quads"
@@ -440,7 +489,11 @@
       "id": "cat-cow",
       "name": "Cat-Cow",
       "role": "warmup",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
       "pattern": "mobility",
       "primaryMuscles": [
         "core"
@@ -482,7 +535,11 @@
       "id": "sit-squats",
       "name": "Air Squat Pulses",
       "role": "warmup",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
       "pattern": "mobility",
       "primaryMuscles": [
         "quads"
@@ -516,7 +573,11 @@
       "id": "push-up",
       "name": "Push-Up",
       "role": "main",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
       "pattern": "push_h",
       "primaryMuscles": [
         "chest"
@@ -559,7 +620,17 @@
       "id": "push-up-feet-elevated",
       "name": "Feet-Elevated Push-Up",
       "role": "main",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "chair"
+        ],
+        [
+          "step"
+        ],
+        [
+          "bench"
+        ]
+      ],
       "pattern": "push_h",
       "primaryMuscles": [
         "chest"
@@ -576,6 +647,7 @@
       ],
       "secondsPerRep": 3,
       "setupSeconds": 15,
+      "setupNote": "Shown with the feet on a gym bench — a sturdy chair or the bottom stair is the same thing.",
       "media": {
         "images": [
           "/exercise-media/push-up-feet-elevated_0.webp",
@@ -602,7 +674,11 @@
       "id": "push-up-to-side-plank",
       "name": "Push-Up to Side Plank",
       "role": "main",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
       "pattern": "push_h",
       "primaryMuscles": [
         "chest"
@@ -644,9 +720,13 @@
     },
     {
       "id": "db-chest-press",
-      "name": "Dumbbell Chest Press",
+      "name": "Dumbbell Floor Press",
       "role": "main",
-      "equipment": "dumbbell",
+      "requires": [
+        [
+          "dumbbell"
+        ]
+      ],
       "pattern": "push_h",
       "primaryMuscles": [
         "chest"
@@ -663,15 +743,16 @@
       ],
       "secondsPerRep": 3,
       "setupSeconds": 15,
+      "setupNote": "Shown on a gym bench — the floor works fine. Your upper arms stop at the floor, which is a safe depth for the shoulder.",
       "media": {
         "images": [
           "/exercise-media/db-chest-press_0.webp",
           "/exercise-media/db-chest-press_1.webp"
         ],
         "instructions": [
-          "Lie on a mat or bench, feet planted",
-          "Press dumbbells over mid-chest",
-          "Lower until upper arms touch the floor"
+          "Lie on your back, knees bent, feet planted",
+          "Press the dumbbells straight up over mid-chest",
+          "Lower until your upper arms rest on the floor, then press again"
         ]
       },
       "loads": [
@@ -689,7 +770,11 @@
       "id": "db-chest-fly",
       "name": "Dumbbell Chest Fly",
       "role": "main",
-      "equipment": "dumbbell",
+      "requires": [
+        [
+          "dumbbell"
+        ]
+      ],
       "pattern": "push_h",
       "primaryMuscles": [
         "chest"
@@ -703,15 +788,16 @@
       ],
       "secondsPerRep": 3,
       "setupSeconds": 15,
+      "setupNote": "Shown on a bench — do it on the floor; the floor stops you at a safe depth.",
       "media": {
         "images": [
           "/exercise-media/db-chest-fly_0.webp",
           "/exercise-media/db-chest-fly_1.webp"
         ],
         "instructions": [
-          "Slight bend in elbows, keep it",
-          "Open arms wide like a hug",
-          "Squeeze chest to bring them back"
+          "Lie on your back, dumbbells above your chest",
+          "Slight bend in the elbows — keep it the whole way",
+          "Open wide until your upper arms touch the floor, then hug them back up"
         ]
       },
       "loads": [
@@ -729,7 +815,11 @@
       "id": "db-overhead-triceps-extension",
       "name": "Overhead Triceps Extension",
       "role": "main",
-      "equipment": "dumbbell",
+      "requires": [
+        [
+          "dumbbell"
+        ]
+      ],
       "pattern": "push_h",
       "primaryMuscles": [
         "triceps"
@@ -769,7 +859,11 @@
       "id": "db-triceps-kickback",
       "name": "Triceps Kickback",
       "role": "main",
-      "equipment": "dumbbell",
+      "requires": [
+        [
+          "dumbbell"
+        ]
+      ],
       "pattern": "push_h",
       "primaryMuscles": [
         "triceps"
@@ -783,6 +877,7 @@
       ],
       "secondsPerRep": 3,
       "setupSeconds": 10,
+      "setupNote": "Shown with a knee and hand on a bench — hinge forward from standing instead, free hand on your thigh.",
       "media": {
         "images": [
           "/exercise-media/db-triceps-kickback_0.webp",
@@ -809,7 +904,11 @@
       "id": "db-skullcrusher",
       "name": "Lying Triceps Extension",
       "role": "main",
-      "equipment": "dumbbell",
+      "requires": [
+        [
+          "dumbbell"
+        ]
+      ],
       "pattern": "push_h",
       "primaryMuscles": [
         "triceps"
@@ -826,15 +925,16 @@
       ],
       "secondsPerRep": 3,
       "setupSeconds": 15,
+      "setupNote": "Shown on a bench — the floor works just as well.",
       "media": {
         "images": [
           "/exercise-media/db-skullcrusher_0.webp",
           "/exercise-media/db-skullcrusher_1.webp"
         ],
         "instructions": [
-          "Lie down, dumbbells over shoulders",
-          "Bend only at the elbows",
-          "Lower beside your head, press back up"
+          "Lie on the floor, dumbbells over your shoulders",
+          "Bend only at the elbows — upper arms stay still",
+          "Lower beside your ears, then press back up"
         ]
       },
       "loads": [
@@ -852,7 +952,17 @@
       "id": "chair-dips",
       "name": "Chair Dips",
       "role": "main",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "chair"
+        ],
+        [
+          "bench"
+        ],
+        [
+          "step"
+        ]
+      ],
       "pattern": "push_h",
       "primaryMuscles": [
         "triceps"
@@ -869,6 +979,7 @@
       ],
       "secondsPerRep": 3,
       "setupSeconds": 15,
+      "setupNote": "Shown on two gym benches — one sturdy chair with your feet on the floor is plenty.",
       "media": {
         "images": [
           "/exercise-media/chair-dips_0.webp",
@@ -891,7 +1002,11 @@
       "id": "db-shoulder-press",
       "name": "Standing Shoulder Press",
       "role": "main",
-      "equipment": "dumbbell",
+      "requires": [
+        [
+          "dumbbell"
+        ]
+      ],
       "pattern": "push_v",
       "primaryMuscles": [
         "shoulders"
@@ -929,7 +1044,11 @@
       "id": "db-arnold-press",
       "name": "Arnold Press",
       "role": "main",
-      "equipment": "dumbbell",
+      "requires": [
+        [
+          "dumbbell"
+        ]
+      ],
       "pattern": "push_v",
       "primaryMuscles": [
         "shoulders"
@@ -945,13 +1064,14 @@
       ],
       "secondsPerRep": 4,
       "setupSeconds": 10,
+      "setupNote": "Shown seated on a bench — standing works, and asks more of your core.",
       "media": {
         "images": [
           "/exercise-media/db-arnold-press_0.webp",
           "/exercise-media/db-arnold-press_1.webp"
         ],
         "instructions": [
-          "Start palms facing you",
+          "Stand tall, ribs down, palms facing you",
           "Rotate out as you press up",
           "Reverse the spiral on the way down"
         ]
@@ -967,7 +1087,11 @@
       "id": "db-lateral-raise",
       "name": "Lateral Raise",
       "role": "main",
-      "equipment": "dumbbell",
+      "requires": [
+        [
+          "dumbbell"
+        ]
+      ],
       "pattern": "push_v",
       "primaryMuscles": [
         "shoulders"
@@ -1003,7 +1127,11 @@
       "id": "db-front-raise",
       "name": "Front Raise",
       "role": "main",
-      "equipment": "dumbbell",
+      "requires": [
+        [
+          "dumbbell"
+        ]
+      ],
       "pattern": "push_v",
       "primaryMuscles": [
         "shoulders"
@@ -1039,7 +1167,11 @@
       "id": "db-bent-over-row",
       "name": "Bent-Over Row",
       "role": "main",
-      "equipment": "dumbbell",
+      "requires": [
+        [
+          "dumbbell"
+        ]
+      ],
       "pattern": "pull_h",
       "primaryMuscles": [
         "back"
@@ -1082,7 +1214,11 @@
       "id": "db-one-arm-row",
       "name": "One-Arm Row",
       "role": "main",
-      "equipment": "dumbbell",
+      "requires": [
+        [
+          "dumbbell"
+        ]
+      ],
       "pattern": "pull_h",
       "primaryMuscles": [
         "back"
@@ -1099,14 +1235,15 @@
       ],
       "secondsPerRep": 3,
       "setupSeconds": 15,
+      "setupNote": "Shown braced on a bench — a chair, a sofa arm, or your own thigh all support you just as well.",
       "media": {
         "images": [
           "/exercise-media/db-one-arm-row_0.webp",
           "/exercise-media/db-one-arm-row_1.webp"
         ],
         "instructions": [
-          "Support on a chair or knee",
-          "Pull elbow back past your ribs",
+          "Stagger your stance, hinge forward, free hand on your front thigh",
+          "Pull the elbow back past your ribs",
           "No torso twist — stay square"
         ]
       },
@@ -1125,7 +1262,11 @@
       "id": "db-reverse-fly",
       "name": "Reverse Fly",
       "role": "main",
-      "equipment": "dumbbell",
+      "requires": [
+        [
+          "dumbbell"
+        ]
+      ],
       "pattern": "pull_h",
       "primaryMuscles": [
         "shoulders"
@@ -1139,6 +1280,7 @@
       ],
       "secondsPerRep": 3,
       "setupSeconds": 10,
+      "setupNote": "Shown face-down on an incline bench — hinge forward at the hips instead; same movement.",
       "media": {
         "images": [
           "/exercise-media/db-reverse-fly_0.webp",
@@ -1174,7 +1316,11 @@
       "id": "db-bicep-curl",
       "name": "Biceps Curl",
       "role": "main",
-      "equipment": "dumbbell",
+      "requires": [
+        [
+          "dumbbell"
+        ]
+      ],
       "pattern": "pull_h",
       "primaryMuscles": [
         "biceps"
@@ -1214,7 +1360,11 @@
       "id": "db-hammer-curl",
       "name": "Hammer Curl",
       "role": "main",
-      "equipment": "dumbbell",
+      "requires": [
+        [
+          "dumbbell"
+        ]
+      ],
       "pattern": "pull_h",
       "primaryMuscles": [
         "biceps"
@@ -1254,7 +1404,20 @@
       "id": "db-concentration-curl",
       "name": "Concentration Curl",
       "role": "main",
-      "equipment": "dumbbell",
+      "requires": [
+        [
+          "dumbbell",
+          "chair"
+        ],
+        [
+          "dumbbell",
+          "bench"
+        ],
+        [
+          "dumbbell",
+          "step"
+        ]
+      ],
       "pattern": "pull_h",
       "primaryMuscles": [
         "biceps"
@@ -1268,6 +1431,7 @@
       ],
       "secondsPerRep": 3,
       "setupSeconds": 15,
+      "setupNote": "Shown on a gym bench — any chair, stair or low box works.",
       "media": {
         "images": [
           "/exercise-media/db-concentration-curl_0.webp",
@@ -1294,7 +1458,11 @@
       "id": "db-pullover",
       "name": "Dumbbell Pullover",
       "role": "main",
-      "equipment": "dumbbell",
+      "requires": [
+        [
+          "dumbbell"
+        ]
+      ],
       "pattern": "pull_v",
       "primaryMuscles": [
         "chest"
@@ -1312,15 +1480,16 @@
       ],
       "secondsPerRep": 4,
       "setupSeconds": 15,
+      "setupNote": "Shown across a bench — on the floor the range is shorter and the shoulder is safer.",
       "media": {
         "images": [
           "/exercise-media/db-pullover_0.webp",
           "/exercise-media/db-pullover_1.webp"
         ],
         "instructions": [
-          "Lie down, one dumbbell in both hands",
-          "Lower it behind your head, arc slowly",
-          "Pull back over your chest — ribs down"
+          "Lie on the floor, one dumbbell in both hands over your chest",
+          "Arc it slowly back over your head, elbows softly bent",
+          "Stop when your arms reach the floor, pull back over — ribs down"
         ]
       },
       "loads": [
@@ -1334,7 +1503,11 @@
       "id": "db-upright-row",
       "name": "Upright Row",
       "role": "main",
-      "equipment": "dumbbell",
+      "requires": [
+        [
+          "dumbbell"
+        ]
+      ],
       "pattern": "pull_v",
       "primaryMuscles": [
         "back"
@@ -1373,7 +1546,11 @@
       "id": "db-shrug",
       "name": "Dumbbell Shrug",
       "role": "main",
-      "equipment": "dumbbell",
+      "requires": [
+        [
+          "dumbbell"
+        ]
+      ],
       "pattern": "pull_v",
       "primaryMuscles": [
         "back"
@@ -1409,7 +1586,11 @@
       "id": "db-squat",
       "name": "Dumbbell Squat",
       "role": "main",
-      "equipment": "dumbbell",
+      "requires": [
+        [
+          "dumbbell"
+        ]
+      ],
       "pattern": "squat",
       "primaryMuscles": [
         "quads"
@@ -1450,7 +1631,11 @@
       "id": "bodyweight-squat",
       "name": "Bodyweight Squat",
       "role": "main",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
       "pattern": "squat",
       "primaryMuscles": [
         "quads"
@@ -1489,7 +1674,11 @@
       "id": "db-sumo-squat",
       "name": "Sumo Squat",
       "role": "main",
-      "equipment": "dumbbell",
+      "requires": [
+        [
+          "dumbbell"
+        ]
+      ],
       "pattern": "squat",
       "primaryMuscles": [
         "quads"
@@ -1530,7 +1719,11 @@
       "id": "jump-squat",
       "name": "Jump Squat",
       "role": "main",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
       "pattern": "squat",
       "primaryMuscles": [
         "quads"
@@ -1570,7 +1763,11 @@
       "id": "db-calf-raise",
       "name": "Standing Calf Raise",
       "role": "main",
-      "equipment": "dumbbell",
+      "requires": [
+        [
+          "dumbbell"
+        ]
+      ],
       "pattern": "squat",
       "primaryMuscles": [
         "calves"
@@ -1584,6 +1781,7 @@
       ],
       "secondsPerRep": 2,
       "setupSeconds": 5,
+      "setupNote": "Shown standing on a board — flat floor is fine; a stair just adds range at the bottom.",
       "media": {
         "images": [
           "/exercise-media/db-calf-raise_0.webp",
@@ -1592,7 +1790,7 @@
         "instructions": [
           "Rise high onto the balls of your feet",
           "Pause at the top",
-          "Lower slowly past level if on a step"
+          "Lower slowly under control"
         ]
       },
       "loads": [
@@ -1606,7 +1804,11 @@
       "id": "db-romanian-deadlift",
       "name": "Romanian Deadlift",
       "role": "main",
-      "equipment": "dumbbell",
+      "requires": [
+        [
+          "dumbbell"
+        ]
+      ],
       "pattern": "hinge",
       "primaryMuscles": [
         "hamstrings"
@@ -1645,7 +1847,11 @@
       "id": "db-clean",
       "name": "Dumbbell Clean",
       "role": "main",
-      "equipment": "dumbbell",
+      "requires": [
+        [
+          "dumbbell"
+        ]
+      ],
       "pattern": "hinge",
       "primaryMuscles": [
         "hamstrings"
@@ -1688,7 +1894,11 @@
       "id": "glute-bridge",
       "name": "Glute Bridge",
       "role": "main",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
       "pattern": "hinge",
       "primaryMuscles": [
         "glutes"
@@ -1736,7 +1946,11 @@
       "id": "single-leg-glute-bridge",
       "name": "Single-Leg Glute Bridge",
       "role": "main",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
       "pattern": "hinge",
       "primaryMuscles": [
         "glutes"
@@ -1782,7 +1996,11 @@
       "id": "superman",
       "name": "Superman Hold",
       "role": "main",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
       "pattern": "hinge",
       "primaryMuscles": [
         "core"
@@ -1830,7 +2048,11 @@
       "id": "db-lunge",
       "name": "Walking Lunge",
       "role": "main",
-      "equipment": "dumbbell",
+      "requires": [
+        [
+          "dumbbell"
+        ]
+      ],
       "pattern": "lunge",
       "primaryMuscles": [
         "quads"
@@ -1870,7 +2092,11 @@
       "id": "db-reverse-lunge",
       "name": "Reverse Lunge",
       "role": "main",
-      "equipment": "dumbbell",
+      "requires": [
+        [
+          "dumbbell"
+        ]
+      ],
       "pattern": "lunge",
       "primaryMuscles": [
         "quads"
@@ -1910,7 +2136,11 @@
       "id": "db-split-squat",
       "name": "Split Squat",
       "role": "main",
-      "equipment": "dumbbell",
+      "requires": [
+        [
+          "dumbbell"
+        ]
+      ],
       "pattern": "lunge",
       "primaryMuscles": [
         "quads"
@@ -1927,14 +2157,15 @@
       ],
       "secondsPerRep": 3,
       "setupSeconds": 15,
+      "setupNote": "Shown with the rear foot up on a bench — both feet on the floor is the same movement, and easier to balance.",
       "media": {
         "images": [
           "/exercise-media/db-split-squat_0.webp",
           "/exercise-media/db-split-squat_1.webp"
         ],
         "instructions": [
-          "Staggered stance, stay in place",
-          "Straight down and up like an elevator",
+          "Long staggered stance, both feet on the floor",
+          "Straight down and up like an elevator — front shin vertical",
           "Finish all reps, then switch legs"
         ]
       },
@@ -1949,7 +2180,16 @@
       "id": "db-step-up",
       "name": "Step-Up",
       "role": "main",
-      "equipment": "dumbbell",
+      "requires": [
+        [
+          "dumbbell",
+          "step"
+        ],
+        [
+          "dumbbell",
+          "bench"
+        ]
+      ],
       "pattern": "lunge",
       "primaryMuscles": [
         "quads"
@@ -1967,13 +2207,14 @@
       ],
       "secondsPerRep": 4,
       "setupSeconds": 15,
+      "setupNote": "Shown on a gym platform — a sturdy step, low bench or the stairs works.",
       "media": {
         "images": [
           "/exercise-media/db-step-up_0.webp",
           "/exercise-media/db-step-up_1.webp"
         ],
         "instructions": [
-          "Use a sturdy step or low bench",
+          "Use a sturdy step about knee height",
           "Drive through the top heel",
           "Lower under control — don’t drop"
         ]
@@ -1989,7 +2230,11 @@
       "id": "split-jump",
       "name": "Jumping Lunge",
       "role": "main",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
       "pattern": "lunge",
       "primaryMuscles": [
         "quads"
@@ -2029,7 +2274,11 @@
       "id": "plank",
       "name": "Plank",
       "role": "main",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
       "pattern": "core",
       "primaryMuscles": [
         "core"
@@ -2069,7 +2318,11 @@
       "id": "side-plank",
       "name": "Side Plank",
       "role": "main",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
       "pattern": "core",
       "primaryMuscles": [
         "core"
@@ -2107,7 +2360,11 @@
       "id": "dead-bug",
       "name": "Dead Bug",
       "role": "main",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
       "pattern": "core",
       "primaryMuscles": [
         "core"
@@ -2150,7 +2407,11 @@
       "id": "russian-twist",
       "name": "Russian Twist",
       "role": "main",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
       "pattern": "core",
       "primaryMuscles": [
         "core"
@@ -2186,7 +2447,11 @@
       "id": "reverse-crunch",
       "name": "Reverse Crunch",
       "role": "main",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
       "pattern": "core",
       "primaryMuscles": [
         "core"
@@ -2222,7 +2487,11 @@
       "id": "bent-knee-hip-raise",
       "name": "Lying Knee Raise",
       "role": "main",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
       "pattern": "core",
       "primaryMuscles": [
         "core"
@@ -2265,7 +2534,11 @@
       "id": "db-side-bend",
       "name": "Dumbbell Side Bend",
       "role": "main",
-      "equipment": "dumbbell",
+      "requires": [
+        [
+          "dumbbell"
+        ]
+      ],
       "pattern": "core",
       "primaryMuscles": [
         "core"
@@ -2301,7 +2574,11 @@
       "id": "mountain-climber",
       "name": "Spider Climbers",
       "role": "main",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
       "pattern": "core",
       "primaryMuscles": [
         "core"
@@ -2341,7 +2618,11 @@
       "id": "childs-pose",
       "name": "Child's Pose",
       "role": "cooldown",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
       "pattern": "mobility",
       "primaryMuscles": [
         "core"
@@ -2383,7 +2664,11 @@
       "id": "seated-hamstring-stretch",
       "name": "Seated Hamstring Stretch",
       "role": "cooldown",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
       "pattern": "mobility",
       "primaryMuscles": [
         "hamstrings"
@@ -2416,7 +2701,11 @@
       "id": "kneeling-hip-flexor-stretch",
       "name": "Kneeling Hip Flexor Stretch",
       "role": "cooldown",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
       "pattern": "mobility",
       "primaryMuscles": [
         "quads"
@@ -2454,7 +2743,11 @@
       "id": "side-quad-stretch",
       "name": "Side-Lying Quad Stretch",
       "role": "cooldown",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
       "pattern": "mobility",
       "primaryMuscles": [
         "quads"
@@ -2485,7 +2778,11 @@
       "id": "spinal-twist",
       "name": "Lying Spinal Twist",
       "role": "cooldown",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
       "pattern": "mobility",
       "primaryMuscles": [
         "glutes"
@@ -2526,7 +2823,11 @@
       "id": "figure-four-stretch",
       "name": "Figure-4 Glute Stretch",
       "role": "cooldown",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
       "pattern": "mobility",
       "primaryMuscles": [
         "glutes"
@@ -2564,7 +2865,11 @@
       "id": "chest-stretch",
       "name": "Chest & Shoulder Stretch",
       "role": "cooldown",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
       "pattern": "mobility",
       "primaryMuscles": [
         "chest"
@@ -2580,6 +2885,7 @@
       ],
       "secondsPerRep": 1,
       "setupSeconds": 5,
+      "setupNote": "Shown with a body bar — clasping your hands behind your back does the same job.",
       "media": {
         "images": [
           "/exercise-media/chest-stretch_0.webp",
@@ -2607,7 +2913,11 @@
       "id": "overhead-triceps-stretch",
       "name": "Overhead Triceps Stretch",
       "role": "cooldown",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
       "pattern": "mobility",
       "primaryMuscles": [
         "triceps"
@@ -2647,7 +2957,11 @@
       "id": "cross-shoulder-stretch",
       "name": "Cross-Body Shoulder Stretch",
       "role": "cooldown",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
       "pattern": "mobility",
       "primaryMuscles": [
         "shoulders"
@@ -2685,7 +2999,11 @@
       "id": "neck-stretch",
       "name": "Side Neck Stretch",
       "role": "cooldown",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
       "pattern": "mobility",
       "primaryMuscles": [
         "shoulders"
@@ -2723,7 +3041,11 @@
       "id": "standing-calf-stretch",
       "name": "Calf Stretch",
       "role": "cooldown",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
       "pattern": "mobility",
       "primaryMuscles": [
         "calves"
@@ -2739,6 +3061,7 @@
       ],
       "secondsPerRep": 1,
       "setupSeconds": 5,
+      "setupNote": "Shown with the foot up on a step — leaning into a wall gives the same stretch.",
       "media": {
         "images": [
           "/exercise-media/standing-calf-stretch_0.webp",
@@ -2756,7 +3079,11 @@
       "id": "knees-to-chest",
       "name": "Knees-to-Chest Hug",
       "role": "cooldown",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
       "pattern": "mobility",
       "primaryMuscles": [
         "core"
@@ -2796,7 +3123,11 @@
       "id": "elbows-back",
       "name": "Elbows Back Chest Opener",
       "role": "mobility",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
       "pattern": "mobility",
       "primaryMuscles": [
         "chest"
@@ -2837,7 +3168,11 @@
       "id": "lat-wall-stretch",
       "name": "Lat Stretch at the Wall",
       "role": "mobility",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "wall"
+        ]
+      ],
       "pattern": "mobility",
       "primaryMuscles": [
         "back"
@@ -2877,7 +3212,11 @@
       "id": "upper-back-stretch",
       "name": "Upper Back Stretch",
       "role": "mobility",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
       "pattern": "mobility",
       "primaryMuscles": [
         "back"
@@ -2915,7 +3254,11 @@
       "id": "middle-back-mobiliser",
       "name": "Mid-Back Mobiliser",
       "role": "mobility",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
       "pattern": "mobility",
       "primaryMuscles": [
         "back"
@@ -2955,7 +3298,11 @@
       "id": "chin-tuck",
       "name": "Chin Tuck",
       "role": "mobility",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
       "pattern": "mobility",
       "primaryMuscles": [
         "shoulders"
@@ -2996,7 +3343,11 @@
       "id": "scap-retraction",
       "name": "Scapular Retraction",
       "role": "mobility",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
       "pattern": "mobility",
       "primaryMuscles": [
         "back"
@@ -3010,6 +3361,7 @@
       ],
       "secondsPerRep": 40,
       "setupSeconds": 5,
+      "setupNote": "Shown face-down on a bench with dumbbells — do it standing, with no weight at all.",
       "media": {
         "images": [
           "/exercise-media/scap-retraction_0.webp",
@@ -3035,9 +3387,13 @@
     },
     {
       "id": "shoulder-external-rotation",
-      "name": "Shoulder External Rotation",
+      "name": "Side-Lying Shoulder External Rotation",
       "role": "mobility",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
       "pattern": "mobility",
       "primaryMuscles": [
         "shoulders"
@@ -3051,15 +3407,16 @@
       ],
       "secondsPerRep": 40,
       "setupSeconds": 5,
+      "setupNote": "Shown on a bench with a dumbbell — lie on the floor instead, and the weight is optional.",
       "media": {
         "images": [
           "/exercise-media/shoulder-external-rotation_0.webp",
           "/exercise-media/shoulder-external-rotation_1.webp"
         ],
         "instructions": [
-          "Elbow pinned to your side, bent 90°",
-          "Rotate the forearm out slowly",
-          "Very light or no weight"
+          "Lie on your side, top arm along your ribs, elbow bent 90°",
+          "Rotate the forearm up toward the ceiling — the elbow stays glued to your side",
+          "Small range and slow. No weight, or the lightest one you own. Switch sides halfway"
         ]
       },
       "loads": [],
@@ -3076,7 +3433,11 @@
       "id": "prone-rear-delt-raise",
       "name": "Prone Rear Delt Raise",
       "role": "mobility",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
       "pattern": "mobility",
       "primaryMuscles": [
         "shoulders"
@@ -3090,13 +3451,14 @@
       ],
       "secondsPerRep": 40,
       "setupSeconds": 10,
+      "setupNote": "Shown on a bench with dumbbells — face down on the floor is the same movement.",
       "media": {
         "images": [
           "/exercise-media/prone-rear-delt-raise_0.webp",
           "/exercise-media/prone-rear-delt-raise_1.webp"
         ],
         "instructions": [
-          "Face down, arms out in a T",
+          "Lie face down on the floor, arms out in a T",
           "Lift with the shoulder blades, thumbs up",
           "Little or no weight needed"
         ]
@@ -3116,7 +3478,11 @@
       "id": "elbow-circles",
       "name": "Elbow Circles",
       "role": "mobility",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
       "pattern": "mobility",
       "primaryMuscles": [
         "shoulders"
@@ -3158,7 +3524,17 @@
       "id": "seated-thoracic-rotation",
       "name": "Seated Thoracic Rotation",
       "role": "mobility",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "chair"
+        ],
+        [
+          "bench"
+        ],
+        [
+          "step"
+        ]
+      ],
       "pattern": "mobility",
       "primaryMuscles": [
         "back"
@@ -3203,7 +3579,11 @@
       "id": "overhead-reach",
       "name": "Overhead Reach",
       "role": "mobility",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
       "pattern": "mobility",
       "primaryMuscles": [
         "core"
@@ -3247,7 +3627,11 @@
       "id": "side-lying-side-stretch",
       "name": "Side-Lying Side Stretch",
       "role": "mobility",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
       "pattern": "mobility",
       "primaryMuscles": [
         "back"
@@ -3287,7 +3671,11 @@
       "id": "standing-side-bend",
       "name": "Standing Side Bend",
       "role": "mobility",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
       "pattern": "mobility",
       "primaryMuscles": [
         "core"
@@ -3326,7 +3714,11 @@
       "id": "prone-chest-lift",
       "name": "Prone Chest Lift",
       "role": "mobility",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
       "pattern": "mobility",
       "primaryMuscles": [
         "core"
@@ -3371,7 +3763,11 @@
       "id": "isometric-neck-front-back",
       "name": "Neck Isometric — Front & Back",
       "role": "mobility",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
       "pattern": "mobility",
       "primaryMuscles": [
         "shoulders"
@@ -3415,7 +3811,11 @@
       "id": "isometric-neck-sides",
       "name": "Neck Isometric — Sides",
       "role": "mobility",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
       "pattern": "mobility",
       "primaryMuscles": [
         "shoulders"
@@ -3458,7 +3858,11 @@
       "id": "shoulder-opener",
       "name": "Shoulder Opener",
       "role": "mobility",
-      "equipment": "bodyweight",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
       "pattern": "mobility",
       "primaryMuscles": [
         "shoulders"
@@ -3475,6 +3879,7 @@
       ],
       "secondsPerRep": 60,
       "setupSeconds": 10,
+      "setupNote": "Shown with a body bar — a broomstick, a rolled towel or a band all work.",
       "media": {
         "images": [
           "/exercise-media/shoulder-opener_0.webp",
@@ -3501,7 +3906,11 @@
       "id": "band-pull-apart",
       "name": "Band Pull-Apart",
       "role": "mobility",
-      "equipment": "band",
+      "requires": [
+        [
+          "band"
+        ]
+      ],
       "pattern": "mobility",
       "primaryMuscles": [
         "shoulders"
@@ -3544,7 +3953,11 @@
       "id": "band-rear-fly",
       "name": "Band Rear Fly",
       "role": "mobility",
-      "equipment": "band",
+      "requires": [
+        [
+          "band"
+        ]
+      ],
       "pattern": "mobility",
       "primaryMuscles": [
         "shoulders"
@@ -3561,6 +3974,7 @@
       ],
       "secondsPerRep": 40,
       "setupSeconds": 10,
+      "setupNote": "Shown anchored to a squat rack — a closed door, a door handle or a bannister all work.",
       "media": {
         "images": [
           "/exercise-media/band-rear-fly_0.webp",
@@ -3586,7 +4000,11 @@
       "id": "band-external-rotation",
       "name": "Band External Rotation",
       "role": "mobility",
-      "equipment": "band",
+      "requires": [
+        [
+          "band"
+        ]
+      ],
       "pattern": "mobility",
       "primaryMuscles": [
         "shoulders"
@@ -3600,6 +4018,7 @@
       ],
       "secondsPerRep": 45,
       "setupSeconds": 10,
+      "setupNote": "Shown anchored to a gym frame — a door handle at elbow height does the same.",
       "media": {
         "images": [
           "/exercise-media/band-external-rotation_0.webp",
@@ -3626,7 +4045,11 @@
       "id": "roller-thoracic-extension",
       "name": "Thoracic Extension on Roller",
       "role": "mobility",
-      "equipment": "roller",
+      "requires": [
+        [
+          "roller"
+        ]
+      ],
       "pattern": "mobility",
       "primaryMuscles": [
         "back"
@@ -3666,7 +4089,11 @@
       "id": "roller-lat-release",
       "name": "Lat Release on Roller",
       "role": "mobility",
-      "equipment": "roller",
+      "requires": [
+        [
+          "roller"
+        ]
+      ],
       "pattern": "mobility",
       "primaryMuscles": [
         "back"
@@ -3705,7 +4132,11 @@
       "id": "roller-lower-back-release",
       "name": "Lower Back Release",
       "role": "mobility",
-      "equipment": "roller",
+      "requires": [
+        [
+          "roller"
+        ]
+      ],
       "pattern": "mobility",
       "primaryMuscles": [
         "core"
@@ -3743,7 +4174,11 @@
       "id": "band-internal-rotation",
       "name": "Band Internal Rotation",
       "role": "mobility",
-      "equipment": "band",
+      "requires": [
+        [
+          "band"
+        ]
+      ],
       "pattern": "mobility",
       "primaryMuscles": [
         "shoulders"
@@ -3757,6 +4192,7 @@
       ],
       "secondsPerRep": 45,
       "setupSeconds": 10,
+      "setupNote": "Shown anchored to a gym frame — a door handle at elbow height does the same.",
       "media": {
         "images": [
           "/exercise-media/band-internal-rotation_0.webp",

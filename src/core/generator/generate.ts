@@ -1,3 +1,4 @@
+import { allCanPerform } from '../catalog/equipment'
 import type { Exercise, Pattern } from '../catalog/types'
 import { daysBetween, weekdayIndex } from '../dates'
 import { BLOCK_TRANSITION_SECONDS } from '../player/reducer'
@@ -51,8 +52,15 @@ export function dayTypeFor(scheduledDays: boolean[], dateISO: string): DayType {
   return rotation[before % rotation.length]!
 }
 
-// Slot templates: 3 superset pairs + 1 circuit triple per day type.
-const TEMPLATES: Record<DayType, { supersets: [Pattern, Pattern][]; circuit: Pattern[] }> = {
+/**
+ * Slot templates: 3 superset pairs + 1 circuit triple per day type.
+ *
+ * Exported because it defines how many DISTINCT movements a day consumes per
+ * pattern (a pull day wants five different `pull_h`), which is the real floor
+ * for catalog pool depth — see tests/catalog.test.ts. PLAN A0 moves this to
+ * content/day-templates.json.
+ */
+export const TEMPLATES: Record<DayType, { supersets: [Pattern, Pattern][]; circuit: Pattern[] }> = {
   full_a: {
     supersets: [
       ['squat', 'pull_h'],
@@ -119,6 +127,21 @@ const TEMPLATES: Record<DayType, { supersets: [Pattern, Pattern][]; circuit: Pat
   },
 }
 
+/**
+ * No movement in the catalog fits a slot with the kit everyone in this session
+ * owns. A real answer, not a defect — but a distinct one, so a caller can tell
+ * "this household needs more gear" from "the generator is broken" instead of
+ * catching everything and calling it the former.
+ */
+export class ThinKitError extends Error {
+  readonly pattern: Pattern
+  constructor(pattern: Pattern) {
+    super(`no candidates for pattern ${pattern}`)
+    this.name = 'ThinKitError'
+    this.pattern = pattern
+  }
+}
+
 // ─── selection ───────────────────────────────────────────────────────────────
 
 interface SelectionCtx {
@@ -182,7 +205,7 @@ function selectForSlot(pattern: Pattern, ctx: SelectionCtx): Exercise {
       return chosen
     }
   }
-  throw new Error(`no candidates for pattern ${pattern}`)
+  throw new ThinKitError(pattern)
 }
 
 // ─── time budgeting ──────────────────────────────────────────────────────────
@@ -289,9 +312,19 @@ export function generateWorkout(input: GeneratorInput): WorkoutPlan {
     }
   }
 
+  // Equipment is filtered ONCE, before any selection: the relaxation ladder in
+  // selectForSlot may drop the no-repeat window and the tier cap, but it must
+  // never reach for a movement someone in the session cannot physically do.
+  const performable = catalog.filter((e) =>
+    allCanPerform(
+      e,
+      participants.map((p) => p.equipment),
+    ),
+  )
+
   const ctx: SelectionCtx = {
     rng,
-    mains: catalog.filter((e) => e.role === 'main'),
+    mains: performable.filter((e) => e.role === 'main'),
     maxTier,
     usedToday: new Set(),
     lastUsed,
@@ -322,8 +355,8 @@ export function generateWorkout(input: GeneratorInput): WorkoutPlan {
     items: template.circuit.map((p) => toWorkItem(selectForSlot(p, ctx))),
   }
 
-  const warmupPool = catalog.filter((e) => e.role === 'warmup')
-  const cooldownPool = catalog.filter((e) => e.role === 'cooldown')
+  const warmupPool = performable.filter((e) => e.role === 'warmup')
+  const cooldownPool = performable.filter((e) => e.role === 'cooldown')
   const warmup: TimedItem[] = shuffle(rng, warmupPool)
     .slice(0, WARMUP_ITEMS)
     .map((e) => ({ exerciseId: e.id, seconds: WARMUP_SECONDS }))

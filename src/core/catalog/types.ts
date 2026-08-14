@@ -29,7 +29,23 @@ export const PATTERNS = [
 export type Pattern = (typeof PATTERNS)[number]
 
 export type ExerciseRole = 'warmup' | 'main' | 'cooldown' | 'mobility'
-export const EQUIPMENT = ['bodyweight', 'dumbbell', 'band', 'roller'] as const
+/**
+ * Everything a movement can need. Household fixtures (chair, wall, step) are
+ * equipment too: a chair dip needs a chair exactly the way a curl needs a
+ * dumbbell, and the only way the generator can respect that is if it is
+ * declared like anything else.
+ */
+export const EQUIPMENT = [
+  'bodyweight',
+  'dumbbell',
+  'band',
+  'roller',
+  'bench',
+  'step',
+  'chair',
+  'wall',
+  'pullup_bar',
+] as const
 export type Equipment = (typeof EQUIPMENT)[number]
 
 /** Body areas an exercise loads — the single source for cautions, pain-flag
@@ -68,7 +84,20 @@ export const exerciseSchema = z.object({
   id: z.string().min(1), // stable slug, e.g. 'db-goblet-squat'
   name: z.string().min(1),
   role: z.enum(['warmup', 'main', 'cooldown', 'mobility']),
-  equipment: z.enum(EQUIPMENT),
+  /**
+   * Alternative kits. You can do this movement if you own **every** item of
+   * **any one** kit — see `canPerform`. A list of lists rather than a flat list
+   * because substitutes are the normal case: a chair dip wants a chair *or* a
+   * step *or* a bench, and flattening that to one item would silently drop the
+   * movement for anyone who happens to own a different one.
+   */
+  requires: z.array(z.array(z.enum(EQUIPMENT)).min(1)).min(1),
+  /**
+   * Reconciles the demo photo with our cues. The media comes from a public-domain
+   * gym dataset, so a movement we cue for the floor is often *shown* on a bench;
+   * without a line saying so, the picture silently contradicts the text.
+   */
+  setupNote: z.string().optional(),
   pattern: z.enum(PATTERNS),
   primaryMuscles: z.array(z.enum(MUSCLE_GROUPS)).min(1),
   secondaryMuscles: z.array(z.enum(MUSCLE_GROUPS)),

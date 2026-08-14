@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { catalog } from '../lib/catalog'
+import { EQUIPMENT_LABEL } from '../lib/equipmentPresets'
 import type { Exercise } from '../../core/catalog/types'
 
 const TIER_LABEL = { 1: 'Beginner', 2: 'Intermediate', 3: 'Advanced' } as const
@@ -20,7 +21,7 @@ function ExerciseCard({ ex }: { ex: Exercise }) {
           loading="lazy"
         />
         <span className="absolute top-2 left-2 rounded-full bg-slate-900/70 px-2 py-0.5 text-xs font-semibold text-white">
-          {ex.equipment === 'dumbbell' ? '🏋️ Dumbbell' : '🤸 Bodyweight'}
+          {ex.requires.map((kit) => kit.map((eq) => EQUIPMENT_LABEL[eq]).join(' + ')).join(' or ')}
         </span>
       </div>
       <div className="p-3">
@@ -39,13 +40,20 @@ function ExerciseCard({ ex }: { ex: Exercise }) {
             <li key={cue}>{cue}</li>
           ))}
         </ul>
+        {ex.setupNote && (
+          <p className="mt-2 text-xs text-slate-500 italic dark:text-slate-400">{ex.setupNote}</p>
+        )}
       </div>
     </div>
   )
 }
 
+// Mobility-only movements were unbrowsable, which is how a stretch cued for the
+// floor kept a gym photo unnoticed. Every catalog entry now has a tab.
+const ROLES = ['warmup', 'main', 'cooldown', 'mobility'] as const
+
 export default function CatalogScreen() {
-  const [role, setRole] = useState<'warmup' | 'main' | 'cooldown'>('main')
+  const [role, setRole] = useState<(typeof ROLES)[number]>('main')
   const shown = catalog.exercises.filter((e) => e.role === role)
   return (
     <div className="mx-auto max-w-6xl p-6">
@@ -57,7 +65,7 @@ export default function CatalogScreen() {
           </span>
         </h1>
         <div className="flex gap-1 rounded-xl bg-slate-100 p-1 dark:bg-slate-800">
-          {(['warmup', 'main', 'cooldown'] as const).map((r) => (
+          {ROLES.map((r) => (
             <button
               key={r}
               onClick={() => setRole(r)}

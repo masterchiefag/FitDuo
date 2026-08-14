@@ -185,6 +185,123 @@ a fix commit forces another review, which is what the tail always claimed.
 
 ---
 
+## 2026-08-14 — PR #3: exercises declare their gear, as alternatives
+
+"Shoulder External Rotation" showed a photo of someone lying on a **bench**
+while our cues said "elbow pinned to your side". The cause was structural:
+`Exercise.equipment` was a single value copied from free-exercise-db, which
+names only the *primary implement*. "Dumbbell Bench Press" is tagged
+`dumbbell`; the bench was invisible to the generator, to eligibility checks,
+and to the reader.
+
+**The trap in the obvious fix.** Replacing one value with a flat `requires`
+list would have tagged 12 movements as needing a bench and deleted them from a
+household that has none — solving a photo mismatch by shrinking the catalog.
+The audit said otherwise: of 19 flagged entries only **6** genuinely need gear.
+The rest are ordinary floor movements that merely *happen to be photographed*
+on a bench (floor press, floor fly, floor skullcrusher, standing Arnold press,
+hinged reverse fly, thigh-braced row). They were re-cued for the floor and keep
+`requires: [['dumbbell']]`. Nothing was lost. *Class: when accurate metadata
+would delete content, check whether the metadata is wrong or the content is —
+here it was the cues, not the exercise.*
+
+**Why `requires` is a list of lists.** A chair dip works on a chair *or* a step
+*or* a bench. A flat AND-list forces an arbitrary pick, which silently drops
+the movement for whoever owns a different one — the same class of bug, one
+level down. So `requires: Equipment[][]` means "every item of any one kit", and
+`canPerform` is one `some(every)`. `[['dumbbell','bench']]` and
+`[['chair'],['step']]` are both expressible; a flat list could only express the
+first.
+
+**Deliberately not built:** per-variant cue sets (bench cues *and* floor cues on
+one exercise). The only beneficiary is a bench owner, and nobody here owns one —
+PLAN §A1 names this failure mode. The predicate is already "any kit", so
+variants would be additive later.
+
+**Gym and home are presets, not modes.** `EQUIPMENT_PRESETS` lives in the app
+layer and only fills in a person's `equipment` list. The generator has never
+heard of "home" or "gym" and must not, or every new kit becomes a branch.
+
+**The bug the new expressiveness introduced, caught by Grok.** Duo eligibility
+was `canPerform(ex, A ∩ B)` — intersect the two people's equipment lists, then
+check once. That was *correct* while an exercise named one implement, and
+stopped being correct the moment kits became alternatives: for
+`[['chair'], ['step']]`, one person on a chair and the other on a step can both
+do the movement, but the intersection of their lists contains neither, so it
+silently vanished for a pair who could do it. Measured on divergent kits: 4
+movements lost. The rule is pairwise — `allCanPerform` asks each person's own
+kit — and equipment moved onto `ParticipantInput` beside `availableWeights`,
+where per-person things belong. *Class: an identity that held under the old
+model is not carried forward by the type-checker. When a field gains
+expressiveness, re-derive every rule that consumed it — do not port the rule.*
+
+**Second Grok finding: a new failure mode reached a screen.** The strength
+generator had never filtered by equipment, so `selectForSlot`'s
+`no candidates for pattern X` was unreachable. Once it filters, a thin kit
+throws — during `TodayScreen`'s render, i.e. a blank home screen. *Class:
+making a check real makes its failure path reachable for the first time.*
+
+The first attempt at that fix was itself half a fix, which the **second Grok
+pass** caught: a `try/catch` around the duo plan only, in one component. It
+swallowed every error as "not enough kit", left `/preview` and the Start
+handlers uncaught, and — worst — hid *both* solo buttons when only one person's
+kit was thin, so an under-equipped partner took away the other's workout. The
+real fix has three parts: a typed `ThinKitError` so only that becomes `null`;
+`tryPlanForToday` as the UI's single door, instead of a rule each screen must
+remember; and checking solo separately, because the duo pool is the *smaller*
+one. *Class: a `try/catch` at one call site is a local patch, not a boundary —
+and a fix for "the pair cannot train" must not assume neither can.*
+
+**Third Grok pass: a chair is not equipment.** Making `chair`/`wall` real
+requirements was correct data and a bad outcome — nobody lists furniture, and
+gitignored real profiles cannot be migrated, so five movements would have
+silently vanished from a household that plainly has chairs and walls.
+`ownedEquipment` now assumes a small `ASSUMED` set (bodyweight, chair, wall)
+present for everyone, while `step` and `bench` stay declared: stairs are common
+but not universal, and a knee-height surface that holds your weight is worth
+asking about. The declaration still earns its place — it is what the catalog
+badge and the `setupNote` read. *Class: "the data is now accurate" and "the
+product got worse" can both be true; a requirement nobody would think to
+declare needs a default, not a gate.*
+
+**A guard set to a round number instead of the real one.** The pool-depth test
+asserted `>= 3` candidates per pattern. A *pull* day selects **five** distinct
+`pull_h` (three superset slots plus two circuit slots) and `usedToday` never
+repeats, so four candidates throws. The margin was real today (six) and this is
+the PR that retags `requires` — exactly how such a margin dies quietly, with
+the test still green. The floor is now derived from `TEMPLATES`, so a new day
+type cannot outgrow its own check. *Class: a threshold that was picked rather
+than derived is a guess, and it silently stops matching the thing it guards.*
+
+**The audit method was itself the bug.** The 19 flagged entries came from
+grepping the source dataset's `instructions` for bench/step/platform. That
+found every entry whose *text* mentions gear and none whose *photograph* shows
+it. `db-split-squat` is a Bulgarian split squat with the rear foot on a bench:
+source id `Split_Squat_with_Dumbbells`, equipment field "dumbbell", and the
+word bench nowhere in its text. `db-triceps-kickback` is the same miss —
+supporting hand on a bench. Grok caught both by reading the frames. Every
+main and mobility entry without a `setupNote` was then re-audited **by opening
+its images**, which is now written down where a curator will hit it (the
+`setupNote` doc-comment in `content/scripts/selection.ts`) because no test can
+see a photograph. *Class: a proxy for the thing is not the thing — text about
+an image is not the image, and an audit is only as good as the signal it
+actually reads.*
+
+**Mutation-checked** (the rule from PR #1), all three re-run after the assumed
+fixtures changed the fixtures underneath them: single-value `canPerform` fails
+4 tests; intersect-then-check `allCanPerform` fails the divergent-kit test; an
+untyped `throw` in `selectForSlot` fails the `ThinKitError` test. The
+divergent-kit test had to move from chair/step to step/bench to keep biting —
+once chair is assumed for everyone, a chair/step pair passes under *either*
+rule, and the test would have quietly stopped testing anything. The property test needed fixing first
+— it called `canPerform` on both sides, so it agreed with any bug the predicate
+contained. It now checks the raw `requires` data independently. *Class: a test
+that reuses the implementation as its own oracle cannot fail.*
+
+Also: the strength generator had **no equipment filtering at all** — it was
+mobility-only. And `curate.ts` now skips re-encoding frames that already exist,
+so a metadata-only re-curation needs neither the network nor `sharp`.
+
 ## 2026-08-14 — PR #1: the review tail, applied to itself
 
 The tail (frame → build → browser-verify → Grok → self-review → suite → merge)

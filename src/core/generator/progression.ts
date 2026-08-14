@@ -1,3 +1,4 @@
+import { isWeighted } from '../catalog/equipment'
 import type { Exercise } from '../catalog/types'
 import type { ExerciseProgress, PersonTarget } from './types'
 
@@ -26,7 +27,7 @@ function snapToAvailable(available: number[], weight: number): number {
 function initialTarget(ex: Exercise, availableWeights: number[]): PersonTarget {
   const [minReps, maxReps] = ex.repRange
   const startReps = Math.min(minReps + 2, maxReps)
-  if (ex.equipment === 'bodyweight') return { targetReps: startReps, weight: 0 }
+  if (!isWeighted(ex)) return { targetReps: startReps, weight: 0 }
   const sorted = [...availableWeights].sort((a, b) => a - b)
   // Conservative default: second-lightest dumbbell; feedback moves it quickly.
   const weight = sorted[Math.min(1, sorted.length - 1)] ?? 0
@@ -61,7 +62,7 @@ function nextTargetRaw(
   const [minReps, maxReps] = ex.repRange
   const { lastWeight, lastTargetReps, lastActualReps, lastFeedback } = progress
   const clampReps = (r: number) => Math.max(minReps, Math.min(maxReps, r))
-  const isBodyweight = ex.equipment === 'bodyweight' || lastWeight === 0
+  const isBodyweight = !isWeighted(ex) || lastWeight === 0
 
   if (lastFeedback === 'too_hard') {
     if (isBodyweight) return { targetReps: clampReps(lastTargetReps - 2), weight: 0 }

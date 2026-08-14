@@ -1,5 +1,5 @@
 {
-  "_comment": "Template. Copy to ./profiles.local.json (gitignored) and put your real details there. Personal data \u2014 names, weights, pain areas \u2014 must never be committed; after M4 it lives in Supabase.",
+  "_comment": "Template. Copy to ./profiles.local.json (gitignored) and put your real details there. The \"equipment\" list is what the generator filters on — a movement whose kit you do not own is never prescribed. Presets live in src/app/lib/equipmentPresets.ts and are shown on the Settings screen. Floor space, a chair and a wall are assumed for everyone, so they never appear here. This template stays MINIMAL on purpose: it is also what a production build falls back to, and prescribing a band nobody owns is worse than prescribing too little. Personal data — names, weights, pain areas — must never be committed; after M4 it lives in Supabase.",
   "people": [
     {
       "id": "p1",

@@ -1,3 +1,4 @@
+import { allCanPerform } from '../catalog/equipment'
 import type { Equipment, Exercise, MobilityPhase, MobilityRegion } from '../catalog/types'
 import { estimatePlanSeconds } from './generate'
 import { fnv1a32, mulberry32, shuffle } from './prng'
@@ -64,8 +65,12 @@ export interface MobilityInput {
   catalog: Exercise[]
   focus: MobilityFocus
   participantIds: string[]
-  /** Equipment available to whoever is doing the session. */
-  equipment: Equipment[]
+  /**
+   * One kit per participant, in any order. Everyone does the same movement at
+   * the same time, so a movement is eligible only if EACH of these kits can do
+   * it — see `allCanPerform` for why this is not one intersected list.
+   */
+  kits: Equipment[][]
   /** How long they have. The generator fills this budget. */
   targetSeconds?: number
 }
@@ -74,20 +79,17 @@ function poolFor(
   catalog: Exercise[],
   phase: MobilityPhase,
   regions: MobilityRegion[],
-  equipment: Equipment[],
+  kits: Equipment[][],
 ): Exercise[] {
   return catalog
     .filter((ex) => ex.mobility?.phase === phase)
     .filter((ex) => ex.mobility!.regions.some((r) => regions.includes(r)))
-    .filter((ex) => equipment.includes(ex.equipment))
+    .filter((ex) => allCanPerform(ex, kits))
     .sort((a, b) => (a.id < b.id ? -1 : 1)) // total order before any PRNG use
 }
 
 export function generateMobilitySession(input: MobilityInput): WorkoutPlan {
-  const { catalog, dateISO, focus, generatorVersion, householdId, participantIds } = input
-  const equipment: Equipment[] = input.equipment.includes('bodyweight')
-    ? input.equipment
-    : ['bodyweight', ...input.equipment]
+  const { catalog, dateISO, focus, generatorVersion, householdId, kits, participantIds } = input
   const targetSeconds = input.targetSeconds ?? DEFAULT_MOBILITY_MINUTES * 60
   const seed = fnv1a32(
     `${householdId}|${dateISO}|mobility|${focus}|${targetSeconds}|v${generatorVersion}`,
@@ -97,7 +99,7 @@ export function generateMobilitySession(input: MobilityInput): WorkoutPlan {
 
   const blocks: Block[] = []
   for (const phase of ['mobilise', 'open', 'activate'] as const) {
-    const pool = poolFor(catalog, phase, regions, equipment)
+    const pool = poolFor(catalog, phase, regions, kits)
     if (pool.length === 0) continue
     // High-value movements first (editorial priority in the catalog), shuffled
     // within each tier so sessions still vary day to day.

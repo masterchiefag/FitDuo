@@ -1,6 +1,6 @@
 import { catalog, exercisesById } from './catalog'
 import { PROFILES, HOUSEHOLD_EQUIPMENT, HOUSEHOLD_SCHEDULE } from './profiles'
-import type { Equipment } from '../../core/catalog/types'
+import type { Equipment, Pattern } from '../../core/catalog/types'
 import { loadFeedback, loadSessions, loadSetLogs } from '../../infra/localstore'
 import {
   deriveProgression,
@@ -9,7 +9,7 @@ import {
   type SessionEvent,
   type SetEvent,
 } from '../../core/gamification/derive'
-import { generateWorkout } from '../../core/generator/generate'
+import { ThinKitError, generateWorkout } from '../../core/generator/generate'
 import { generateMobilitySession, type MobilityFocus } from '../../core/generator/mobility'
 import { localDateISO, type LocalDateISO } from '../../core/dates'
 import type { DayHistory, DayType, GeneratorInput, WorkoutPlan } from '../../core/generator/types'
@@ -96,6 +96,7 @@ export function generatorInputFor(participantIds: string[], dateISO: LocalDateIS
       return {
         userId: id,
         availableWeights: profile.availableWeights,
+        equipment: profile.equipment,
         maxTier: 2 as const,
         progression: deriveProgression(id, sessions, sets, feedback),
       }
@@ -104,10 +105,18 @@ export function generatorInputFor(participantIds: string[], dateISO: LocalDateIS
   }
 }
 
-function sharedEquipment(participantIds: string[]): Equipment[] {
-  const lists = participantIds.map((id) => PROFILES.find((p) => p.id === id)?.equipment ?? [])
-  const [first, ...others] = lists
-  return (first ?? []).filter((eq) => others.every((l) => l.includes(eq)))
+/**
+ * One kit per participant — never merged into a single list. Everyone does the
+ * same movement at the same time, so the generator asks whether EACH of these
+ * kits can do it (`allCanPerform`); intersecting the lists first would lose
+ * movements that one person does on a chair and the other on a step.
+ *
+ * With nobody selected (the Today preview before a choice) the household union
+ * is the loosest honest guess.
+ */
+function kitsFor(participantIds: string[]): Equipment[][] {
+  if (participantIds.length === 0) return [HOUSEHOLD_EQUIPMENT]
+  return participantIds.map((id) => PROFILES.find((p) => p.id === id)?.equipment ?? [])
 }
 
 export function mobilityPlan(
@@ -123,16 +132,49 @@ export function mobilityPlan(
     focus,
     participantIds,
     targetSeconds: minutes * 60,
-    // Everyone performs the same movement at the same time, so eligibility is
-    // what ALL participants own — a union would hand someone a band they do
-    // not have. (Per-person weight targets are the opposite case, and stay
-    // per-person.)
-    equipment: participantIds.length ? sharedEquipment(participantIds) : HOUSEHOLD_EQUIPMENT,
+    kits: kitsFor(participantIds),
   })
 }
 
 export function planForToday(participantIds: string[]): WorkoutPlan {
   return generateWorkout(generatorInputFor(participantIds, localDateISO(Date.now())))
+}
+
+/** Human names for the movement slots, so a failure can say what ran out. */
+export const PATTERN_LABEL: Record<Pattern, string> = {
+  push_h: 'horizontal push (chest)',
+  push_v: 'overhead push (shoulders)',
+  pull_h: 'horizontal pull (back, biceps)',
+  pull_v: 'vertical pull (lats, traps)',
+  squat: 'squat',
+  hinge: 'hinge (hamstrings, glutes)',
+  lunge: 'lunge',
+  core: 'core',
+  carry: 'carry',
+  mobility: 'mobility',
+}
+
+export type PlanAttempt =
+  | { ok: true; plan: WorkoutPlan }
+  /** Which slot ran dry — the only fact that tells someone what to go and buy. */
+  | { ok: false; thinPattern: Pattern }
+
+/**
+ * The UI's only door to strength generation. A kit too thin to fill every
+ * movement pattern is a legitimate outcome, and every screen that generates
+ * does so during render — so "throws" and "renders nothing" are the same event
+ * unless the boundary is here rather than remembered at each call site.
+ *
+ * Only `ThinKitError` is converted; anything else is a real defect and still
+ * throws, rather than being reported to the user as a missing dumbbell.
+ */
+export function tryPlanForToday(participantIds: string[]): PlanAttempt {
+  try {
+    return { ok: true, plan: planForToday(participantIds) }
+  } catch (err) {
+    if (err instanceof ThinKitError) return { ok: false, thinPattern: err.pattern }
+    throw err
+  }
 }
 
 export function statsFor(userId: string): PersonStats {

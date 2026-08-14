@@ -21,11 +21,12 @@ const base = {
   equipment: ['bodyweight', 'dumbbell', 'band', 'roller'] as const,
 }
 
+// One kit per participant; the solo default is the single kit under test.
 const gen = (focus: MobilityFocus, equipment = base.equipment, minutes = 10) =>
   generateMobilitySession({
     ...base,
     focus,
-    equipment: [...equipment],
+    kits: [[...equipment]],
     targetSeconds: minutes * 60,
   })
 
@@ -66,9 +67,9 @@ describe('mobility sessions', () => {
     // or an under-filled session would pass by prescribing almost nothing.
     //
     // Two kits, because the duration a kit can honestly serve is a property of
-    // the *kit*, not of the generator. `mobilityPlan` intersects participants'
-    // equipment, so the default duo path is bodyweight + dumbbell even when one
-    // person owns a band — and that path gets less content, so it tops out
+    // the *kit*, not of the generator. A duo movement must be doable by BOTH
+    // people, so when only one owns a band the pair effectively trains on
+    // bodyweight + dumbbell — and that path gets less content, so it tops out
     // sooner. The binding phase in both cases is `activate` (35% of the budget).
     //
     // Neither goes to 30 min. The full-kit pool holds ~27.7 min of unique work
@@ -86,7 +87,7 @@ describe('mobility sessions', () => {
           const where = `${label} ${dateISO} @ ${minutes}min`
           const plan = generateMobilitySession({
             ...base,
-            equipment,
+            kits: [equipment],
             focus: 'posture',
             dateISO,
             targetSeconds: minutes * 60,
@@ -140,7 +141,13 @@ describe('mobility sessions', () => {
     const plan = gen('posture', ['bodyweight'])
     for (const b of plan.blocks) {
       for (const item of b.items) {
-        expect(byId.get(item.exerciseId)!.equipment).toBe('bodyweight')
+        const ex = byId.get(item.exerciseId)!
+        // Checked against `requires` directly, NOT via canPerform: calling the
+        // predicate the generator used would keep this green through any bug in
+        // it, including a widened assumed-fixture set.
+        const ASSUMED = ['bodyweight', 'chair', 'wall']
+        const usable = ex.requires.some((kit) => kit.every((need) => ASSUMED.includes(need)))
+        expect(usable, `${ex.id} needs ${JSON.stringify(ex.requires)}`).toBe(true)
       }
     }
   })
@@ -148,7 +155,9 @@ describe('mobility sessions', () => {
   it('band and roller work appears when that kit is available', () => {
     const withKit = gen('posture').blocks.flatMap((b) => b.items.map((i) => i.exerciseId))
     const byId = new Map(catalog.map((e) => [e.id, e]))
-    const kitUsed = withKit.filter((id) => ['band', 'roller'].includes(byId.get(id)!.equipment))
+    const kitUsed = withKit.filter((id) =>
+      byId.get(id)!.requires.some((kit) => kit.some((eq) => eq === 'band' || eq === 'roller')),
+    )
     expect(kitUsed.length).toBeGreaterThan(0)
   })
 
