@@ -99,7 +99,11 @@ export function generatorInputFor(participantIds: string[], dateISO: LocalDateIS
   }
 }
 
-export function mobilityPlan(focus: MobilityFocus, participantIds: string[]): WorkoutPlan {
+export function mobilityPlan(
+  focus: MobilityFocus,
+  participantIds: string[],
+  minutes: number,
+): WorkoutPlan {
   return generateMobilitySession({
     householdId: HOUSEHOLD_ID,
     dateISO: localDateISO(Date.now()),
@@ -107,6 +111,7 @@ export function mobilityPlan(focus: MobilityFocus, participantIds: string[]): Wo
     catalog: catalog.exercises,
     focus,
     participantIds,
+    targetSeconds: minutes * 60,
     equipment: participantIds.length
       ? [
           ...new Set(

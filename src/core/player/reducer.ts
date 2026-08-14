@@ -3,6 +3,16 @@ import type { Effect, PlayerEvent, PlayerState, SetLogDraft, Transition } from '
 
 export const BLOCK_TRANSITION_SECONDS = 20
 
+/**
+ * How far past a deadline still counts as "we were here".
+ *
+ * The live tick fires every 250ms, so a real session never exceeds this. A
+ * bigger gap means the tab was hidden, the lid was closed, or the app was
+ * killed and resumed — and in that case the app must NOT fast-forward through
+ * the phases and bank a session nobody did. It pauses where it stood instead.
+ */
+export const LATE_TIMER_GRACE_MS = 15_000
+
 // ─── plan helpers ────────────────────────────────────────────────────────────
 
 function blockAt(plan: WorkoutPlan, index: number): Block | undefined {
@@ -109,8 +119,16 @@ export function reduce(plan: WorkoutPlan, state: PlayerState, event: PlayerEvent
 
     case 'TIMER_FIRED': {
       if (!isTimedPhase(state) || event.now < state.endsAt) return { state, effects: [] }
-      // Fast-forward: chain through as many expired timed phases as needed
-      // (e.g. the tab was backgrounded across several warmup items).
+      // Arrived late (backgrounded tab, closed lid, resume after kill): freeze
+      // where we stood rather than crediting work that was never done.
+      if (event.now - state.endsAt > LATE_TIMER_GRACE_MS) {
+        return {
+          state: { phase: 'paused', resumeState: state, pausedAt: event.now },
+          effects: [{ type: 'PERSIST_SNAPSHOT' }],
+        }
+      }
+      // On time: advance, chaining through any phases that elapsed within the
+      // grace window.
       let t = advanceTimed(plan, state, state.endsAt)
       const effects: Effect[] = [...t.effects]
       while (isTimedPhase(t.state) && t.state.endsAt <= event.now) {

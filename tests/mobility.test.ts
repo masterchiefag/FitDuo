@@ -21,8 +21,13 @@ const base = {
   equipment: ['bodyweight', 'dumbbell', 'band', 'roller'] as const,
 }
 
-const gen = (focus: MobilityFocus, equipment = base.equipment) =>
-  generateMobilitySession({ ...base, focus, equipment: [...equipment] })
+const gen = (focus: MobilityFocus, equipment = base.equipment, minutes = 10) =>
+  generateMobilitySession({
+    ...base,
+    focus,
+    equipment: [...equipment],
+    targetSeconds: minutes * 60,
+  })
 
 describe('mobility sessions', () => {
   const focuses = Object.keys(MOBILITY_FOCUS) as MobilityFocus[]
@@ -36,12 +41,29 @@ describe('mobility sessions', () => {
     }
   })
 
-  it('runs roughly 8-16 minutes', () => {
+  it('honours the requested duration, within a movement of it', () => {
     for (const focus of focuses) {
-      const mins = gen(focus).estimatedSeconds / 60
-      expect(mins, focus).toBeGreaterThanOrEqual(6)
-      expect(mins, focus).toBeLessThanOrEqual(18)
+      for (const minutes of [5, 10, 20, 30]) {
+        const mins = gen(focus, base.equipment, minutes).estimatedSeconds / 60
+        // Each phase overshoots by at most its final movement (~1 min) plus a
+        // 15s changeover per block, so allow a modest band around the target.
+        expect(mins, `${focus} @ ${minutes}min`).toBeGreaterThanOrEqual(minutes * 0.75)
+        expect(mins, `${focus} @ ${minutes}min`).toBeLessThanOrEqual(minutes * 1.35 + 2)
+      }
     }
+  })
+
+  it('longer sessions contain strictly more work than shorter ones', () => {
+    const short = gen('posture', base.equipment, 5).estimatedSeconds
+    const long = gen('posture', base.equipment, 30).estimatedSeconds
+    expect(long).toBeGreaterThan(short * 2)
+  })
+
+  it('activation work survives even the shortest session', () => {
+    const plan = gen('posture', base.equipment, 5)
+    const activate = plan.blocks.find((b) => b.kind === 'mobility' && b.label === 'Activate')
+    expect(activate).toBeDefined()
+    expect(activate!.items.length).toBeGreaterThanOrEqual(1)
   })
 
   it('is deterministic for the same day and focus', () => {

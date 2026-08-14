@@ -5,7 +5,12 @@ import { exercisesById } from '../lib/catalog'
 import { PROFILES } from '../lib/profiles'
 import { DAY_TYPE_LABEL, mobilityPlan, planForToday, statsFor } from '../lib/planner'
 import { localDateISO } from '../../core/dates'
-import { MOBILITY_FOCUS, type MobilityFocus } from '../../core/generator/mobility'
+import {
+  DEFAULT_MOBILITY_MINUTES,
+  MOBILITY_DURATIONS,
+  MOBILITY_FOCUS,
+  type MobilityFocus,
+} from '../../core/generator/mobility'
 
 export default function TodayScreen() {
   const navigate = useNavigate()
@@ -21,9 +26,10 @@ export default function TodayScreen() {
   const mins = Math.round(previewPlan.estimatedSeconds / 60)
 
   const [mobilityWho, setMobilityWho] = useState<string[]>([PROFILES[0]!.id])
+  const [mobilityMinutes, setMobilityMinutes] = useState<number>(DEFAULT_MOBILITY_MINUTES)
 
   const beginMobility = (focus: MobilityFocus) => {
-    start(mobilityPlan(focus, mobilityWho))
+    start(mobilityPlan(focus, mobilityWho, mobilityMinutes))
     void navigate('/workout')
   }
 
@@ -82,11 +88,29 @@ export default function TodayScreen() {
       <div className="mt-5 rounded-3xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
         <div className="flex items-baseline justify-between gap-3">
           <h2 className="text-lg font-extrabold">Mobility &amp; Relief</h2>
-          <span className="text-xs font-semibold text-slate-400">~10 min · no weights needed</span>
+          <span className="text-xs font-semibold text-slate-400">no weights needed</span>
         </div>
         <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
           Loosen up on its own or after a workout. Each session runs mobilise → open → activate.
         </p>
+        <div className="mt-3 flex items-center gap-2">
+          <span className="text-xs font-semibold text-slate-400">How long have you got?</span>
+          <div className="flex gap-1 rounded-xl bg-slate-100 p-1 dark:bg-slate-800">
+            {MOBILITY_DURATIONS.map((m) => (
+              <button
+                key={m}
+                onClick={() => setMobilityMinutes(m)}
+                className={`rounded-lg px-3 py-1 text-sm font-bold transition-colors ${
+                  mobilityMinutes === m
+                    ? 'bg-white text-slate-900 shadow dark:bg-slate-700 dark:text-white'
+                    : 'text-slate-500 dark:text-slate-400'
+                }`}
+              >
+                {m} min
+              </button>
+            ))}
+          </div>
+        </div>
         <div className="mt-4 grid gap-2 sm:grid-cols-3">
           {(Object.keys(MOBILITY_FOCUS) as MobilityFocus[]).map((focus) => {
             const f = MOBILITY_FOCUS[focus]

@@ -40,11 +40,21 @@ const PHASE_LABEL: Record<MobilityPhase, string> = {
   activate: 'Activate',
 }
 
-/** How many movements each phase contributes, by session length. */
-const PHASE_COUNTS: Record<'short' | 'standard', Record<MobilityPhase, number>> = {
-  short: { mobilise: 2, open: 3, activate: 2 },
-  standard: { mobilise: 3, open: 4, activate: 4 },
+/**
+ * Share of the session each phase gets. Open work dominates because holds are
+ * long; activation is short but must never be dropped — it is the half that
+ * actually changes anything.
+ */
+const PHASE_SHARE: Record<MobilityPhase, number> = {
+  mobilise: 0.25,
+  open: 0.4,
+  activate: 0.35,
 }
+
+/** Offered durations. Duration is a user input, not a property of the routine. */
+export const MOBILITY_DURATIONS = [5, 10, 20, 30] as const
+export type MobilityDuration = (typeof MOBILITY_DURATIONS)[number]
+export const DEFAULT_MOBILITY_MINUTES: MobilityDuration = 10
 
 export interface MobilityInput {
   householdId: string
@@ -55,7 +65,8 @@ export interface MobilityInput {
   participantIds: string[]
   /** Equipment available to whoever is doing the session. */
   equipment: Equipment[]
-  length?: 'short' | 'standard'
+  /** How long they have. The generator fills this budget. */
+  targetSeconds?: number
 }
 
 function poolFor(
@@ -76,11 +87,12 @@ export function generateMobilitySession(input: MobilityInput): WorkoutPlan {
   const equipment: Equipment[] = input.equipment.includes('bodyweight')
     ? input.equipment
     : ['bodyweight', ...input.equipment]
-  const length = input.length ?? 'standard'
-  const seed = fnv1a32(`${householdId}|${dateISO}|mobility|${focus}|v${generatorVersion}`)
+  const targetSeconds = input.targetSeconds ?? DEFAULT_MOBILITY_MINUTES * 60
+  const seed = fnv1a32(
+    `${householdId}|${dateISO}|mobility|${focus}|${targetSeconds}|v${generatorVersion}`,
+  )
   const rng = mulberry32(seed)
   const regions = MOBILITY_FOCUS[focus].regions
-  const counts = PHASE_COUNTS[length]
 
   const blocks: Block[] = []
   let estimatedSeconds = 0
@@ -97,10 +109,33 @@ export function generateMobilitySession(input: MobilityInput): WorkoutPlan {
       rng,
       pool.filter((ex) => (ex.mobility!.priority ?? 1) < 2),
     )
-    const chosen = [...high, ...rest].slice(0, Math.min(counts[phase], pool.length))
-    // Present in a stable order within the block so the session reads sensibly.
-    chosen.sort((a, b) => (a.id < b.id ? -1 : 1))
-    const items: TimedItem[] = chosen.map((ex) => ({
+    const ordered = [...high, ...rest]
+
+    // Fill this phase's share of the time budget. Longer sessions work further
+    // down the pool and then cycle back for a second round of the key
+    // movements — which is how a real mobility routine lengthens.
+    const budget = targetSeconds * PHASE_SHARE[phase]
+    const chosen: Exercise[] = []
+    let spent = 0
+    for (let i = 0; i < 40; i++) {
+      const ex = ordered[i % ordered.length]!
+      const seconds = ex.mobility!.seconds
+      // Round to the nearest fit rather than always overshooting: take the
+      // movement only if it lands us closer to the budget than stopping does.
+      // Every phase keeps at least one movement — activation especially.
+      if (chosen.length > 0 && spent + seconds / 2 > budget) break
+      chosen.push(ex)
+      spent += seconds
+    }
+    // Order each round sensibly, keeping later rounds after earlier ones.
+    const rounds: Exercise[][] = []
+    chosen.forEach((ex, i) => {
+      const round = Math.floor(i / ordered.length)
+      ;(rounds[round] ??= []).push(ex)
+    })
+    const laidOut = rounds.flatMap((r) => [...r].sort((a, b) => (a.id < b.id ? -1 : 1)))
+
+    const items: TimedItem[] = laidOut.map((ex) => ({
       exerciseId: ex.id,
       seconds: ex.mobility!.seconds,
     }))

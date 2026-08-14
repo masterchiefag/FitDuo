@@ -146,14 +146,56 @@ describe('player reducer', () => {
     expect(effects.some((e) => e.type === 'SESSION_COMPLETE' && !e.abandoned)).toBe(true)
   })
 
-  it('fast-forwards through several expired phases after backgrounding', () => {
-    // Backgrounded from mid-warmup straight past both items + transition.
-    const { state } = run([
+  it('never banks a session nobody did: a late timer pauses instead of advancing', () => {
+    // Backgrounded from mid-warmup and returning 8 minutes later.
+    const { state, effects } = run([
       { type: 'START', now: 0 },
       { type: 'TIMER_FIRED', now: 500_000 },
     ])
-    // Lands in untimed work (fast-forward cannot pass work — a human must tap).
-    expect(state).toEqual({ phase: 'work', blockIndex: 1, round: 0, itemIndex: 0 })
+    expect(state).toMatchObject({ phase: 'paused' })
+    expect((state as { resumeState: PlayerState }).resumeState).toEqual({
+      phase: 'timed',
+      blockIndex: 0,
+      itemIndex: 0,
+      endsAt: 40_000,
+    })
+    // Critically: nothing was logged and the session did not complete.
+    expect(effects.filter((e) => e.type === 'LOG_SET')).toHaveLength(0)
+    expect(effects.filter((e) => e.type === 'SESSION_COMPLETE')).toHaveLength(0)
+  })
+
+  it('an all-timed plan cannot self-complete while the tab is away', () => {
+    // Mobility sessions are entirely timed blocks — there is no work phase to
+    // halt a fast-forward, so the late-timer rule is the only thing stopping a
+    // fabricated completed session.
+    const mobilityPlan: WorkoutPlan = {
+      ...plan,
+      blocks: [
+        { kind: 'mobility', label: 'Mobilise', items: [{ exerciseId: 'cat-cow', seconds: 45 }] },
+        { kind: 'mobility', label: 'Open', items: [{ exerciseId: 'childs-pose', seconds: 50 }] },
+      ],
+    }
+    let state: PlayerState = { phase: 'idle' }
+    const all = []
+    for (const ev of [
+      { type: 'START' as const, now: 0 },
+      { type: 'TIMER_FIRED' as const, now: 600_000 },
+    ]) {
+      const t = reduce(mobilityPlan, state, ev)
+      state = t.state
+      all.push(...t.effects)
+    }
+    expect(state.phase).toBe('paused')
+    expect(all.filter((e) => e.type === 'SESSION_COMPLETE')).toHaveLength(0)
+  })
+
+  it('still advances normally when the timer fires on time', () => {
+    const { state } = run([
+      { type: 'START', now: 0 },
+      { type: 'TIMER_FIRED', now: 40_100 },
+    ])
+    // Anchored to the deadline (40s), not arrival (40.1s): drift never accumulates.
+    expect(state).toEqual({ phase: 'timed', blockIndex: 0, itemIndex: 1, endsAt: 80_000 })
   })
 
   it('pause/resume preserves remaining time', () => {
