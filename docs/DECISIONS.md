@@ -9,6 +9,8 @@ whose central finding was: *every prose-only prevention eventually failed under
 velocity; every mechanical one held*). When something is learned, route it down
 this ladder and **stop at the first rung that fits**:
 
+0. **Accept it** — name the risk, write it in the PR, build nothing. A real
+   answer, and the default when the risk has never actually materialised here.
 1. **Eliminate** — change the code or content so the right thing is automatic.
 2. **Test / gate** — a regression test is worth more than a paragraph. Anything
    that bit once and is mechanically checkable becomes a test, not a rule.
@@ -20,6 +22,54 @@ this ladder and **stop at the first rung that fits**:
 
 The failure mode is writing everything into CLAUDE.md because it's frictionless.
 CLAUDE.md should get *shorter* as the test suite grows.
+
+**The ladder assumes you should be on it at all.** Before routing, ask: *when did
+this bite?* Grep this file for the date. The gates here that earn their cost
+defend against incidents with a date attached; a mechanism defending against an
+imagined one is paid for by every future PR and buys a feeling of safety.
+
+---
+
+## 2026-08-14 — A 15-line change that took six commits, and why
+
+Worth recording as a failure of *process*, not of code — every commit below was
+individually justified.
+
+The ask was two things: post Grok reviews to the PR, merge instead of squash.
+That shipped in one commit. A review then found a privacy risk **in that
+addition**, and it was discharged by building a leak scanner. The scanner
+generated its own findings — substring holes, fail-open behaviour, a whole-value
+needle that missed `"First Last"`, and finally the discovery that it was a no-op
+in a worktree — each discharged by building more. Then the machinery around
+posting did the same. Six commits, four Grok rounds, cleanup diff ~5× the
+original change. The scanner was deleted in the end; the correct answer had been
+"accept the risk and write it down" from the first minute.
+
+**Grok said stop, three times, in its `scope traps` section** — *"do not rebuild
+the leak scanner", "do not import the Sherlock machinery"*. Those were read as
+advice while every correctness finding was treated as an obligation. That
+asymmetry is the whole failure. **A finding that says *this should not exist* is
+worth more than one that says *this is broken*, and must be acted on with the
+same force.**
+
+Two structural causes, both now addressed in prose (deliberately not a gate —
+gating this would be self-parody):
+
+- **Fixes enter unframed.** The template forces *"are we solving the right
+  problem?"* once, for the PR's stated intent. Everything harmful here arrived
+  later as a *fix to a finding*, and a fix carries an implicit authorisation a
+  feature does not. Had the scanner been its own PR, the framing section would
+  have killed it in five minutes. Hence: **never build a new mechanism inside
+  the PR that discovered the need for it.**
+- **The ladder had no rung 0.** It routed *where* to encode a lesson and
+  presupposed one must be encoded. "Accept it" is now rung 0.
+
+The sentence *"escalation is earned, not pre-emptive"* was written into this file
+during the same session that violated it, within the hour — the exact failure
+mode this file already documents for CLAUDE.md prose. Which is the honest limit
+of this entry too: it will not stop the next session by itself. The thing most
+likely to stop it is the user saying "aren't we over-engineering?" — and the
+lesson is to treat that as decisive on the first ask, not the third.
 
 ---
 

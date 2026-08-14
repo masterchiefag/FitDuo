@@ -9,7 +9,11 @@
      - What is the actual problem? (not "the task said so")
      - What is the simplest thing that solves it?
      - What are we deliberately NOT doing, and why?
-     - Does this generalise, or is it bespoke to one person? (PLAN §A1) -->
+     - Does this generalise, or is it bespoke to one person? (PLAN §A1)
+
+     Re-read this when a review finding tempts you to add a mechanism. If what
+     you are about to build is not named above, it is a separate PR — fixes
+     bypass this section in a way features cannot. See CLAUDE.md, filter 3. -->
 
 ## Verification
 
