@@ -150,6 +150,112 @@ describe('deriveStats', () => {
     expect(stats.streak).toBe(0)
   })
 
+  it('a recovery session pays the reduced rate, not a strength rate', () => {
+    const stats = deriveStats(
+      U,
+      [session('2026-08-03', { mode: 'mobility' })],
+      [],
+      WEEKDAYS,
+      '2026-08-03',
+    )
+    expect(stats.totalXp).toBe(20)
+    expect(stats.streak).toBe(1) // showing up still counts
+  })
+
+  it('mobility then strength on ONE day pays each session its own rate', () => {
+    // The UI actively suggests this ("on its own or after a workout"), and a
+    // date-keyed replay paid the whole day at whichever session came first.
+    const morning: SessionEvent = {
+      dateISO: '2026-08-03',
+      mode: 'mobility',
+      completed: true,
+      participantIds: [U],
+      startedAt: ms('2026-08-03', 8),
+    }
+    const evening: SessionEvent = {
+      dateISO: '2026-08-03',
+      mode: 'full',
+      completed: true,
+      participantIds: [U],
+      startedAt: ms('2026-08-03', 18),
+    }
+    const strengthSets: SetEvent[] = Array.from({ length: 10 }, (_, i) => ({
+      userId: U,
+      exerciseId: 'db-squat',
+      targetReps: 10,
+      actualReps: 10,
+      weight: 10,
+      loggedAt: ms('2026-08-03', 18) + i * 60_000,
+    }))
+    const stats = deriveStats(U, [morning, evening], strengthSets, WEEKDAYS, '2026-08-03')
+    // 20 (recovery) + 50 base + 2x10 sets + 25 full clear = 115
+    expect(stats.totalXp).toBe(20 + 50 + 20 + 25)
+    expect(stats.sessionsCompleted).toBe(2)
+    expect(stats.streak).toBe(1) // one calendar day, however many sessions
+  })
+
+  it('sets are credited to the session that produced them, not the day', () => {
+    // Reversing the order must not move the strength sets onto the mobility
+    // session (the failure mode Grok found).
+    const mobilityLater: SessionEvent = {
+      dateISO: '2026-08-03',
+      mode: 'mobility',
+      completed: true,
+      participantIds: [U],
+      startedAt: ms('2026-08-03', 20),
+    }
+    const strengthFirst: SessionEvent = {
+      dateISO: '2026-08-03',
+      mode: 'full',
+      completed: true,
+      participantIds: [U],
+      startedAt: ms('2026-08-03', 7),
+    }
+    const sets: SetEvent[] = Array.from({ length: 10 }, (_, i) => ({
+      userId: U,
+      exerciseId: 'db-squat',
+      targetReps: 10,
+      actualReps: 10,
+      weight: 10,
+      loggedAt: ms('2026-08-03', 7) + i * 60_000,
+    }))
+    const stats = deriveStats(U, [strengthFirst, mobilityLater], sets, WEEKDAYS, '2026-08-03')
+    expect(stats.totalXp).toBe(20 + 50 + 20 + 25)
+  })
+
+  it('two strength sessions in a day are paid separately, not pooled', () => {
+    // The distinguishing case: crediting a day's sets to each session would
+    // pay both sessions for all 10 sets. Only per-session bucketing gets this
+    // right, and the mobility+strength case cannot detect the difference
+    // (a mobility session has no sets).
+    const mk = (hour: number): SessionEvent => ({
+      dateISO: '2026-08-03',
+      mode: 'full',
+      completed: true,
+      participantIds: [U],
+      startedAt: ms('2026-08-03', hour),
+    })
+    const setsAt = (hour: number): SetEvent[] =>
+      Array.from({ length: 5 }, (_, i) => ({
+        userId: U,
+        exerciseId: 'db-squat',
+        targetReps: 10,
+        actualReps: 10,
+        weight: 10,
+        loggedAt: ms('2026-08-03', hour) + i * 60_000,
+      }))
+    const stats = deriveStats(
+      U,
+      [mk(7), mk(18)],
+      [...setsAt(7), ...setsAt(18)],
+      WEEKDAYS,
+      '2026-08-03',
+    )
+    // Each session: 50 base + 2x5 sets + 25 full clear = 85. Pooling would
+    // charge each session for all 10 sets and yield 190.
+    expect(stats.totalXp).toBe(85 + 85)
+  })
+
   it('PRs add capped XP and unlock achievements', () => {
     // Two sessions; second improves e1rm on the same exercise (one PR).
     const sets = [...setsFor('2026-08-03', 3, 10, 10), ...setsFor('2026-08-04', 3, 12.5, 10, 10)]
