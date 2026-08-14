@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router'
 import { usePlayerStore } from '../stores/playerStore'
 import { exercisesById } from '../lib/catalog'
 import { PROFILES, USING_EXAMPLE_PROFILES } from '../lib/profiles'
-import { DAY_TYPE_LABEL, mobilityPlan, planForToday, statsFor } from '../lib/planner'
+import { DAY_TYPE_LABEL, mobilityPlan, tryPlanForToday, statsFor } from '../lib/planner'
 import { localDateISO } from '../../core/dates'
 import { loadSnapshot, clearSnapshot } from '../../infra/localstore'
 import {
@@ -27,13 +27,16 @@ export default function TodayScreen() {
   // A kit with no candidates for some movement pattern is a real answer, not a
   // crash — the generator throws, and this screen renders during load, so an
   // unguarded call turns a thin equipment list into a blank home screen.
-  const previewPlan = useMemo(() => {
-    try {
-      return planForToday(everyone)
-    } catch {
-      return null
-    }
-  }, [everyone])
+  //
+  // Solo is checked separately on purpose: a duo movement must suit BOTH kits,
+  // so the duo pool is the smaller one. One person owning nothing must not take
+  // the other person's workout away.
+  const previewPlan = useMemo(() => tryPlanForToday(everyone), [everyone])
+  const soloAvailable = useMemo(
+    () => new Set(PROFILES.filter((p) => tryPlanForToday([p.id]) !== null).map((p) => p.id)),
+    [],
+  )
+  const canStartSomething = previewPlan !== null || soloAvailable.size > 0
   const stats = useMemo(() => PROFILES.map((p) => ({ profile: p, s: statsFor(p.id) })), [])
 
   const mainExercises = (previewPlan?.blocks ?? [])
@@ -63,7 +66,12 @@ export default function TodayScreen() {
   }
 
   const begin = (participantIds: string[]) => {
-    start(planForToday(participantIds))
+    // Only rendered for combinations already known to generate, but the button
+    // and the check are separate reads of the same profiles — re-check rather
+    // than throw out of an onClick.
+    const plan = tryPlanForToday(participantIds)
+    if (!plan) return
+    start(plan)
     void navigate('/workout')
   }
 
@@ -117,12 +125,12 @@ export default function TodayScreen() {
       )}
 
       {/* Workout card */}
-      {previewPlan === null ? (
+      {!canStartSomething ? (
         <div className="mt-5 rounded-3xl border border-amber-300 bg-amber-50 p-5 dark:border-amber-800 dark:bg-amber-950">
           <h2 className="text-lg font-extrabold">Not enough kit for a full session</h2>
           <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
             A strength session needs candidates for every movement pattern, and one of them has none
-            for what everyone here owns. Add to your kit in Settings — mobility sessions below still
+            for what anyone here owns. Add to your kit in Settings — mobility sessions below still
             work with nothing at all.
           </p>
           <button
@@ -136,24 +144,30 @@ export default function TodayScreen() {
         <div className="mt-5 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <div className="bg-gradient-to-br from-indigo-600 to-violet-600 p-5 text-white">
             <p className="text-xs font-bold tracking-widest uppercase opacity-80">
-              {DAY_TYPE_LABEL[previewPlan.dayType]}
+              {previewPlan ? DAY_TYPE_LABEL[previewPlan.dayType] : 'Solo only'}
             </p>
             <h2 className="mt-1 text-2xl font-extrabold">Today's Workout</h2>
-            <p className="mt-1 text-sm opacity-90">~{mins} min · warm-up + 4 blocks + stretch</p>
+            <p className="mt-1 text-sm opacity-90">
+              {previewPlan
+                ? `~${mins} min · warm-up + 4 blocks + stretch`
+                : 'Not everyone’s kit covers a full session — start solo below'}
+            </p>
           </div>
           <div className="p-5">
             <p className="text-sm text-slate-500 dark:text-slate-400">
               {[...new Set(mainExercises)].join(' · ')}
             </p>
             <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-              <button
-                onClick={() => begin(everyone)}
-                className="flex-1 rounded-2xl bg-indigo-600 py-3.5 text-lg font-extrabold text-white shadow-lg shadow-indigo-600/30 hover:bg-indigo-500"
-              >
-                Start duo workout 💪
-              </button>
-              <div className="flex gap-2 sm:flex-col">
-                {PROFILES.map((p) => (
+              {previewPlan && (
+                <button
+                  onClick={() => begin(everyone)}
+                  className="flex-1 rounded-2xl bg-indigo-600 py-3.5 text-lg font-extrabold text-white shadow-lg shadow-indigo-600/30 hover:bg-indigo-500"
+                >
+                  Start duo workout 💪
+                </button>
+              )}
+              <div className="flex flex-1 gap-2 sm:flex-none sm:flex-col">
+                {PROFILES.filter((p) => soloAvailable.has(p.id)).map((p) => (
                   <button
                     key={p.id}
                     onClick={() => begin([p.id])}

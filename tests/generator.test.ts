@@ -293,9 +293,30 @@ describe('equipment eligibility', () => {
     expect(canPerform(exercise('push-up', [['bodyweight']]), ['dumbbell'])).toBe(true)
   })
 
-  it('keeps the real catalog free of bench-only movements for a home kit', () => {
-    const HOME: Equipment[] = ['bodyweight', 'dumbbell', 'band', 'roller', 'chair', 'wall', 'step']
-    const unreachable = catalog.filter((ex) => !canPerform(ex, HOME))
-    expect(unreachable.map((e) => e.id)).toEqual([])
+  /**
+   * The regression this PR exists to prevent, stated as the specific movements
+   * it re-cued rather than as "nothing may need a bench". A blanket rule would
+   * also forbid ever curating a genuine bench press or pull-up, quietly turning
+   * a bug fix into a permanent content ceiling; pool depth per kit is asserted
+   * in tests/catalog.test.ts and is what actually protects the sessions.
+   */
+  it('the movements re-cued for the floor need nothing beyond dumbbells', () => {
+    const RECUED_FOR_THE_FLOOR = [
+      'db-chest-press',
+      'db-chest-fly',
+      'db-skullcrusher',
+      'db-pullover',
+      'db-arnold-press',
+      'db-reverse-fly',
+      'db-one-arm-row',
+      'scap-retraction',
+      'shoulder-external-rotation',
+      'prone-rear-delt-raise',
+    ]
+    for (const id of RECUED_FOR_THE_FLOOR) {
+      const ex = catalog.find((e) => e.id === id)
+      expect(ex, `${id} missing from the catalog`).toBeDefined()
+      expect(canPerform(ex!, ['bodyweight', 'dumbbell']), id).toBe(true)
+    }
   })
 })

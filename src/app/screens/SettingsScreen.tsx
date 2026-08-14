@@ -1,5 +1,5 @@
 import { catalog } from '../lib/catalog'
-import { canPerform } from '../../core/catalog/equipment'
+import { allCanPerform, canPerform } from '../../core/catalog/equipment'
 import type { Equipment } from '../../core/catalog/types'
 import { EQUIPMENT_LABEL, EQUIPMENT_PRESETS } from '../lib/equipmentPresets'
 import { PROFILES } from '../lib/profiles'
@@ -26,6 +26,15 @@ function KitChips({ equipment }: { equipment: Equipment[] }) {
 
 export default function SettingsScreen() {
   const total = catalog.exercises.length
+  // What a SHARED session can draw on. Per-person counts alone hide the gap:
+  // two people at 89 and 82 look fine while the pair trains on 82, because
+  // every movement has to suit both kits at once.
+  const togetherCount = catalog.exercises.filter((ex) =>
+    allCanPerform(
+      ex,
+      PROFILES.map((p) => p.equipment),
+    ),
+  ).length
   return (
     <div className="mx-auto max-w-3xl p-6">
       <h1 className="text-2xl font-extrabold tracking-tight">Settings</h1>
@@ -39,6 +48,16 @@ export default function SettingsScreen() {
         a dumbbell. In a duo session the two of you get what you <em>both</em> have, since you do
         every movement at the same time.
       </p>
+      {PROFILES.length > 1 && (
+        <p className="mt-3 rounded-2xl bg-slate-100 p-3 text-sm dark:bg-slate-800">
+          <strong>
+            Together: {togetherCount} of {total} movements.
+          </strong>{' '}
+          {togetherCount < Math.min(...PROFILES.map((p) => performableCount(p.equipment)))
+            ? 'Lower than either of you alone — something one of you owns is missing from the other’s list, so shared sessions skip it. Adding it to both unlocks it.'
+            : 'Nothing is lost to the gap between your two kits.'}
+        </p>
+      )}
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         {PROFILES.map((p) => (
           <div key={p.id} className="rounded-2xl border border-slate-200 p-4 dark:border-slate-800">

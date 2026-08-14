@@ -238,11 +238,19 @@ expressiveness, re-derive every rule that consumed it — do not port the rule.*
 **Second Grok finding: a new failure mode reached a screen.** The strength
 generator had never filtered by equipment, so `selectForSlot`'s
 `no candidates for pattern X` was unreachable. Once it filters, a thin kit
-throws — during `TodayScreen`'s render, i.e. a blank home screen. Core still
-throws (it is a real invariant violation); the screen now catches it and says
-so, and mobility sessions, which need nothing, stay available underneath.
-*Class: making a check real makes its failure path reachable for the first
-time.*
+throws — during `TodayScreen`'s render, i.e. a blank home screen. *Class:
+making a check real makes its failure path reachable for the first time.*
+
+The first attempt at that fix was itself half a fix, which the **second Grok
+pass** caught: a `try/catch` around the duo plan only, in one component. It
+swallowed every error as "not enough kit", left `/preview` and the Start
+handlers uncaught, and — worst — hid *both* solo buttons when only one person's
+kit was thin, so an under-equipped partner took away the other's workout. The
+real fix has three parts: a typed `ThinKitError` so only that becomes `null`;
+`tryPlanForToday` as the UI's single door, instead of a rule each screen must
+remember; and checking solo separately, because the duo pool is the *smaller*
+one. *Class: a `try/catch` at one call site is a local patch, not a boundary —
+and a fix for "the pair cannot train" must not assume neither can.*
 
 **Mutation-checked** (the rule from PR #1): reverting `canPerform` to
 single-value matching fails three tests; reverting `allCanPerform` to

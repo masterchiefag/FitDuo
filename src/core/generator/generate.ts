@@ -120,6 +120,21 @@ const TEMPLATES: Record<DayType, { supersets: [Pattern, Pattern][]; circuit: Pat
   },
 }
 
+/**
+ * No movement in the catalog fits a slot with the kit everyone in this session
+ * owns. A real answer, not a defect — but a distinct one, so a caller can tell
+ * "this household needs more gear" from "the generator is broken" instead of
+ * catching everything and calling it the former.
+ */
+export class ThinKitError extends Error {
+  readonly pattern: Pattern
+  constructor(pattern: Pattern) {
+    super(`no candidates for pattern ${pattern}`)
+    this.name = 'ThinKitError'
+    this.pattern = pattern
+  }
+}
+
 // ─── selection ───────────────────────────────────────────────────────────────
 
 interface SelectionCtx {
@@ -183,7 +198,7 @@ function selectForSlot(pattern: Pattern, ctx: SelectionCtx): Exercise {
       return chosen
     }
   }
-  throw new Error(`no candidates for pattern ${pattern}`)
+  throw new ThinKitError(pattern)
 }
 
 // ─── time budgeting ──────────────────────────────────────────────────────────

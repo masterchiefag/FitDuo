@@ -9,7 +9,7 @@ import {
   type SessionEvent,
   type SetEvent,
 } from '../../core/gamification/derive'
-import { generateWorkout } from '../../core/generator/generate'
+import { ThinKitError, generateWorkout } from '../../core/generator/generate'
 import { generateMobilitySession, type MobilityFocus } from '../../core/generator/mobility'
 import { localDateISO, type LocalDateISO } from '../../core/dates'
 import type { DayHistory, DayType, GeneratorInput, WorkoutPlan } from '../../core/generator/types'
@@ -138,6 +138,24 @@ export function mobilityPlan(
 
 export function planForToday(participantIds: string[]): WorkoutPlan {
   return generateWorkout(generatorInputFor(participantIds, localDateISO(Date.now())))
+}
+
+/**
+ * The UI's only door to strength generation. A kit too thin to fill every
+ * movement pattern is a legitimate outcome, and every screen that generates
+ * does so during render — so "throws" and "renders nothing" are the same event
+ * unless the boundary is here rather than remembered at each call site.
+ *
+ * Only `ThinKitError` becomes `null`; anything else is a real defect and still
+ * throws, rather than being reported to the user as a missing dumbbell.
+ */
+export function tryPlanForToday(participantIds: string[]): WorkoutPlan | null {
+  try {
+    return planForToday(participantIds)
+  } catch (err) {
+    if (err instanceof ThinKitError) return null
+    throw err
+  }
 }
 
 export function statsFor(userId: string): PersonStats {
