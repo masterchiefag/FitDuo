@@ -11,14 +11,18 @@ export interface Curated {
   /**
    * Alternative kits: you need every item of any ONE of them, so
    * `[['chair'], ['step'], ['bench']]` reads "a chair, a step or a bench".
-   * Defaults to `[['dumbbell']]` for `db-` slugs and `[['bodyweight']]` otherwise.
+   *
+   * Mandatory, and deliberately not inferred. The curate script used to guess
+   * it from the slug prefix (`db-` => dumbbell), which is the same shape as the
+   * bug this field exists to fix: gear the pipeline never saw. A movement whose
+   * kit nobody stated is a movement prescribed to someone who cannot do it.
    *
    * Declare only what the movement genuinely cannot be done without. Most of
    * the source dataset's demos were shot in a gym, but a chest press cued for
    * the floor needs no bench — re-cue it and use `setupNote`, rather than
    * gating it behind gear nobody at home owns.
    */
-  requires?: Equipment[][]
+  requires: Equipment[][]
   /**
    * Reconciles the demo photo with our cues, e.g. "Shown on a bench — the floor
    * works fine". Required whenever the photo shows gear `requires` omits, or the
@@ -58,6 +62,9 @@ const W = (
   sourceId,
   displayName,
   ...(setupNote ? { setupNote } : {}),
+  // Not an inference: W() exists for timed, unloaded warm-ups. A warm-up
+  // needing a band would be written out in full, not built with this.
+  requires: [['bodyweight']],
   role: 'warmup',
   pattern: 'mobility',
   tier: 1,
@@ -79,6 +86,8 @@ const C = (
   sourceId,
   displayName,
   ...(setupNote ? { setupNote } : {}),
+  // Same as W(): C() is for timed, unloaded stretches.
+  requires: [['bodyweight']],
   role: 'cooldown',
   pattern: 'mobility',
   tier: 1,
@@ -167,6 +176,7 @@ export const SELECTION: Curated[] = [
   // ─── Main: horizontal push (chest, triceps) ───────────────────────────────
   {
     slug: 'push-up',
+    requires: [['bodyweight']],
     sourceId: 'Pushups',
     displayName: 'Push-Up',
     role: 'main',
@@ -202,6 +212,7 @@ export const SELECTION: Curated[] = [
   },
   {
     slug: 'push-up-to-side-plank',
+    requires: [['bodyweight']],
     sourceId: 'Push_Up_to_Side_Plank',
     displayName: 'Push-Up to Side Plank',
     role: 'main',
@@ -219,6 +230,7 @@ export const SELECTION: Curated[] = [
   },
   {
     slug: 'db-chest-press',
+    requires: [['dumbbell']],
     sourceId: 'Dumbbell_Bench_Press',
     displayName: 'Dumbbell Floor Press',
     role: 'main',
@@ -238,6 +250,7 @@ export const SELECTION: Curated[] = [
   },
   {
     slug: 'db-chest-fly',
+    requires: [['dumbbell']],
     sourceId: 'Dumbbell_Flyes',
     displayName: 'Dumbbell Chest Fly',
     role: 'main',
@@ -256,6 +269,7 @@ export const SELECTION: Curated[] = [
   },
   {
     slug: 'db-overhead-triceps-extension',
+    requires: [['dumbbell']],
     sourceId: 'Standing_Dumbbell_Triceps_Extension',
     displayName: 'Overhead Triceps Extension',
     role: 'main',
@@ -273,6 +287,7 @@ export const SELECTION: Curated[] = [
   },
   {
     slug: 'db-triceps-kickback',
+    requires: [['dumbbell']],
     sourceId: 'Tricep_Dumbbell_Kickback',
     displayName: 'Triceps Kickback',
     role: 'main',
@@ -290,6 +305,7 @@ export const SELECTION: Curated[] = [
   },
   {
     slug: 'db-skullcrusher',
+    requires: [['dumbbell']],
     sourceId: 'Lying_Dumbbell_Tricep_Extension',
     displayName: 'Lying Triceps Extension',
     role: 'main',
@@ -329,6 +345,7 @@ export const SELECTION: Curated[] = [
   // ─── Main: vertical push (shoulders) ──────────────────────────────────────
   {
     slug: 'db-shoulder-press',
+    requires: [['dumbbell']],
     sourceId: 'Standing_Dumbbell_Press',
     displayName: 'Standing Shoulder Press',
     role: 'main',
@@ -346,6 +363,7 @@ export const SELECTION: Curated[] = [
   },
   {
     slug: 'db-arnold-press',
+    requires: [['dumbbell']],
     sourceId: 'Arnold_Dumbbell_Press',
     displayName: 'Arnold Press',
     role: 'main',
@@ -364,6 +382,7 @@ export const SELECTION: Curated[] = [
   },
   {
     slug: 'db-lateral-raise',
+    requires: [['dumbbell']],
     sourceId: 'Side_Lateral_Raise',
     displayName: 'Lateral Raise',
     role: 'main',
@@ -381,6 +400,7 @@ export const SELECTION: Curated[] = [
   },
   {
     slug: 'db-front-raise',
+    requires: [['dumbbell']],
     sourceId: 'Front_Dumbbell_Raise',
     displayName: 'Front Raise',
     role: 'main',
@@ -400,6 +420,7 @@ export const SELECTION: Curated[] = [
   // ─── Main: horizontal pull (back, rear delts, biceps) ─────────────────────
   {
     slug: 'db-bent-over-row',
+    requires: [['dumbbell']],
     sourceId: 'Bent_Over_Two-Dumbbell_Row',
     displayName: 'Bent-Over Row',
     role: 'main',
@@ -417,6 +438,7 @@ export const SELECTION: Curated[] = [
   },
   {
     slug: 'db-one-arm-row',
+    requires: [['dumbbell']],
     sourceId: 'One-Arm_Dumbbell_Row',
     displayName: 'One-Arm Row',
     role: 'main',
@@ -436,6 +458,7 @@ export const SELECTION: Curated[] = [
   },
   {
     slug: 'db-reverse-fly',
+    requires: [['dumbbell']],
     sourceId: 'Reverse_Flyes',
     displayName: 'Reverse Fly',
     role: 'main',
@@ -455,6 +478,7 @@ export const SELECTION: Curated[] = [
   },
   {
     slug: 'db-bicep-curl',
+    requires: [['dumbbell']],
     sourceId: 'Dumbbell_Bicep_Curl',
     displayName: 'Biceps Curl',
     role: 'main',
@@ -472,6 +496,7 @@ export const SELECTION: Curated[] = [
   },
   {
     slug: 'db-hammer-curl',
+    requires: [['dumbbell']],
     sourceId: 'Hammer_Curls',
     displayName: 'Hammer Curl',
     role: 'main',
@@ -511,6 +536,7 @@ export const SELECTION: Curated[] = [
   // ─── Main: vertical pull-ish (lats, traps) ────────────────────────────────
   {
     slug: 'db-pullover',
+    requires: [['dumbbell']],
     sourceId: 'Bent-Arm_Dumbbell_Pullover',
     displayName: 'Dumbbell Pullover',
     role: 'main',
@@ -530,6 +556,7 @@ export const SELECTION: Curated[] = [
   },
   {
     slug: 'db-upright-row',
+    requires: [['dumbbell']],
     sourceId: 'Standing_Dumbbell_Upright_Row',
     displayName: 'Upright Row',
     role: 'main',
@@ -547,6 +574,7 @@ export const SELECTION: Curated[] = [
   },
   {
     slug: 'db-shrug',
+    requires: [['dumbbell']],
     sourceId: 'Dumbbell_Shrug',
     displayName: 'Dumbbell Shrug',
     role: 'main',
@@ -566,6 +594,7 @@ export const SELECTION: Curated[] = [
   // ─── Main: squat ──────────────────────────────────────────────────────────
   {
     slug: 'db-squat',
+    requires: [['dumbbell']],
     sourceId: 'Dumbbell_Squat',
     displayName: 'Dumbbell Squat',
     role: 'main',
@@ -583,6 +612,7 @@ export const SELECTION: Curated[] = [
   },
   {
     slug: 'bodyweight-squat',
+    requires: [['bodyweight']],
     sourceId: 'Bodyweight_Squat',
     displayName: 'Bodyweight Squat',
     role: 'main',
@@ -600,6 +630,7 @@ export const SELECTION: Curated[] = [
   },
   {
     slug: 'db-sumo-squat',
+    requires: [['dumbbell']],
     sourceId: 'Plie_Dumbbell_Squat',
     displayName: 'Sumo Squat',
     role: 'main',
@@ -617,6 +648,7 @@ export const SELECTION: Curated[] = [
   },
   {
     slug: 'jump-squat',
+    requires: [['bodyweight']],
     sourceId: 'Freehand_Jump_Squat',
     displayName: 'Jump Squat',
     role: 'main',
@@ -630,6 +662,7 @@ export const SELECTION: Curated[] = [
   },
   {
     slug: 'db-calf-raise',
+    requires: [['dumbbell']],
     sourceId: 'Standing_Dumbbell_Calf_Raise',
     displayName: 'Standing Calf Raise',
     role: 'main',
@@ -651,6 +684,7 @@ export const SELECTION: Curated[] = [
   // ─── Main: hinge ──────────────────────────────────────────────────────────
   {
     slug: 'db-romanian-deadlift',
+    requires: [['dumbbell']],
     sourceId: 'Stiff-Legged_Dumbbell_Deadlift',
     displayName: 'Romanian Deadlift',
     role: 'main',
@@ -668,6 +702,7 @@ export const SELECTION: Curated[] = [
   },
   {
     slug: 'db-clean',
+    requires: [['dumbbell']],
     sourceId: 'Dumbbell_Clean',
     displayName: 'Dumbbell Clean',
     role: 'main',
@@ -685,6 +720,7 @@ export const SELECTION: Curated[] = [
   },
   {
     slug: 'glute-bridge',
+    requires: [['bodyweight']],
     sourceId: 'Butt_Lift_Bridge',
     displayName: 'Glute Bridge',
     role: 'main',
@@ -702,6 +738,7 @@ export const SELECTION: Curated[] = [
   },
   {
     slug: 'single-leg-glute-bridge',
+    requires: [['bodyweight']],
     sourceId: 'Single_Leg_Glute_Bridge',
     displayName: 'Single-Leg Glute Bridge',
     role: 'main',
@@ -719,6 +756,7 @@ export const SELECTION: Curated[] = [
   },
   {
     slug: 'superman',
+    requires: [['bodyweight']],
     sourceId: 'Superman',
     displayName: 'Superman Hold',
     role: 'main',
@@ -738,6 +776,7 @@ export const SELECTION: Curated[] = [
   // ─── Main: lunge ──────────────────────────────────────────────────────────
   {
     slug: 'db-lunge',
+    requires: [['dumbbell']],
     sourceId: 'Dumbbell_Lunges',
     displayName: 'Walking Lunge',
     role: 'main',
@@ -755,6 +794,7 @@ export const SELECTION: Curated[] = [
   },
   {
     slug: 'db-reverse-lunge',
+    requires: [['dumbbell']],
     sourceId: 'Dumbbell_Rear_Lunge',
     displayName: 'Reverse Lunge',
     role: 'main',
@@ -772,6 +812,7 @@ export const SELECTION: Curated[] = [
   },
   {
     slug: 'db-split-squat',
+    requires: [['dumbbell']],
     sourceId: 'Split_Squat_with_Dumbbells',
     displayName: 'Split Squat',
     role: 'main',
@@ -813,6 +854,7 @@ export const SELECTION: Curated[] = [
   },
   {
     slug: 'split-jump',
+    requires: [['bodyweight']],
     sourceId: 'Split_Jump',
     displayName: 'Jumping Lunge',
     role: 'main',
@@ -832,6 +874,7 @@ export const SELECTION: Curated[] = [
   // ─── Main: core ───────────────────────────────────────────────────────────
   {
     slug: 'plank',
+    requires: [['bodyweight']],
     sourceId: 'Plank',
     displayName: 'Plank',
     role: 'main',
@@ -849,6 +892,7 @@ export const SELECTION: Curated[] = [
   },
   {
     slug: 'side-plank',
+    requires: [['bodyweight']],
     sourceId: 'Side_Bridge',
     displayName: 'Side Plank',
     role: 'main',
@@ -866,6 +910,7 @@ export const SELECTION: Curated[] = [
   },
   {
     slug: 'dead-bug',
+    requires: [['bodyweight']],
     sourceId: 'Dead_Bug',
     displayName: 'Dead Bug',
     role: 'main',
@@ -883,6 +928,7 @@ export const SELECTION: Curated[] = [
   },
   {
     slug: 'russian-twist',
+    requires: [['bodyweight']],
     sourceId: 'Russian_Twist',
     displayName: 'Russian Twist',
     role: 'main',
@@ -896,6 +942,7 @@ export const SELECTION: Curated[] = [
   },
   {
     slug: 'reverse-crunch',
+    requires: [['bodyweight']],
     sourceId: 'Reverse_Crunch',
     displayName: 'Reverse Crunch',
     role: 'main',
@@ -909,6 +956,7 @@ export const SELECTION: Curated[] = [
   },
   {
     slug: 'bent-knee-hip-raise',
+    requires: [['bodyweight']],
     sourceId: 'Bent-Knee_Hip_Raise',
     displayName: 'Lying Knee Raise',
     role: 'main',
@@ -926,6 +974,7 @@ export const SELECTION: Curated[] = [
   },
   {
     slug: 'db-side-bend',
+    requires: [['dumbbell']],
     sourceId: 'Dumbbell_Side_Bend',
     displayName: 'Dumbbell Side Bend',
     role: 'main',
@@ -943,6 +992,7 @@ export const SELECTION: Curated[] = [
   },
   {
     slug: 'mountain-climber',
+    requires: [['bodyweight']],
     sourceId: 'Spider_Crawl',
     displayName: 'Spider Climbers',
     role: 'main',
@@ -1098,6 +1148,7 @@ export const MOBILITY_META: Record<string, MobilityMeta> = {
 export const MOBILITY_ADDITIONS: (Curated & { mobility: MobilityMeta })[] = [
   {
     slug: 'elbows-back',
+    requires: [['bodyweight']],
     sourceId: 'Elbows_Back',
     displayName: 'Elbows Back Chest Opener',
     role: 'mobility',
@@ -1135,6 +1186,7 @@ export const MOBILITY_ADDITIONS: (Curated & { mobility: MobilityMeta })[] = [
   },
   {
     slug: 'upper-back-stretch',
+    requires: [['bodyweight']],
     sourceId: 'Upper_Back_Stretch',
     displayName: 'Upper Back Stretch',
     role: 'mobility',
@@ -1153,6 +1205,7 @@ export const MOBILITY_ADDITIONS: (Curated & { mobility: MobilityMeta })[] = [
   },
   {
     slug: 'middle-back-mobiliser',
+    requires: [['bodyweight']],
     sourceId: 'Middle_Back_Stretch',
     displayName: 'Mid-Back Mobiliser',
     role: 'mobility',
@@ -1171,6 +1224,7 @@ export const MOBILITY_ADDITIONS: (Curated & { mobility: MobilityMeta })[] = [
   },
   {
     slug: 'chin-tuck',
+    requires: [['bodyweight']],
     sourceId: 'Chin_To_Chest_Stretch',
     displayName: 'Chin Tuck',
     role: 'mobility',
@@ -1194,6 +1248,7 @@ export const MOBILITY_ADDITIONS: (Curated & { mobility: MobilityMeta })[] = [
   },
   {
     slug: 'scap-retraction',
+    requires: [['bodyweight']],
     sourceId: 'Middle_Back_Shrug',
     displayName: 'Scapular Retraction',
     role: 'mobility',
@@ -1219,6 +1274,7 @@ export const MOBILITY_ADDITIONS: (Curated & { mobility: MobilityMeta })[] = [
   },
   {
     slug: 'shoulder-external-rotation',
+    requires: [['bodyweight']],
     sourceId: 'External_Rotation',
     displayName: 'Side-Lying Shoulder External Rotation',
     role: 'mobility',
@@ -1244,6 +1300,7 @@ export const MOBILITY_ADDITIONS: (Curated & { mobility: MobilityMeta })[] = [
   },
   {
     slug: 'prone-rear-delt-raise',
+    requires: [['bodyweight']],
     sourceId: 'Lying_Rear_Delt_Raise',
     displayName: 'Prone Rear Delt Raise',
     role: 'mobility',
@@ -1268,6 +1325,7 @@ export const MOBILITY_ADDITIONS: (Curated & { mobility: MobilityMeta })[] = [
   },
   {
     slug: 'elbow-circles',
+    requires: [['bodyweight']],
     sourceId: 'Elbow_Circles',
     displayName: 'Elbow Circles',
     role: 'mobility',
@@ -1319,6 +1377,7 @@ export const MOBILITY_ADDITIONS: (Curated & { mobility: MobilityMeta })[] = [
   },
   {
     slug: 'overhead-reach',
+    requires: [['bodyweight']],
     sourceId: 'Overhead_Stretch',
     displayName: 'Overhead Reach',
     role: 'mobility',
@@ -1337,6 +1396,7 @@ export const MOBILITY_ADDITIONS: (Curated & { mobility: MobilityMeta })[] = [
   },
   {
     slug: 'side-lying-side-stretch',
+    requires: [['bodyweight']],
     sourceId: 'Side-Lying_Floor_Stretch',
     displayName: 'Side-Lying Side Stretch',
     role: 'mobility',
@@ -1355,6 +1415,7 @@ export const MOBILITY_ADDITIONS: (Curated & { mobility: MobilityMeta })[] = [
   },
   {
     slug: 'standing-side-bend',
+    requires: [['bodyweight']],
     sourceId: 'Standing_Lateral_Stretch',
     displayName: 'Standing Side Bend',
     role: 'mobility',
@@ -1373,6 +1434,7 @@ export const MOBILITY_ADDITIONS: (Curated & { mobility: MobilityMeta })[] = [
   },
   {
     slug: 'prone-chest-lift',
+    requires: [['bodyweight']],
     sourceId: 'Lower_Back_Curl',
     displayName: 'Prone Chest Lift',
     role: 'mobility',
@@ -1396,6 +1458,7 @@ export const MOBILITY_ADDITIONS: (Curated & { mobility: MobilityMeta })[] = [
   },
   {
     slug: 'isometric-neck-front-back',
+    requires: [['bodyweight']],
     sourceId: 'Isometric_Neck_Exercise_-_Front_And_Back',
     displayName: 'Neck Isometric — Front & Back',
     role: 'mobility',
@@ -1419,6 +1482,7 @@ export const MOBILITY_ADDITIONS: (Curated & { mobility: MobilityMeta })[] = [
   },
   {
     slug: 'isometric-neck-sides',
+    requires: [['bodyweight']],
     sourceId: 'Isometric_Neck_Exercise_-_Sides',
     displayName: 'Neck Isometric — Sides',
     role: 'mobility',
@@ -1437,6 +1501,7 @@ export const MOBILITY_ADDITIONS: (Curated & { mobility: MobilityMeta })[] = [
   },
   {
     slug: 'shoulder-opener',
+    requires: [['bodyweight']],
     sourceId: 'Round_The_World_Shoulder_Stretch',
     displayName: 'Shoulder Opener',
     role: 'mobility',

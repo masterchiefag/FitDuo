@@ -174,7 +174,7 @@ async function main() {
       id: sel.slug,
       name: sel.displayName,
       role: sel.role,
-      requires: sel.requires ?? (sel.slug.startsWith('db-') ? [['dumbbell']] : [['bodyweight']]),
+      requires: sel.requires,
       pattern: sel.pattern,
       primaryMuscles: mapMuscles(src.primaryMuscles, ['core']),
       secondaryMuscles: mapMuscles(src.secondaryMuscles, []).filter(

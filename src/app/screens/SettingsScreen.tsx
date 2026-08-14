@@ -44,9 +44,10 @@ export default function SettingsScreen() {
 
       <h2 className="mt-8 text-lg font-bold">Your kit</h2>
       <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-        Exercises are filtered by what you own — a chair dip needs a chair the same way a curl needs
-        a dumbbell. In a duo session the two of you get what you <em>both</em> have, since you do
-        every movement at the same time.
+        Exercises are filtered by what you own — a step-up needs a step the same way a curl needs a
+        dumbbell. You do every movement at the same time, so a shared session keeps whatever{' '}
+        <em>each</em> of you can do with your own kit: if one of you steps onto a stair and the
+        other onto a bench, that still counts.
       </p>
       {PROFILES.length > 1 && (
         <p className="mt-3 rounded-2xl bg-slate-100 p-3 text-sm dark:bg-slate-800">

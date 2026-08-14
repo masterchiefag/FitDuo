@@ -6,10 +6,11 @@ import { catalogSchema, type Equipment } from '../src/core/catalog/types'
 
 /**
  * Pool depth has to hold for the kit people actually own, not for the catalog
- * on paper. `home` is the household with a chair, a wall and stairs; `minimal`
- * is a pair of dumbbells and floor space — and it is also what a duo session
- * gets when only one of them owns the band and roller, since shared sessions
- * intersect.
+ * on paper. `home` is the household with stairs; `minimal` is a pair of
+ * dumbbells and floor space, which is roughly what a duo session draws on when
+ * only one of the two owns the band and roller — a shared movement has to suit
+ * *each* person's own kit (`allCanPerform`), which is not the same as checking
+ * the intersection of their lists once alternative kits exist.
  */
 const KITS: Record<string, Equipment[]> = {
   full: [
