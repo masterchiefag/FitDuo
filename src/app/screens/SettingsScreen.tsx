@@ -49,6 +49,11 @@ export default function SettingsScreen() {
         <em>each</em> of you can do with your own kit: if one of you steps onto a stair and the
         other onto a bench, that still counts.
       </p>
+      <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+        Floor space, a sturdy chair and a clear wall are assumed for everyone, so they are not in
+        the lists below — movements still name them, which is why a badge can read “Chair or Step or
+        Bench”.
+      </p>
       {PROFILES.length > 1 && (
         <p className="mt-3 rounded-2xl bg-slate-100 p-3 text-sm dark:bg-slate-800">
           <strong>

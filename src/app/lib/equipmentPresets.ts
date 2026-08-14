@@ -14,6 +14,12 @@ export interface EquipmentPreset {
   equipment: Equipment[]
 }
 
+/**
+ * Chair and wall are deliberately absent from every preset: `ownedEquipment`
+ * assumes them for everyone, so listing them would imply a switch that does
+ * nothing. They stay in `Equipment` because `requires` still needs to name them
+ * — that is what makes a badge read "Chair or Step or Bench".
+ */
 export const EQUIPMENT_PRESETS: EquipmentPreset[] = [
   {
     id: 'minimal',
@@ -24,14 +30,15 @@ export const EQUIPMENT_PRESETS: EquipmentPreset[] = [
   {
     id: 'home',
     label: 'Home',
-    blurb: 'Dumbbells, a band and a roller, plus the chair, wall and stairs you already have',
-    equipment: ['bodyweight', 'dumbbell', 'band', 'roller', 'chair', 'wall', 'step'],
+    blurb: 'Dumbbells, a resistance band, a foam roller, and stairs or a low box',
+    equipment: ['bodyweight', 'dumbbell', 'band', 'roller', 'step'],
   },
   {
     id: 'gym',
     label: 'Gym',
-    blurb: 'Everything, including a bench and a pull-up bar',
-    equipment: [...EQUIPMENT],
+    blurb:
+      'Adds a bench and a pull-up bar. Unlocks nothing extra today — every movement in the catalog is doable at home, by design — but a bench is an alternative wherever one helps.',
+    equipment: [...EQUIPMENT].filter((eq) => eq !== 'chair' && eq !== 'wall'),
   },
 ]
 

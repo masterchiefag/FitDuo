@@ -3,7 +3,13 @@ import { useNavigate } from 'react-router'
 import { usePlayerStore } from '../stores/playerStore'
 import { exercisesById } from '../lib/catalog'
 import { PROFILES, USING_EXAMPLE_PROFILES } from '../lib/profiles'
-import { DAY_TYPE_LABEL, mobilityPlan, tryPlanForToday, statsFor } from '../lib/planner'
+import {
+  DAY_TYPE_LABEL,
+  PATTERN_LABEL,
+  mobilityPlan,
+  tryPlanForToday,
+  statsFor,
+} from '../lib/planner'
 import { localDateISO } from '../../core/dates'
 import { loadSnapshot, clearSnapshot } from '../../infra/localstore'
 import {
@@ -31,9 +37,10 @@ export default function TodayScreen() {
   // Solo is checked separately on purpose: a duo movement must suit BOTH kits,
   // so the duo pool is the smaller one. One person owning nothing must not take
   // the other person's workout away.
-  const previewPlan = useMemo(() => tryPlanForToday(everyone), [everyone])
+  const duoAttempt = useMemo(() => tryPlanForToday(everyone), [everyone])
+  const previewPlan = duoAttempt.ok ? duoAttempt.plan : null
   const soloAvailable = useMemo(
-    () => new Set(PROFILES.filter((p) => tryPlanForToday([p.id]) !== null).map((p) => p.id)),
+    () => new Set(PROFILES.filter((p) => tryPlanForToday([p.id]).ok).map((p) => p.id)),
     [],
   )
   const canStartSomething = previewPlan !== null || soloAvailable.size > 0
@@ -69,9 +76,9 @@ export default function TodayScreen() {
     // Only rendered for combinations already known to generate, but the button
     // and the check are separate reads of the same profiles — re-check rather
     // than throw out of an onClick.
-    const plan = tryPlanForToday(participantIds)
-    if (!plan) return
-    start(plan)
+    const attempt = tryPlanForToday(participantIds)
+    if (!attempt.ok) return
+    start(attempt.plan)
     void navigate('/workout')
   }
 
@@ -129,9 +136,10 @@ export default function TodayScreen() {
         <div className="mt-5 rounded-3xl border border-amber-300 bg-amber-50 p-5 dark:border-amber-800 dark:bg-amber-950">
           <h2 className="text-lg font-extrabold">Not enough kit for a full session</h2>
           <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
-            A strength session needs candidates for every movement pattern, and one of them has none
-            for what anyone here owns. Add to your kit in Settings — mobility sessions below still
-            work with nothing at all.
+            A strength session needs candidates for every movement pattern, and nothing anyone here
+            owns fits the{' '}
+            <strong>{duoAttempt.ok ? '' : PATTERN_LABEL[duoAttempt.thinPattern]}</strong> slot.
+            Check your kit in Settings — mobility sessions below still work with nothing at all.
           </p>
           <button
             onClick={() => void navigate('/settings')}

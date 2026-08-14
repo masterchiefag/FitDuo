@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { canPerform } from '../src/core/catalog/equipment'
 import { catalogSchema, type Equipment } from '../src/core/catalog/types'
 import {
   MOBILITY_FOCUS,
@@ -143,7 +142,12 @@ describe('mobility sessions', () => {
     for (const b of plan.blocks) {
       for (const item of b.items) {
         const ex = byId.get(item.exerciseId)!
-        expect(canPerform(ex, ['bodyweight']), `${ex.id} needs gear`).toBe(true)
+        // Checked against `requires` directly, NOT via canPerform: calling the
+        // predicate the generator used would keep this green through any bug in
+        // it, including a widened assumed-fixture set.
+        const ASSUMED = ['bodyweight', 'chair', 'wall']
+        const usable = ex.requires.some((kit) => kit.every((need) => ASSUMED.includes(need)))
+        expect(usable, `${ex.id} needs ${JSON.stringify(ex.requires)}`).toBe(true)
       }
     }
   })
