@@ -147,7 +147,7 @@ R5 ships before M4, so the schema must already carry what R1/R4/R5 produce or th
 
 Post-launch: R2c conversational coach, R2d authored TTS, R3b self-recorded clips, activity feed, push.
 
-Every milestone tail, in order: `npm run typecheck && npm run test -- --run && npm run e2e` → `/code-review` (medium) → **Grok second opinion** (`scripts/dev/grok-review.sh diff <range>`) → fix findings → commit. Plan revisions of any size also go through Grok before execution starts.
+Every milestone goes through the PR tail in [CLAUDE.md](../CLAUDE.md#workflow--every-change-goes-through-a-pr) — that is the single canonical version, and `merge-ready.sh` enforces it. Plan revisions of any size also go through Grok (`scripts/dev/grok-review.sh file docs/PLAN.md`) before execution starts.
 
 ## Product spec (v1)
 

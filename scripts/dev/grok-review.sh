@@ -37,18 +37,46 @@ OUT="${GROK_REVIEW_OUT:-.grok-review-latest.md}"
 # nobody having read it — and what `tee` captures is the whole stdout
 # transcript, narration turns included, not a finished review. Now the person
 # who posts is by definition someone who has read it.
+STAMP="$OUT.sha"
+
 if [ "$MODE" = "post" ]; then
   [ -s "$OUT" ] || { echo "no review at $OUT — run a review first" >&2; exit 2; }
   command -v gh >/dev/null 2>&1 || { echo "gh not on PATH" >&2; exit 2; }
+
+  # The reviewed sha comes from the review run, never from HEAD. Stamping HEAD
+  # here would let: review A -> fix -> commit B -> post ("reviewed at B") ->
+  # record-step grok at B -> merge-ready passes, with B never reviewed. That is
+  # the gate certifying an unreviewed tree, in a comment whose own text says a
+  # new commit invalidates the review.
+  REVIEWED="$(cat "$STAMP" 2>/dev/null || true)"
+  HEAD_SHA="$(git rev-parse HEAD)"
+  if [ -z "$REVIEWED" ]; then
+    echo "no reviewed-sha stamp at $STAMP — re-run the review" >&2
+    exit 2
+  fi
+  if [ "$REVIEWED" != "$HEAD_SHA" ]; then
+    echo "refusing to post: $OUT reviewed ${REVIEWED:0:7}, HEAD is ${HEAD_SHA:0:7}." >&2
+    echo "Re-run the review against HEAD — posting the old one would attest a tree nobody reviewed." >&2
+    exit 2
+  fi
+
+  # GitHub caps a comment at 65536 bytes. $OUT is a raw agent transcript, so a
+  # big milestone review will exceed it; failing here beats a 422 mid-tail.
+  BYTES="$(wc -c <"$OUT" | tr -d ' ')"
+  if [ "$BYTES" -gt 60000 ]; then
+    echo "refusing to post: $OUT is ${BYTES}B, over GitHub's comment cap." >&2
+    echo "Post the findings by hand, or trim $OUT to the review itself." >&2
+    exit 2
+  fi
+
   PR="$(gh pr view --json number --jq .number 2>/dev/null || true)"
   [ -n "$PR" ] || { echo "no open PR for this branch" >&2; exit 2; }
-  SHA="$(git rev-parse HEAD)"
   {
     printf '## Grok review\n\nReviewed at `%s`. Any new commit invalidates this review; see `scripts/dev/merge-ready.sh`.\n\n---\n\n' \
-      "${SHA:0:12}"
+      "${REVIEWED:0:12}"
     cat "$OUT"
   } | gh pr comment "$PR" --body-file -
-  echo "posted $OUT to PR #$PR at ${SHA:0:7}" >&2
+  echo "posted $OUT to PR #$PR at ${REVIEWED:0:7}" >&2
   exit 0
 fi
 
@@ -83,6 +111,10 @@ PRIVACY — this review is posted to a PUBLIC pull request. Do not open profiles
 
 # Always keep the FULL review on disk — piping this script through `tail`
 # silently truncated a 15-finding review down to 10 once. Never again.
+# Stamp the sha BEFORE the review runs: it is the tree Grok is about to read.
+# Written first so a crashed review leaves no stamp rather than a stale one.
+rm -f "$STAMP"
+git rev-parse HEAD >"$STAMP"
 "$GROK_BIN" -p "$PROMPT" --always-approve --max-turns "$MAX_TURNS" --disable-web-search | tee "$OUT"
-echo "--- $LABEL: full review saved to $OUT ---" >&2
+echo "--- $LABEL: full review saved to $OUT (reviewed $(cut -c1-7 "$STAMP")) ---" >&2
 echo "--- read it, then: $0 post ---" >&2

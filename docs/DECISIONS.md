@@ -64,9 +64,8 @@ repo setting (`gh repo edit --enable-squash-merge=false --enable-rebase-merge=fa
 Deliberately *not* the `~/dev/sherlock` machinery — PENDING→COMMENT submission,
 review-id snapshots, head-sha polling. That wrapper exists because two agents
 ran in separate terminals with a human as the bus (7–25 min of stall per PR).
-Here Grok and Claude share a session and the review is on stdout before anyone
-acts on it, so posting buys **no latency** — only the durable trace that
-`record-step.sh grok` was missing: it recorded that a review happened and kept
+Here Grok and Claude share a session, so posting buys **no latency** — only the
+durable trace that `record-step.sh grok` was missing: it recorded that a review happened and kept
 nothing of what it said, while the review itself is gitignored scratch.
 Copying the full wrapper would have been ~250 lines solving a problem we don't
 have.
@@ -118,6 +117,18 @@ Worth keeping for the same reason: what `tee` captures is Grok's **entire stdout
 transcript**, narration turns included, not a curated review. Auto-posting it
 published that raw log to a public repo. A manual `post` makes the raw-transcript
 problem visible to whoever posts, instead of routing it straight to strangers.
+(`post` also refuses a file over 60 kB — GitHub's comment cap is 64 kB, and a
+30-turn milestone transcript will reach it.)
+
+**The subtler one: `post` must attest the sha that was *reviewed*, not `HEAD`.**
+The first version stamped `HEAD`. With the written tail being review → fix →
+post → `record-step.sh grok`, that meant: review sha A, commit the fixes as B,
+post a comment saying "reviewed at B", record the Grok step at B, and
+`merge-ready.sh` passes — certifying a tree nobody reviewed, in a comment whose
+own text says a new commit invalidates the review. The reviewed sha is now
+stamped when the review *starts*, and `post` refuses unless it equals `HEAD`. So
+a fix commit forces another review, which is what the tail always claimed.
+*A record of a check is only worth as much as the thing it is bound to.*
 
 ---
 
