@@ -23,30 +23,86 @@ Quality bar: a reasonably polished v1 in one pass, not a month of bug fixes. Tha
 
 Atul's feedback after trying the M2/M3 build, now the top of the backlog. **Execution model change: Opus executes milestones; Fable maintains this plan and reviews; Grok gives a second opinion on plan revisions and milestone diffs via headless CLI** (pattern borrowed from `~/dev/sherlock`'s `scripts/dev/grok-review-pr.sh`, simplified — no PRs in this repo).
 
+### A0 — Generic mechanisms, not special cases (architectural principle; governs R1/R4/R5)
+The features below (short session, mobility day, readiness, pain adaptation, swaps) must **not** become five bespoke code paths with hardcoded tables. Four shared mechanisms carry all of them, and every future "can it also do X?" should land as data or one new rule — never generator surgery.
+
+**1. Exercises declare what they load — structured, not prose.**
+```ts
+type BodyArea = 'shoulder' | 'lower_back' | 'knee' | 'wrist' | 'elbow' | 'neck' | 'hip'
+loads: { area: BodyArea; stress: 'high' | 'moderate' }[]
+```
+Defaulted from movement pattern during curation, overridable per exercise. *Everything* reads this one field: the caution line in the UI, pain-flag load reduction, substitution ranking, and later "why did you pick this for me". No pattern→pain lookup tables anywhere in the generator.
+
+**2. One ordered target-adjustment pipeline.**
+Per-person targets are the base progression target passed through a list of small pure adjusters:
+```ts
+interface AdjustContext { exercise, person, readiness, painFlags, sessionMode, history }
+interface Adjuster { id: string; apply(t: PersonTarget, c: AdjustContext): PersonTarget }
+```
+Order: `progression` → `readiness` → `painLoad` → `sessionMode` → **`weightSnap`** (must be a dumbbell that person owns) → **`repClamp`** (stay inside the exercise's rep range). The last two always run last, so **no rule can ever emit an unliftable or out-of-range prescription** — that invariant is a property test, not a convention. Adding "deload week", "travel mode", or "first session back" later = one entry in the list plus its unit test.
+
+**3. Substitution by similarity, not a swap table.**
+`findSubstitute(exercise, { avoidAreas, person, catalog })` ranks candidates by same pattern → primary-muscle overlap → tier proximity → equipment that person owns, excluding anything loading an avoided area. One function serves pain swaps, "I hate this one", a missing dumbbell, and the generator's own variety fallback.
+
+**4. Session shapes and day splits are content, not code.**
+`content/session-modes.json` (full / short / mobility: target duration band, block skeleton, whether load is allowed, streak + XP weighting) and `content/day-templates.json` (the pattern slots per day type — currently a hardcoded `TEMPLATES` map in `generate.ts`). A new split or session type becomes a content edit plus schema validation, the same way exercises already work.
+
+Consequence for sequencing: R1 lands the pipeline and phase changes; R4 and R5 then add *data and rules*, not new engines.
+
 ### R1 — Follow-along player (highest priority; do before M4)
 *(Amended after Grok review — the four safety rules below are load-bearing, not optional.)*
 
 The player currently waits for a "Done" click per set. Rework to fully auto-flowing, like following a real trainer — **zero required keyboard/mouse interaction from Start to celebration** — with these semantics:
 
-- Generator emits per-`WorkItem` `workSeconds` (max across participants of `setSeconds`) and a 15s `changeover` item between different exercises within a round (dumbbell swap). **Both are added to `estimatePlanSeconds`** (3 supersets + finisher ⇒ ~15 changeovers ≈ 4 min the fitter must see) and `generatorVersion` bumps to 2.
-- Reducer: `work` becomes a **timed** phase (`endsAt`). Flow on expiry: auto-log sets → next item → changeover → work; end of round → rest; end of block → block transition. `SET_DONE` = "finish early"; new `EXTEND_WORK` (+15s); new `ADJUST` event stores per-person override targets **in reducer state** (not React state), read by both expiry and finish-early when logging.
-- **Safety rule 1 — fast-forward never crosses work.** `TIMER_FIRED` on an expired work phase with `now − endsAt > 15s` (backgrounded tab, closed lid, resume-after-kill) transitions to **paused at that set** — it must not auto-log sets nobody did. Only the live visible tick (small gap) advances work. Keep the reducer test "fast-forward cannot cross a work phase" as the invariant, updated for the grace window.
-- **Safety rule 2 — expiry is not proof of success.** Auto-logged sets carry `assumed: true`. Assumed sets count for session XP/sets/volume (the follow-along assumption, like a class), but are **excluded from PR detection and from progression's "all sets hit → +1 rep" rule** — silent sessions hold steady; progression advances only on explicit feedback taps or explicitly confirmed/adjusted sets. No fake PRs, no ratchet from assumed data.
-- Rest lengths stay parameterized per block (the budget fitter tunes within 45–150s).
-- UI: countdown ring on the work screen + rep pacing hint ("~1 rep / 3s"), 3-2-1 beeps before every transition (already built), Pause/Skip/adjust remain the only interactive controls.
-- **Resolved (2026-08-14): they each own a set of dumbbells.** Duo sets are therefore **simultaneous** — one shared timer, `workSeconds = max(setSeconds)` across participants, one auto-log per person at their own target. No alternate-work mode in v1.
-- Tests: reducer table + fuzz updated for timed work, grace-window pause, assumed-set flags; e2e drivers keep clicking "finish early" so suites stay fast.
-- **This section supersedes the "Session player" description in Architecture and the player bullets in Product spec wherever they conflict** (those still describe click-to-advance work).
+- Generator emits per-`WorkItem` `workSeconds` (max across participants of `setSeconds`). **A 15s `changeover` is a player *phase*, not a plan item** — inserted automatically when the next work item's `exerciseId` differs — so `plannedSets`, `setIndex`, and feedback never walk timed gaps. `estimatePlanSeconds` adds `(items.length − 1) × 15 × rounds`; `generatorVersion` bumps to 2.
+- Reducer: `work` becomes a **timed** phase (`endsAt`). Flow on expiry: auto-log sets → changeover (if the exercise changes) → next work; end of round → rest; end of block → block transition. `SET_DONE` = "finish early"; new `EXTEND_WORK` (+15s); new `ADJUST` event stores per-person override targets **in reducer state**, scoped to the **current work item only** and cleared on leaving it (including Skip) — an override must never leak onto later exercises.
+- **Safety rule 1 — the app must never log a workout nobody did.** Two distinct cases, both covered:
+  - *Tab hidden / lid closed / resume-after-kill*: `TIMER_FIRED` on a work phase expired by more than a 15s grace transitions to **paused at that set**.
+  - *Tab visible but nobody's there* (walk away mid-session — the case a background check misses): after **two consecutive work phases auto-complete with zero interaction of any kind** (no tap, no finish-early, no rating), the player pauses and asks "Still with us?". Nothing is logged past that point until someone answers.
+- **Safety rule 2 — expiry is not proof of success.** Auto-logged sets carry `assumed: true`. Assumed sets count for session XP/sets/volume (the follow-along assumption, like a class), but are **excluded from PR detection and from progression's "all sets hit → +1 rep" rule**. No fake PRs, no ratchet from assumed data.
+- **Progression stays alive inside R1 — not deferred to the coach voice.** The end-of-block rest screen shows a large tap-free **easy / good / hard** rating per person and **does not auto-dismiss**: rest expires into a *hold* (timer at zero, "tap a rating to continue"), never an assumed `'right'`. This is the single interaction the design asks for, once per block, and it is what moves the weights. R2a later *speaks* the prompt; it was never the mechanism.
+- **The plan is persisted on Start, not on Today.** Generating for the Today preview is local and disposable; the session row is upserted only when someone presses Start, and server-wins applies only among *started* sessions. Solo vs duo is a Start-time choice, not a property of the previewed plan.
+- **Never intersect the two weight arrays.** An exercise is eligible if *each* participant can perform it (a dumbbell in that person's own list, or bodyweight). They own separate sets; intersecting them can produce an empty pool.
+- Rest lengths stay parameterized per block (the budget fitter tunes within 45–150s). UI: countdown ring on the work screen + rep pacing hint ("~1 rep / 3s"), 3-2-1 beeps before every transition (already built); Pause / Skip / adjust / rate are the only controls.
+- **Resolved (2026-08-14): they each own a set of dumbbells.** Duo sets are **simultaneous** — one shared timer, `workSeconds = max(setSeconds)`, one auto-log per person at their own target. No alternate-work mode in v1.
+- **Music must be a separate app (Spotify/Music), not another Chrome tab** — a second tab backgrounds the workout and trips the pause rule. Document this in Settings; the R3a form-video overlay is in-page and pauses deliberately.
+- Tests: reducer table + fuzz updated for timed work, both safety rules, rating-hold, and assumed-set flags; e2e drivers click "finish early" + rate so suites stay fast.
+- **This section supersedes the Architecture § "Session player" and the Product-spec player bullets wherever they conflict.**
 
-### R2 — Coach voice (trainer that talks; do after R1)
-- **R2a (v1): Web Speech API `speechSynthesis`, template-driven** — free, offline with local voices. The coach speaks lines composed from data the app already has: exercise intro with both people's targets ("Next up: Goblet Squat — Atul 10 kilos, Partner 5"), the existing form cues read aloud during the set, rest announcements, completion encouragement. **A cue-priority queue arbitrates audio: 3-2-1 beeps always win; speech is cancelled, never queued behind a transition.** Settings: voice picker, speech rate, mute. *No editorial authoring in R2a* — per Grok, hand-written per-exercise mistake/encouragement copy for ~70 exercises is its own project.
-- **R2b (later): authored coach copy + pre-generated natural TTS** — write real intro/common-mistakes/encouragement lines per exercise, render through a paid TTS API at build time into bundled audio. The template pipeline from R2a is the durable substrate.
+### R2 — Coach voice (a trainer that talks, then one that listens)
+Staged from one-way speech to genuine conversation. Each stage is independently useful and shippable; the later ones need network and (for R2c) an API key.
+
+- **R2a (v1): the coach talks — `speechSynthesis`, template-driven.** Free, offline with local voices. Speaks lines composed from data the app already has: exercise intro with both people's targets ("Next up: Goblet Squat — Atul 10 kilos, [partner] 5"), the existing form cues read aloud during the set, rest announcements with what's coming, completion encouragement, and **the feedback prompt** ("How was that block? Easy, good, or hard?") which is what keeps progression moving. **A cue-priority queue arbitrates audio: 3-2-1 beeps always win; speech is cancelled, never queued behind a transition.** Settings: voice picker, rate, mute. No per-exercise editorial copy at this stage — templates only.
+- **R2b: the coach listens — voice commands (`SpeechRecognition`, Chrome).** This is the one that matters for follow-along, because *your hands are holding dumbbells and you cannot reach the laptop mid-set.* A small, fixed vocabulary recognized during a session: "pause", "resume", "skip", "more time", "easy / good / hard" (logs feedback for whoever spoke — with two people, a "who said that?" tap-free ambiguity we resolve by asking each person in turn during the feedback prompt), "how many left". Fixed vocabulary is far more reliable than open dictation over music and breathing. Push-to-talk fallback via spacebar. **Privacy note: Chrome's speech recognition sends audio to Google's servers — it is opt-in in Settings, off by default, and only listens during an active session.**
+- **R2c (post-launch): actual conversation — LLM-backed coach.** Mic → transcript → Claude API (with the session state, both profiles, and today's plan as context) → spoken reply *and structured actions*: "my shoulder's hurting today" ⇒ sets the pain flag and substitutes the pressing slot (R5); "swap this exercise" ⇒ regenerates that slot; "why am I doing this one?" ⇒ explains the movement's purpose. Needs network and an API key; costs a few cents a month for two users. Must degrade cleanly to R2b commands when offline. This is the version that actually feels like a trainer in the room.
+- **R2d (optional polish): pre-generated natural TTS** — authored per-exercise coaching copy rendered through a paid TTS voice at build time, replacing the robotic local voice.
 
 ### R3 — Better form media (the 2-frame images are the dataset's limit)
 free-exercise-db ships exactly two still photos per exercise — that's all it has. Layered fix:
 - **R3a (v1): curated "Watch form ▶" YouTube links only** — an editorial `videoUrl` per main exercise, embed opened in an overlay, online-only, clearly optional. **Opening the video pauses the session** (otherwise the follow-along timer completes the set while they watch). Shown on rest/changeover screens. *wger video bundling is dropped* (blows the precache budget for partial coverage).
 - **R2a synergy**: spoken form cues carry much of what the images can't show.
 - **R3b (post-launch): self-recorded clips** — Settings flow to replace any exercise's demo with a laptop-camera recording (MediaRecorder → webm, stored locally then synced via Supabase Storage). You know the movements from your trainer; over a few weeks the app becomes personally demonstrated.
+
+### R4 — Session lengths & modes (short session + mobility)
+Two new session types generated from the same engine, both counting for the streak. Rationale: a 50–60 min session or nothing is the fastest way to break a streak, and the streak is the engagement engine.
+
+- **Short session (~25 min)** — same day type and structure, fewer rounds and one less block. The generator's time-budget fitter already parameterizes duration; this makes `targetSeconds` an input (`full` = 3000–3600, `short` = 1350–1650) rather than a constant. Full streak credit, proportionally less XP (it's honest, and the streak — not XP — is what protects motivation). Offered on Today as a secondary button, and as a mid-session "cut it short" that ends cleanly at the next block boundary rather than abandoning.
+- **Mobility & Relief session (~12 min, no dumbbells)** — a *recovery* session for stiffness, chosen by region: **shoulders & upper back**, **lower back & hips**, or **full body**. All-timed blocks (60–75s holds, breathing cues), no load, no progression. Counts for the streak as a recovery day; earns reduced XP; explicitly **does not** count as a strength day for muscle-balance history.
+  - Content work: add a `region` tag to mobility/cooldown catalog entries and curate ~10 more from free-exercise-db's stretching set (thoracic/spinal rotation, lat and pec stretches, scapular work, upper-back and neck releases, hip flexor and piriformis). The dataset has 108 stretching entries, so this is editorial selection, not new sourcing.
+  - Implementation note: a mobility plan is *entirely timed blocks*, which the player already handles natively — after R1 this is generator + content work with no new state machine.
+
+### R5 — Readiness check & pain-aware generation
+A trainer asks how you're feeling and works around your bad shoulder. Two coupled features, both cheap, both preventing the classic week-six abandonment.
+
+- **Readiness (per person, per session, optional):** one tap on Today — *Fresh · Normal · Beat up*. Effect: `beat up` scales that person's targets down one weight step (or −20% reps), drops one round, and lengthens rests; `fresh` allows the top of the rep range. Recorded as an event, never as stored state, so the derived-stats model is untouched.
+- **Exercise cautions (catalog content, benefits everyone):** each main exercise carries a `cautions` list of body areas it loads — overhead pressing ⇒ `shoulder`; loaded hinge and bent-over rows ⇒ `lower_back`; jumping and deep lunges ⇒ `knee`; push-ups and planks ⇒ `wrist`. Mostly derivable from the movement pattern with per-exercise overrides, so authoring is cheap. Shown in the exercise detail regardless of any flag ("Take care if your shoulder is sensitive — keep the ribs down, stop if it pinches"), because that's useful coaching for anyone.
+- **Pain flags adapt the load, per person — they do not delete the exercise.** Flag *shoulder · lower back · knee · wrist · elbow* from Today or mid-session ("this hurts"). While a flag is live (default 10 days, dismissible, renewable), for **that person only**:
+  - their target on cautioned exercises drops — one weight step down, reps toward the bottom of the range — and the caution line is surfaced prominently on their panel during the set;
+  - **their partner's targets are untouched.** The household still trains the same movement together; only the affected person goes lighter. This is exactly what the per-person target overlay already exists to do, so it needs no change to selection.
+  - Today shows a quiet banner ("Going lighter on Atul's shoulder work — 6 days left") so a flag never silently persists.
+  - Escalation is opt-in, not automatic: if it still hurts light, the in-session "this hurts" tap offers **swap this exercise** (that person gets a substitute for the slot; their partner continues) — removal is a deliberate choice, never the default.
+  - After ~2 weeks of a continuously renewed flag, the app suggests seeing a professional **once**, without nagging, and never offers a diagnosis or rehab protocol. FitDuo adjusts load and gets out of the way; it does not treat injuries.
+- **Permanent per-person blocklist** ("never show me this again") in Settings — deferred to post-launch per Grok; the in-session swap covers the real cases first.
 
 ### Grok-review amendments to later milestones (these override conflicting text below)
 1. **Drop stored `xp_awarded`/`sets_completed` columns** from `workout_sessions` — they contradict "XP is only derived" and will drift. The partner card derives from the partner's session + set rows client-side (trivial volume; RLS read already allows it).
@@ -56,8 +112,18 @@ free-exercise-db ships exactly two still photos per exercise — that's all it h
 5. **One household schedule** (not per-person): drives day-type rotation AND both streaks. Onboarding sets it once, editable in Settings.
 6. **Cut from v1:** activity feed + emoji cheers, web push notifications, per-person schedules. M4 = auth + sync + derived partner card + onboarding. M5 loses push; keeps offline/install/polish/Lighthouse.
 
-### Revised sequencing
-R1 → R2a → R3a → M4 (slimmed: auth/sync/partner card/onboarding) → M5 (PWA polish, no push) → M6 (launch). R2b, R3b, activity feed, push are post-launch. Every milestone tail: `typecheck + test + e2e` → `/code-review` (medium) → **Grok review of the milestone diff** (`scripts/dev/grok-review.sh diff <range>`) → fix findings → commit.
+### Revised sequencing (one change at a time, each verified before the next starts)
+1. **R1** — follow-along player (the core feel change; rewrites the state machine, so it goes first and alone)
+2. **R4** — short session + mobility/relief session (generator variants; mobility needs no new player states after R1)
+3. **R2a** — coach speaks, including the feedback prompt that keeps progression alive
+4. **R5** — readiness check + pain-aware generation + blocklist
+5. **R3a** — "Watch form ▶" video links
+6. **R2b** — voice commands (hands-free control)
+7. **M4** — accounts/sync/partner card/onboarding (slimmed) → **M5** PWA polish (no push) → **M6** launch
+
+Post-launch: R2c conversational coach, R2d authored TTS, R3b self-recorded clips, activity feed, push.
+
+Every milestone tail, in order: `npm run typecheck && npm run test -- --run && npm run e2e` → `/code-review` (medium) → **Grok second opinion** (`scripts/dev/grok-review.sh diff <range>`) → fix findings → commit. Plan revisions of any size also go through Grok before execution starts.
 
 ## Product spec (v1)
 

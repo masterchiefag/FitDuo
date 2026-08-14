@@ -38,4 +38,8 @@ Report ONLY findings a maintainer would act on, ranked by severity:
 - scope traps (work that should be cut or deferred for a 2-user v1)
 Skip style nits and generic advice. If it looks sound, say so in one line. Do not modify any files."
 
-exec "$GROK_BIN" -p "$PROMPT" --always-approve --max-turns "$MAX_TURNS" --disable-web-search
+# Always keep the FULL review on disk — piping this script through `tail`
+# silently truncated a 15-finding review down to 10 once. Never again.
+OUT="${GROK_REVIEW_OUT:-.grok-review-latest.md}"
+"$GROK_BIN" -p "$PROMPT" --always-approve --max-turns "$MAX_TURNS" --disable-web-search | tee "$OUT"
+echo "--- full review saved to $OUT ---" >&2

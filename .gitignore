@@ -35,3 +35,6 @@ playwright-report
 # PWA dev
 dev-dist
 content/.cache
+
+# Grok review scratch
+.grok-review-latest.md
