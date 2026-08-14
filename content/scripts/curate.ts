@@ -118,6 +118,14 @@ async function exists(path: string): Promise<boolean> {
   }
 }
 
+async function readIfPresent(path: string): Promise<string | null> {
+  try {
+    return await readFile(path, 'utf8')
+  } catch {
+    return null
+  }
+}
+
 async function fetchCached(url: string, cachePath: string): Promise<Buffer> {
   try {
     await access(cachePath)
@@ -139,6 +147,12 @@ async function main() {
   const db: SourceExercise[] = JSON.parse(dbRaw.toString())
   const byId = new Map(db.map((e) => [e.id, e]))
 
+  // Which source frame each committed .webp was derived from. Lives beside the
+  // catalog rather than in public/ — anything under public/ ends up in the PWA
+  // precache, and build metadata is not app payload.
+  const ORIGINS = join(ROOT, 'content', 'media-origin.json')
+  const origins: Record<string, string> = JSON.parse((await readIfPresent(ORIGINS)) ?? '{}')
+
   const slugs = new Set<string>()
   const exercises = []
   const allSelected: Curated[] = [...SELECTION, ...MOBILITY_ADDITIONS, ...EQUIPMENT_MOBILITY]
@@ -156,7 +170,15 @@ async function main() {
       // equipment retagging) are the common case, so skip the download and the
       // re-encode when the frame already exists — same bytes, no network, and
       // `sharp` only has to be installed when there is genuinely new media.
-      if (!(await exists(join(MEDIA_OUT, out)))) {
+      //
+      // Keyed on the SOURCE FRAME, not just the slug. Repointing an entry's
+      // `sourceId` is exactly how you fix a demo that shows the wrong setup,
+      // and a slug-only check would skip the download and leave the old photo
+      // in place — silently, since catalog.test.ts only asserts the file exists.
+      // `img` is the source-relative path, e.g. Dumbbell_Squat/0.jpg — it already
+      // identifies both the source entry and which of its frames this is.
+      const want = img
+      if (!(await exists(join(MEDIA_OUT, out))) || origins[out] !== want) {
         const jpg = await fetchCached(
           `${RAW}/exercises/${encodeURIComponent(img).replace(/%2F/g, '/')}`,
           join(CACHE, 'img', img),
@@ -167,6 +189,7 @@ async function main() {
           .webp({ quality: 72 })
           .toFile(join(MEDIA_OUT, out))
       }
+      origins[out] = want
       images.push(`/exercise-media/${out}`)
     }
 
@@ -199,6 +222,7 @@ async function main() {
 
   const catalog = { version: 1, exercises }
   await writeFile(join(ROOT, 'content', 'catalog.json'), JSON.stringify(catalog, null, 2))
+  await writeFile(ORIGINS, JSON.stringify(origins, null, 2) + '\n')
   const counts: Record<string, number> = {}
   for (const e of exercises) counts[e.role] = (counts[e.role] ?? 0) + 1
   console.log(`\ncatalog.json written: ${exercises.length} exercises`, counts)
