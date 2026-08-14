@@ -877,6 +877,7 @@
       ],
       "secondsPerRep": 3,
       "setupSeconds": 10,
+      "setupNote": "Shown with a knee and hand on a bench — hinge forward from standing instead, free hand on your thigh.",
       "media": {
         "images": [
           "/exercise-media/db-triceps-kickback_0.webp",
@@ -2156,14 +2157,15 @@
       ],
       "secondsPerRep": 3,
       "setupSeconds": 15,
+      "setupNote": "Shown with the rear foot up on a bench — both feet on the floor is the same movement, and easier to balance.",
       "media": {
         "images": [
           "/exercise-media/db-split-squat_0.webp",
           "/exercise-media/db-split-squat_1.webp"
         ],
         "instructions": [
-          "Staggered stance, stay in place",
-          "Straight down and up like an elevator",
+          "Long staggered stance, both feet on the floor",
+          "Straight down and up like an elevator — front shin vertical",
           "Finish all reps, then switch legs"
         ]
       },
@@ -3972,6 +3974,7 @@
       ],
       "secondsPerRep": 40,
       "setupSeconds": 10,
+      "setupNote": "Shown anchored to a squat rack — a closed door, a door handle or a bannister all work.",
       "media": {
         "images": [
           "/exercise-media/band-rear-fly_0.webp",
@@ -4015,6 +4018,7 @@
       ],
       "secondsPerRep": 45,
       "setupSeconds": 10,
+      "setupNote": "Shown anchored to a gym frame — a door handle at elbow height does the same.",
       "media": {
         "images": [
           "/exercise-media/band-external-rotation_0.webp",
@@ -4188,6 +4192,7 @@
       ],
       "secondsPerRep": 45,
       "setupSeconds": 10,
+      "setupNote": "Shown anchored to a gym frame — a door handle at elbow height does the same.",
       "media": {
         "images": [
           "/exercise-media/band-internal-rotation_0.webp",

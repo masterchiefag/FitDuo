@@ -380,6 +380,11 @@ describe('equipment eligibility', () => {
       'scap-retraction',
       'shoulder-external-rotation',
       'prone-rear-delt-raise',
+      // Found only by looking at the frames: the source text for these never
+      // says "bench", so the grep-based audit missed both. See the setupNote
+      // doc-comment in content/scripts/selection.ts.
+      'db-split-squat',
+      'db-triceps-kickback',
     ]
     for (const id of RECUED_FOR_THE_FLOOR) {
       const ex = catalog.find((e) => e.id === id)

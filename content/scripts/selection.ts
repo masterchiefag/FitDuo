@@ -27,6 +27,17 @@ export interface Curated {
    * Reconciles the demo photo with our cues, e.g. "Shown on a bench — the floor
    * works fine". Required whenever the photo shows gear `requires` omits, or the
    * picture silently contradicts the text.
+   *
+   * **Curating a new entry means OPENING THE TWO FRAMES AND LOOKING AT THEM.**
+   * Not the source `instructions`, not the source `equipment` field, not the
+   * name. Both were used to audit this catalog and both missed
+   * `db-split-squat`, whose frames are a Bulgarian split squat with the rear
+   * foot on a bench: the id is `Split_Squat_with_Dumbbells`, the equipment
+   * field says "dumbbell", and the word bench appears nowhere in its text. No
+   * test can see a photograph; this is the step that has to be done by eye.
+   *
+   * What counts is gear the person is *supported by, standing on, or holding* —
+   * a rack in the background of a gym shot is not a setup note.
    */
   setupNote?: string
   sourceId: string
@@ -288,6 +299,8 @@ export const SELECTION: Curated[] = [
   {
     slug: 'db-triceps-kickback',
     requires: [['dumbbell']],
+    setupNote:
+      'Shown with a knee and hand on a bench — hinge forward from standing instead, free hand on your thigh.',
     sourceId: 'Tricep_Dumbbell_Kickback',
     displayName: 'Triceps Kickback',
     role: 'main',
@@ -817,14 +830,18 @@ export const SELECTION: Curated[] = [
     displayName: 'Split Squat',
     role: 'main',
     pattern: 'lunge',
+    // The demo is a Bulgarian split squat (rear foot on a bench). Cued as the
+    // in-place split squat, which is the same pattern and needs no bench.
+    setupNote:
+      'Shown with the rear foot up on a bench — both feet on the floor is the same movement, and easier to balance.',
     tier: 2,
     unilateral: true,
     repRange: [8, 12],
     secondsPerRep: 3,
     setupSeconds: 15,
     cues: [
-      'Staggered stance, stay in place',
-      'Straight down and up like an elevator',
+      'Long staggered stance, both feet on the floor',
+      'Straight down and up like an elevator — front shin vertical',
       'Finish all reps, then switch legs',
     ],
   },
@@ -1560,6 +1577,8 @@ export const EQUIPMENT_MOBILITY: (Curated & { mobility: MobilityMeta })[] = [
     sourceId: 'Back_Flyes_-_With_Bands',
     displayName: 'Band Rear Fly',
     requires: [['band']],
+    setupNote:
+      'Shown anchored to a squat rack — a closed door, a door handle or a bannister all work.',
     role: 'mobility',
     pattern: 'mobility',
     tier: 1,
@@ -1579,6 +1598,7 @@ export const EQUIPMENT_MOBILITY: (Curated & { mobility: MobilityMeta })[] = [
     sourceId: 'External_Rotation_with_Band',
     displayName: 'Band External Rotation',
     requires: [['band']],
+    setupNote: 'Shown anchored to a gym frame — a door handle at elbow height does the same.',
     role: 'mobility',
     pattern: 'mobility',
     tier: 1,
@@ -1668,6 +1688,7 @@ export const EQUIPMENT_MOBILITY: (Curated & { mobility: MobilityMeta })[] = [
     sourceId: 'Internal_Rotation_with_Band',
     displayName: 'Band Internal Rotation',
     requires: [['band']],
+    setupNote: 'Shown anchored to a gym frame — a door handle at elbow height does the same.',
     role: 'mobility',
     pattern: 'mobility',
     tier: 1,

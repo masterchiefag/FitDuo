@@ -264,6 +264,20 @@ badge and the `setupNote` read. *Class: "the data is now accurate" and "the
 product got worse" can both be true; a requirement nobody would think to
 declare needs a default, not a gate.*
 
+**The audit method was itself the bug.** The 19 flagged entries came from
+grepping the source dataset's `instructions` for bench/step/platform. That
+found every entry whose *text* mentions gear and none whose *photograph* shows
+it. `db-split-squat` is a Bulgarian split squat with the rear foot on a bench:
+source id `Split_Squat_with_Dumbbells`, equipment field "dumbbell", and the
+word bench nowhere in its text. `db-triceps-kickback` is the same miss —
+supporting hand on a bench. Grok caught both by reading the frames. Every
+main and mobility entry without a `setupNote` was then re-audited **by opening
+its images**, which is now written down where a curator will hit it (the
+`setupNote` doc-comment in `content/scripts/selection.ts`) because no test can
+see a photograph. *Class: a proxy for the thing is not the thing — text about
+an image is not the image, and an audit is only as good as the signal it
+actually reads.*
+
 **Mutation-checked** (the rule from PR #1), all three re-run after the assumed
 fixtures changed the fixtures underneath them: single-value `canPerform` fails
 4 tests; intersect-then-check `allCanPerform` fails the divergent-kit test; an
