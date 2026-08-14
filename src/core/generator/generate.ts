@@ -1,5 +1,6 @@
 import type { Exercise, Pattern } from '../catalog/types'
 import { daysBetween, weekdayIndex } from '../dates'
+import { BLOCK_TRANSITION_SECONDS } from '../player/reducer'
 import { fnv1a32, mulberry32, pick, shuffle } from './prng'
 import { nextTarget } from './progression'
 import type {
@@ -18,7 +19,8 @@ const WARMUP_ITEMS = 7
 const WARMUP_SECONDS = 40
 const COOLDOWN_ITEMS = 5
 const COOLDOWN_SECONDS = 60
-const TRANSITION_S = 20
+// The player's between-block pause — shared so estimates match real sessions.
+const TRANSITION_S = BLOCK_TRANSITION_SECONDS
 const NO_REPEAT_DAYS = 3
 const WEEKLY_TARGET_SETS = 10
 
@@ -39,11 +41,14 @@ export function dayTypeFor(scheduledDays: boolean[], dateISO: string): DayType {
   const today = weekdayIndex(dateISO)
   const scheduledIdx: number[] = []
   for (let d = 0; d < 7; d++) if (scheduledDays[d]) scheduledIdx.push(d)
+  // No configured schedule: rotate by weekday so variety still happens.
+  if (scheduledIdx.length === 0) return rotation[today % rotation.length]!
   const pos = scheduledIdx.indexOf(today)
   if (pos >= 0) return rotation[pos % rotation.length]!
-  // Bonus workout on a rest day: next rotation slot.
+  // Bonus workout on a rest day: the NEXT rotation slot (wraps), never a
+  // back-to-back repeat of the week's last scheduled day type.
   const before = scheduledIdx.filter((d) => d < today).length
-  return rotation[Math.min(before, rotation.length - 1)]!
+  return rotation[before % rotation.length]!
 }
 
 // Slot templates: 3 superset pairs + 1 circuit triple per day type.
@@ -183,8 +188,10 @@ function selectForSlot(pattern: Pattern, ctx: SelectionCtx): Exercise {
 // ─── time budgeting ──────────────────────────────────────────────────────────
 
 function setSeconds(ex: Exercise, target: PersonTarget): number {
-  if (ex.repRange[0] === 1 && ex.repRange[1] === 1) return ex.setupSeconds + ex.secondsPerRep
-  return ex.setupSeconds + target.targetReps * ex.secondsPerRep * (ex.unilateral ? 2 : 1)
+  const sides = ex.unilateral ? 2 : 1
+  if (ex.repRange[0] === 1 && ex.repRange[1] === 1)
+    return ex.setupSeconds + ex.secondsPerRep * sides
+  return ex.setupSeconds + target.targetReps * ex.secondsPerRep * sides
 }
 
 function workItemSeconds(byId: Map<string, Exercise>, item: WorkItem): number {
@@ -265,7 +272,9 @@ export function generateWorkout(input: GeneratorInput): WorkoutPlan {
   const maxTier = participants.reduce<1 | 2 | 3>((acc, p) => (p.maxTier < acc ? p.maxTier : acc), 3)
   const lastUsed = new Map<string, number>()
   const muscleSets7d = new Map<string, number>()
-  const sortedHistory = [...recentHistory].sort((a, b) => (a.dateISO < b.dateISO ? -1 : 1))
+  const sortedHistory = [...recentHistory].sort((a, b) =>
+    a.dateISO === b.dateISO ? 0 : a.dateISO < b.dateISO ? -1 : 1,
+  )
   for (const day of sortedHistory) {
     const age = daysBetween(day.dateISO, dateISO)
     for (const id of day.exerciseIds) {

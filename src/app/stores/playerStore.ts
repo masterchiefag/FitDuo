@@ -36,9 +36,6 @@ function plannedSetsPerPerson(plan: WorkoutPlan): number {
   return sets
 }
 
-// Real schedule-aware streak derivation from the event log (core/gamification).
-const computeStreak = (userId: string) => statsFor(userId).streak
-
 interface PlayerStore {
   plan: WorkoutPlan | null
   state: PlayerState
@@ -108,11 +105,14 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
       })
     }
 
+    // Fast-forward (e.g. returning from a backgrounded tab) can emit a chain
+    // of transitions; play only the final cue and persist once at the end.
+    const lastCue = [...effects].reverse().find((e) => e.type === 'CUE')
+    if (lastCue?.type === 'CUE' && get().soundOn) playCue(lastCue.sound)
+    const shouldPersist = effects.some((e) => e.type === 'PERSIST_SNAPSHOT')
+
     for (const e of effects) {
       switch (e.type) {
-        case 'CUE':
-          if (get().soundOn) playCue(e.sound)
-          break
         case 'LOG_FEEDBACK':
           appendFeedback({
             userId: e.userId,
@@ -128,6 +128,11 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
           const setsPlanned = plannedSetsPerPerson(plan)
           const durationSeconds = Math.round((event.now - startedAt) / 1000)
           const counts = get().setsLogged
+          // XP shown = derived-XP delta, so the toast can never disagree with
+          // the authoritative event-log replay on the Stats screen.
+          const xpBefore = new Map(
+            plan.participantIds.map((id) => [id, statsFor(id).totalXp] as const),
+          )
           appendSession({
             dateISO: plan.dateISO,
             participantIds: plan.participantIds,
@@ -141,26 +146,22 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
           clearSnapshot()
           releaseWakeLock()
           const people: PersonSummary[] = plan.participantIds.map((userId) => {
-            const setsDone = counts[userId] ?? 0
-            const full = setsDone >= setsPlanned
-            const xp = (e.abandoned ? 0 : 50) + 2 * setsDone + (full ? 25 : 0)
+            const after = statsFor(userId)
             return {
               userId,
-              setsLogged: setsDone,
+              setsLogged: counts[userId] ?? 0,
               setsPlanned,
-              xp,
-              streak: e.abandoned ? 0 : computeStreak(userId),
+              xp: Math.max(0, after.totalXp - (xpBefore.get(userId) ?? 0)),
+              streak: after.streak,
             }
           })
           set({ summary: { abandoned: e.abandoned, durationSeconds, people } })
           break
         }
-        case 'PERSIST_SNAPSHOT':
-          if (next.phase !== 'complete') {
-            saveSnapshot({ plan, state: next, startedAt, savedAt: Date.now() })
-          }
-          break
       }
+    }
+    if (shouldPersist && next.phase !== 'complete') {
+      saveSnapshot({ plan, state: next, startedAt, savedAt: Date.now() })
     }
     set({ state: next })
   },

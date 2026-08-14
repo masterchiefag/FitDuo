@@ -87,6 +87,33 @@ function weekKey(dateISO: LocalDateISO): string {
   return addDays(dateISO, -weekdayIndex(dateISO))
 }
 
+// A set logged within this window of a session's start belongs to that
+// session's LOCAL DATE, even if the clock crossed midnight mid-workout.
+const SESSION_WINDOW_MS = 6 * 3_600_000
+
+/**
+ * Date-assigner for set/feedback events: the owning session's frozen dateISO
+ * when one matches, falling back to the event's own local date. Keeps
+ * cross-midnight sessions intact and replay timezone-independent.
+ */
+function makeEventDateAssigner(sessions: SessionEvent[]): (loggedAt: number) => LocalDateISO {
+  const sorted = [...sessions].sort((a, b) => a.startedAt - b.startedAt)
+  return (loggedAt) => {
+    let owner: SessionEvent | null = null
+    for (const s of sorted) {
+      if (s.startedAt <= loggedAt && loggedAt - s.startedAt <= SESSION_WINDOW_MS) owner = s
+      if (s.startedAt > loggedAt) break
+    }
+    return owner ? owner.dateISO : localDateISO(loggedAt)
+  }
+}
+
+/** Total order: by date, then start time — same-date sessions sort stably. */
+function bySessionOrder(a: SessionEvent, b: SessionEvent): number {
+  if (a.dateISO !== b.dateISO) return a.dateISO < b.dateISO ? -1 : 1
+  return a.startedAt - b.startedAt
+}
+
 /**
  * Everything is derived by replaying the event log — nothing is stored.
  * schedule: Mon..Sun booleans; rest days never break a streak; one automatic
@@ -99,17 +126,16 @@ export function deriveStats(
   schedule: boolean[],
   todayISO: LocalDateISO,
 ): PersonStats {
-  const mySessions = sessions
-    .filter((s) => s.participantIds.includes(userId))
-    .sort((a, b) => (a.dateISO < b.dateISO ? -1 : 1))
+  const mySessions = sessions.filter((s) => s.participantIds.includes(userId)).sort(bySessionOrder)
   const mySets = [...sets]
     .filter((s) => s.userId === userId)
     .sort((a, b) => a.loggedAt - b.loggedAt)
+  const dateOf = makeEventDateAssigner(mySessions)
 
   const completedDates = new Set(mySessions.filter((s) => s.completed).map((s) => s.dateISO))
   const setsByDate = new Map<LocalDateISO, SetEvent[]>()
   for (const s of mySets) {
-    const d = dateOfMs(s.loggedAt)
+    const d = dateOf(s.loggedAt)
     const list = setsByDate.get(d) ?? []
     list.push(s)
     setsByDate.set(d, list)
@@ -121,7 +147,7 @@ export function deriveStats(
   for (const s of mySets) {
     const e = epleyE1rm(s.weight, s.actualReps)
     if (e > 0 && e > (bestE1rm.get(s.exerciseId) ?? 0) + 1e-9) {
-      if (bestE1rm.has(s.exerciseId)) prDates.push(dateOfMs(s.loggedAt))
+      if (bestE1rm.has(s.exerciseId)) prDates.push(dateOf(s.loggedAt))
       bestE1rm.set(s.exerciseId, e)
     }
   }
@@ -151,7 +177,7 @@ export function deriveStats(
     totalVolumeKg += dayVolume
 
     if (completed) {
-      if (lastCompletedDate && daysGap(lastCompletedDate, d) >= 7) unlock('comeback', d)
+      if (lastCompletedDate && daysBetween(lastCompletedDate, d) >= 7) unlock('comeback', d)
       lastCompletedDate = d
       sessionsCompleted += 1
       streak += 1
@@ -226,14 +252,17 @@ export function deriveStats(
 /** Per-exercise progression state for the generator, derived from the log. */
 export function deriveProgression(
   userId: string,
+  sessions: SessionEvent[],
   sets: SetEvent[],
   feedback: FeedbackEvent[],
 ): Record<string, ExerciseProgress> {
   const out: Record<string, ExerciseProgress> = {}
+  const mySessions = sessions.filter((s) => s.participantIds.includes(userId))
   const mySets = sets.filter((s) => s.userId === userId).sort((a, b) => a.loggedAt - b.loggedAt)
   const myFeedback = feedback
     .filter((f) => f.userId === userId)
     .sort((a, b) => a.loggedAt - b.loggedAt)
+  const dateOf = makeEventDateAssigner(mySessions)
 
   const setsByExercise = new Map<string, SetEvent[]>()
   for (const s of mySets) {
@@ -243,10 +272,14 @@ export function deriveProgression(
   }
 
   for (const [exerciseId, all] of setsByExercise) {
-    const lastDate = dateOfMs(all[all.length - 1]!.loggedAt)
-    const lastSession = all.filter((s) => dateOfMs(s.loggedAt) === lastDate)
+    const lastDate = dateOf(all[all.length - 1]!.loggedAt)
+    const lastSession = all.filter((s) => dateOf(s.loggedAt) === lastDate)
+    // Feedback only applies to the exercise's LAST session — an old rating
+    // must not keep ratcheting the weight on every later plan generation.
     const lastFeedback =
-      [...myFeedback].reverse().find((f) => f.exerciseId === exerciseId)?.rating ?? null
+      [...myFeedback]
+        .reverse()
+        .find((f) => f.exerciseId === exerciseId && dateOf(f.loggedAt) === lastDate)?.rating ?? null
     let best = 0
     for (const s of all) best = Math.max(best, epleyE1rm(s.weight, s.actualReps))
     out[exerciseId] = {
@@ -259,6 +292,3 @@ export function deriveProgression(
   }
   return out
 }
-
-const dateOfMs = (ms: number): LocalDateISO => localDateISO(ms)
-const daysGap = daysBetween

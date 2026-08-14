@@ -1,4 +1,4 @@
-import type { FeedbackRating, PersonTarget, WorkoutPlan } from '../generator/types'
+import type { FeedbackRating, PersonTarget } from '../generator/types'
 
 export type PlayerState =
   | { phase: 'idle' }
@@ -61,9 +61,3 @@ export interface Transition {
   state: PlayerState
   effects: Effect[]
 }
-
-export type PlayerReducer = (
-  plan: WorkoutPlan,
-  state: PlayerState,
-  event: PlayerEvent,
-) => Transition

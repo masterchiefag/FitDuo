@@ -192,12 +192,14 @@ describe('deriveStats', () => {
 })
 
 describe('deriveProgression', () => {
+  const twoSessions = [session('2026-08-03'), session('2026-08-05')]
+
   it('captures last session targets, actuals, feedback, and best e1rm', () => {
     const sets: SetEvent[] = [
       ...setsFor('2026-08-03', 3, 10, 10),
       ...setsFor('2026-08-05', 3, 12.5, 8, 10),
     ]
-    const prog = deriveProgression(U, sets, [
+    const prog = deriveProgression(U, twoSessions, sets, [
       { userId: U, exerciseId: 'db-squat', rating: 'too_hard', loggedAt: ms('2026-08-05') + 1 },
     ])
     const p = prog['db-squat']!
@@ -206,5 +208,52 @@ describe('deriveProgression', () => {
     expect(p.lastActualReps).toEqual([8, 8, 8])
     expect(p.lastFeedback).toBe('too_hard')
     expect(p.bestE1rm).toBeCloseTo(12.5 * (1 + 8 / 30))
+  })
+
+  it('ignores feedback from older sessions — no repeat-ratchet', () => {
+    // 'too_easy' given in the 08-03 session; the 08-05 session got no feedback.
+    const sets: SetEvent[] = [
+      ...setsFor('2026-08-03', 3, 10, 10),
+      ...setsFor('2026-08-05', 3, 12.5, 12, 12),
+    ]
+    const prog = deriveProgression(U, twoSessions, sets, [
+      { userId: U, exerciseId: 'db-squat', rating: 'too_easy', loggedAt: ms('2026-08-03') + 1 },
+    ])
+    expect(prog['db-squat']!.lastFeedback).toBeNull()
+  })
+
+  it('attributes post-midnight sets to the session that started them', () => {
+    const lateSession: SessionEvent = {
+      dateISO: '2026-08-03',
+      completed: true,
+      participantIds: [U],
+      startedAt: ms('2026-08-03', 23),
+    }
+    const afterMidnight = Date.parse('2026-08-04T00:15:00')
+    const sets: SetEvent[] = [
+      {
+        userId: U,
+        exerciseId: 'db-squat',
+        targetReps: 10,
+        actualReps: 10,
+        weight: 10,
+        loggedAt: ms('2026-08-03', 23) + 60_000,
+      },
+      {
+        userId: U,
+        exerciseId: 'db-squat',
+        targetReps: 10,
+        actualReps: 10,
+        weight: 10,
+        loggedAt: afterMidnight,
+      },
+    ]
+    const prog = deriveProgression(U, [lateSession], sets, [])
+    // Both sets belong to the 08-03 session despite the date rollover.
+    expect(prog['db-squat']!.lastActualReps).toEqual([10, 10])
+
+    const stats = deriveStats(U, [lateSession], sets, ALL_DAYS, '2026-08-04')
+    // Full session XP on 08-03 (50 + 2×2 + 25 full-clear); nothing stranded on 08-04.
+    expect(stats.totalXp).toBe(50 + 4 + 25)
   })
 })

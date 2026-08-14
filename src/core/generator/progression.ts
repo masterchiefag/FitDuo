@@ -12,14 +12,25 @@ function stepWeight(available: number[], current: number, direction: 1 | -1): nu
   return [...sorted].reverse().find((w) => w < current) ?? current
 }
 
+/** Nearest owned dumbbell (ties go lighter) — history may reference weights the user no longer has. */
+function snapToAvailable(available: number[], weight: number): number {
+  if (weight === 0 || available.length === 0 || available.includes(weight)) return weight
+  return available.reduce((best, w) => {
+    const d = Math.abs(w - weight)
+    const bestD = Math.abs(best - weight)
+    return d < bestD || (d === bestD && w < best) ? w : best
+  })
+}
+
 /** Starting target for an exercise with no history. */
 function initialTarget(ex: Exercise, availableWeights: number[]): PersonTarget {
-  const [minReps] = ex.repRange
-  if (ex.equipment === 'bodyweight') return { targetReps: minReps + 2, weight: 0 }
+  const [minReps, maxReps] = ex.repRange
+  const startReps = Math.min(minReps + 2, maxReps)
+  if (ex.equipment === 'bodyweight') return { targetReps: startReps, weight: 0 }
   const sorted = [...availableWeights].sort((a, b) => a - b)
   // Conservative default: second-lightest dumbbell; feedback moves it quickly.
   const weight = sorted[Math.min(1, sorted.length - 1)] ?? 0
-  return { targetReps: minReps + 2, weight }
+  return { targetReps: startReps, weight }
 }
 
 /**
@@ -29,6 +40,17 @@ function initialTarget(ex: Exercise, availableWeights: number[]): PersonTarget {
  * when the rep range tops out. Timed holds (repRange [1,1]) never progress.
  */
 export function nextTarget(
+  ex: Exercise,
+  availableWeights: number[],
+  progress: ExerciseProgress | undefined,
+): PersonTarget {
+  const t = nextTargetRaw(ex, availableWeights, progress)
+  // Whatever path produced it, the prescription must be liftable with the
+  // dumbbells the person actually owns today.
+  return t.weight === 0 ? t : { ...t, weight: snapToAvailable(availableWeights, t.weight) }
+}
+
+function nextTargetRaw(
   ex: Exercise,
   availableWeights: number[],
   progress: ExerciseProgress | undefined,

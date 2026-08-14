@@ -76,6 +76,7 @@ export function buildRecentHistory(todayISO: LocalDateISO): DayHistory[] {
 }
 
 export function generatorInputFor(participantIds: string[], dateISO: LocalDateISO): GeneratorInput {
+  const sessions = sessionEvents()
   const sets = setEvents()
   const feedback = loadFeedback()
   return {
@@ -90,7 +91,7 @@ export function generatorInputFor(participantIds: string[], dateISO: LocalDateIS
         userId: id,
         availableWeights: profile.availableWeights,
         maxTier: 2 as const,
-        progression: deriveProgression(id, sets, feedback),
+        progression: deriveProgression(id, sessions, sets, feedback),
       }
     }),
     recentHistory: buildRecentHistory(dateISO),
