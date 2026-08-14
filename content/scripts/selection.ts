@@ -26,12 +26,7 @@ export interface Curated {
   cues: string[]
 }
 
-const W = (
-  slug: string,
-  sourceId: string,
-  displayName: string,
-  cues: string[],
-): Curated => ({
+const W = (slug: string, sourceId: string, displayName: string, cues: string[]): Curated => ({
   slug,
   sourceId,
   displayName,
@@ -45,12 +40,7 @@ const W = (
   cues,
 })
 
-const C = (
-  slug: string,
-  sourceId: string,
-  displayName: string,
-  cues: string[],
-): Curated => ({
+const C = (slug: string, sourceId: string, displayName: string, cues: string[]): Curated => ({
   slug,
   sourceId,
   displayName,
@@ -149,7 +139,11 @@ export const SELECTION: Curated[] = [
     repRange: [6, 15],
     secondsPerRep: 3,
     setupSeconds: 10,
-    cues: ['Body in one straight line', 'Elbows ~45° from body', 'Chest to the floor, full lockout'],
+    cues: [
+      'Body in one straight line',
+      'Elbows ~45° from body',
+      'Chest to the floor, full lockout',
+    ],
   },
   {
     slug: 'push-up-feet-elevated',
@@ -175,7 +169,11 @@ export const SELECTION: Curated[] = [
     repRange: [6, 12],
     secondsPerRep: 4,
     setupSeconds: 10,
-    cues: ['Push up, then rotate to one arm', 'Stack shoulders, reach for the ceiling', 'Alternate sides'],
+    cues: [
+      'Push up, then rotate to one arm',
+      'Stack shoulders, reach for the ceiling',
+      'Alternate sides',
+    ],
   },
   {
     slug: 'db-chest-press',
@@ -205,7 +203,11 @@ export const SELECTION: Curated[] = [
     repRange: [10, 15],
     secondsPerRep: 3,
     setupSeconds: 15,
-    cues: ['Slight bend in elbows, keep it', 'Open arms wide like a hug', 'Squeeze chest to bring them back'],
+    cues: [
+      'Slight bend in elbows, keep it',
+      'Open arms wide like a hug',
+      'Squeeze chest to bring them back',
+    ],
   },
   {
     slug: 'db-overhead-triceps-extension',
@@ -218,7 +220,11 @@ export const SELECTION: Curated[] = [
     repRange: [10, 15],
     secondsPerRep: 3,
     setupSeconds: 10,
-    cues: ['One dumbbell, both hands overhead', 'Elbows stay close to your ears', 'Lower behind head, press up'],
+    cues: [
+      'One dumbbell, both hands overhead',
+      'Elbows stay close to your ears',
+      'Lower behind head, press up',
+    ],
   },
   {
     slug: 'db-triceps-kickback',
@@ -231,7 +237,11 @@ export const SELECTION: Curated[] = [
     repRange: [10, 15],
     secondsPerRep: 3,
     setupSeconds: 10,
-    cues: ['Hinge forward, flat back', 'Pin upper arms to your sides', 'Straighten fully, squeeze, return slow'],
+    cues: [
+      'Hinge forward, flat back',
+      'Pin upper arms to your sides',
+      'Straighten fully, squeeze, return slow',
+    ],
   },
   {
     slug: 'db-skullcrusher',
@@ -244,7 +254,11 @@ export const SELECTION: Curated[] = [
     repRange: [8, 15],
     secondsPerRep: 3,
     setupSeconds: 15,
-    cues: ['Lie down, dumbbells over shoulders', 'Bend only at the elbows', 'Lower beside your head, press back up'],
+    cues: [
+      'Lie down, dumbbells over shoulders',
+      'Bend only at the elbows',
+      'Lower beside your head, press back up',
+    ],
   },
   {
     slug: 'chair-dips',
@@ -257,7 +271,11 @@ export const SELECTION: Curated[] = [
     repRange: [8, 15],
     secondsPerRep: 3,
     setupSeconds: 15,
-    cues: ['Hands on a sturdy chair edge', 'Lower until elbows hit ~90°', 'Keep shoulders away from ears'],
+    cues: [
+      'Hands on a sturdy chair edge',
+      'Lower until elbows hit ~90°',
+      'Keep shoulders away from ears',
+    ],
   },
 
   // ─── Main: vertical push (shoulders) ──────────────────────────────────────
@@ -272,7 +290,11 @@ export const SELECTION: Curated[] = [
     repRange: [8, 15],
     secondsPerRep: 3,
     setupSeconds: 10,
-    cues: ['Dumbbells at shoulder height', 'Press straight up, biceps by ears', 'Ribs down — don’t arch the back'],
+    cues: [
+      'Dumbbells at shoulder height',
+      'Press straight up, biceps by ears',
+      'Ribs down — don’t arch the back',
+    ],
   },
   {
     slug: 'db-arnold-press',
@@ -285,7 +307,11 @@ export const SELECTION: Curated[] = [
     repRange: [8, 12],
     secondsPerRep: 4,
     setupSeconds: 10,
-    cues: ['Start palms facing you', 'Rotate out as you press up', 'Reverse the spiral on the way down'],
+    cues: [
+      'Start palms facing you',
+      'Rotate out as you press up',
+      'Reverse the spiral on the way down',
+    ],
   },
   {
     slug: 'db-lateral-raise',
@@ -298,7 +324,11 @@ export const SELECTION: Curated[] = [
     repRange: [10, 18],
     secondsPerRep: 3,
     setupSeconds: 10,
-    cues: ['Slight bend in the elbows', 'Raise to shoulder height, no higher', 'Lead with elbows, pour the jug'],
+    cues: [
+      'Slight bend in the elbows',
+      'Raise to shoulder height, no higher',
+      'Lead with elbows, pour the jug',
+    ],
   },
   {
     slug: 'db-front-raise',
@@ -311,7 +341,11 @@ export const SELECTION: Curated[] = [
     repRange: [10, 15],
     secondsPerRep: 3,
     setupSeconds: 10,
-    cues: ['Raise to eye level, arms straight', 'No swinging — strict and slow', 'Alternate or together'],
+    cues: [
+      'Raise to eye level, arms straight',
+      'No swinging — strict and slow',
+      'Alternate or together',
+    ],
   },
 
   // ─── Main: horizontal pull (back, rear delts, biceps) ─────────────────────
@@ -326,7 +360,11 @@ export const SELECTION: Curated[] = [
     repRange: [8, 15],
     secondsPerRep: 3,
     setupSeconds: 10,
-    cues: ['Hinge to ~45°, flat back', 'Row to your hips, not your chest', 'Squeeze shoulder blades together'],
+    cues: [
+      'Hinge to ~45°, flat back',
+      'Row to your hips, not your chest',
+      'Squeeze shoulder blades together',
+    ],
   },
   {
     slug: 'db-one-arm-row',
@@ -339,7 +377,11 @@ export const SELECTION: Curated[] = [
     repRange: [8, 15],
     secondsPerRep: 3,
     setupSeconds: 15,
-    cues: ['Support on a chair or knee', 'Pull elbow back past your ribs', 'No torso twist — stay square'],
+    cues: [
+      'Support on a chair or knee',
+      'Pull elbow back past your ribs',
+      'No torso twist — stay square',
+    ],
   },
   {
     slug: 'db-reverse-fly',
@@ -352,7 +394,11 @@ export const SELECTION: Curated[] = [
     repRange: [10, 18],
     secondsPerRep: 3,
     setupSeconds: 10,
-    cues: ['Hinge forward, soft elbows', 'Open arms wide like wings', 'Squeeze between the shoulder blades'],
+    cues: [
+      'Hinge forward, soft elbows',
+      'Open arms wide like wings',
+      'Squeeze between the shoulder blades',
+    ],
   },
   {
     slug: 'db-bicep-curl',
@@ -365,7 +411,11 @@ export const SELECTION: Curated[] = [
     repRange: [8, 15],
     secondsPerRep: 3,
     setupSeconds: 5,
-    cues: ['Elbows pinned to your sides', 'Curl up, squeeze at the top', 'Lower slow — no swinging'],
+    cues: [
+      'Elbows pinned to your sides',
+      'Curl up, squeeze at the top',
+      'Lower slow — no swinging',
+    ],
   },
   {
     slug: 'db-hammer-curl',
@@ -391,7 +441,11 @@ export const SELECTION: Curated[] = [
     repRange: [8, 12],
     secondsPerRep: 3,
     setupSeconds: 15,
-    cues: ['Seated, elbow braced on inner thigh', 'Curl slow, squeeze hard at top', 'Full stretch at the bottom'],
+    cues: [
+      'Seated, elbow braced on inner thigh',
+      'Curl slow, squeeze hard at top',
+      'Full stretch at the bottom',
+    ],
   },
 
   // ─── Main: vertical pull-ish (lats, traps) ────────────────────────────────
@@ -406,7 +460,11 @@ export const SELECTION: Curated[] = [
     repRange: [8, 12],
     secondsPerRep: 4,
     setupSeconds: 15,
-    cues: ['Lie down, one dumbbell in both hands', 'Lower it behind your head, arc slowly', 'Pull back over your chest — ribs down'],
+    cues: [
+      'Lie down, one dumbbell in both hands',
+      'Lower it behind your head, arc slowly',
+      'Pull back over your chest — ribs down',
+    ],
   },
   {
     slug: 'db-upright-row',
@@ -419,7 +477,11 @@ export const SELECTION: Curated[] = [
     repRange: [10, 15],
     secondsPerRep: 3,
     setupSeconds: 5,
-    cues: ['Pull dumbbells up your body line', 'Elbows lead, stop at chest height', 'Keep wrists relaxed'],
+    cues: [
+      'Pull dumbbells up your body line',
+      'Elbows lead, stop at chest height',
+      'Keep wrists relaxed',
+    ],
   },
   {
     slug: 'db-shrug',
@@ -432,7 +494,11 @@ export const SELECTION: Curated[] = [
     repRange: [10, 18],
     secondsPerRep: 2,
     setupSeconds: 5,
-    cues: ['Shoulders straight up to your ears', 'Pause a beat at the top', 'Long arms — no elbow bend'],
+    cues: [
+      'Shoulders straight up to your ears',
+      'Pause a beat at the top',
+      'Long arms — no elbow bend',
+    ],
   },
 
   // ─── Main: squat ──────────────────────────────────────────────────────────
@@ -447,7 +513,11 @@ export const SELECTION: Curated[] = [
     repRange: [8, 15],
     secondsPerRep: 3,
     setupSeconds: 10,
-    cues: ['Dumbbells at your sides or shoulders', 'Sit back and down, chest proud', 'Drive through mid-foot to stand'],
+    cues: [
+      'Dumbbells at your sides or shoulders',
+      'Sit back and down, chest proud',
+      'Drive through mid-foot to stand',
+    ],
   },
   {
     slug: 'bodyweight-squat',
@@ -460,7 +530,11 @@ export const SELECTION: Curated[] = [
     repRange: [10, 20],
     secondsPerRep: 3,
     setupSeconds: 5,
-    cues: ['Feet shoulder-width, toes slightly out', 'Hips below parallel if comfortable', 'Knees track over toes'],
+    cues: [
+      'Feet shoulder-width, toes slightly out',
+      'Hips below parallel if comfortable',
+      'Knees track over toes',
+    ],
   },
   {
     slug: 'db-sumo-squat',
@@ -473,7 +547,11 @@ export const SELECTION: Curated[] = [
     repRange: [10, 15],
     secondsPerRep: 3,
     setupSeconds: 10,
-    cues: ['Wide stance, toes out, one dumbbell', 'Sink straight down between the knees', 'Squeeze glutes on the way up'],
+    cues: [
+      'Wide stance, toes out, one dumbbell',
+      'Sink straight down between the knees',
+      'Squeeze glutes on the way up',
+    ],
   },
   {
     slug: 'jump-squat',
@@ -499,7 +577,11 @@ export const SELECTION: Curated[] = [
     repRange: [12, 20],
     secondsPerRep: 2,
     setupSeconds: 5,
-    cues: ['Rise high onto the balls of your feet', 'Pause at the top', 'Lower slowly past level if on a step'],
+    cues: [
+      'Rise high onto the balls of your feet',
+      'Pause at the top',
+      'Lower slowly past level if on a step',
+    ],
   },
 
   // ─── Main: hinge ──────────────────────────────────────────────────────────
@@ -514,7 +596,11 @@ export const SELECTION: Curated[] = [
     repRange: [8, 15],
     secondsPerRep: 3,
     setupSeconds: 10,
-    cues: ['Push hips back, soft knees', 'Dumbbells slide down your thighs', 'Feel the hamstrings, then stand tall'],
+    cues: [
+      'Push hips back, soft knees',
+      'Dumbbells slide down your thighs',
+      'Feel the hamstrings, then stand tall',
+    ],
   },
   {
     slug: 'db-clean',
@@ -527,7 +613,11 @@ export const SELECTION: Curated[] = [
     repRange: [6, 10],
     secondsPerRep: 3,
     setupSeconds: 10,
-    cues: ['Hinge, then explode hips forward', 'Pull dumbbells to your shoulders', 'Catch soft with bent knees'],
+    cues: [
+      'Hinge, then explode hips forward',
+      'Pull dumbbells to your shoulders',
+      'Catch soft with bent knees',
+    ],
   },
   {
     slug: 'glute-bridge',
@@ -540,7 +630,11 @@ export const SELECTION: Curated[] = [
     repRange: [10, 20],
     secondsPerRep: 3,
     setupSeconds: 10,
-    cues: ['Heels close to your hips', 'Drive hips up, squeeze glutes hard', 'One line from knees to shoulders'],
+    cues: [
+      'Heels close to your hips',
+      'Drive hips up, squeeze glutes hard',
+      'One line from knees to shoulders',
+    ],
   },
   {
     slug: 'single-leg-glute-bridge',
@@ -553,7 +647,11 @@ export const SELECTION: Curated[] = [
     repRange: [8, 15],
     secondsPerRep: 3,
     setupSeconds: 10,
-    cues: ['One foot down, other leg extended', 'Hips level — don’t let them tilt', 'Squeeze at the top each rep'],
+    cues: [
+      'One foot down, other leg extended',
+      'Hips level — don’t let them tilt',
+      'Squeeze at the top each rep',
+    ],
   },
   {
     slug: 'superman',
@@ -566,7 +664,11 @@ export const SELECTION: Curated[] = [
     repRange: [8, 15],
     secondsPerRep: 3,
     setupSeconds: 10,
-    cues: ['Lie face down, arms extended', 'Lift arms and legs together', 'Squeeze the whole back line, lower slow'],
+    cues: [
+      'Lie face down, arms extended',
+      'Lift arms and legs together',
+      'Squeeze the whole back line, lower slow',
+    ],
   },
 
   // ─── Main: lunge ──────────────────────────────────────────────────────────
@@ -581,7 +683,11 @@ export const SELECTION: Curated[] = [
     repRange: [8, 12],
     secondsPerRep: 3,
     setupSeconds: 10,
-    cues: ['Long step, both knees to 90°', 'Back knee kisses the floor', 'Push through the front heel'],
+    cues: [
+      'Long step, both knees to 90°',
+      'Back knee kisses the floor',
+      'Push through the front heel',
+    ],
   },
   {
     slug: 'db-reverse-lunge',
@@ -594,7 +700,11 @@ export const SELECTION: Curated[] = [
     repRange: [8, 12],
     secondsPerRep: 3,
     setupSeconds: 10,
-    cues: ['Step back, drop the back knee', 'Front shin stays vertical', 'Drive up through the front foot'],
+    cues: [
+      'Step back, drop the back knee',
+      'Front shin stays vertical',
+      'Drive up through the front foot',
+    ],
   },
   {
     slug: 'db-split-squat',
@@ -607,7 +717,11 @@ export const SELECTION: Curated[] = [
     repRange: [8, 12],
     secondsPerRep: 3,
     setupSeconds: 15,
-    cues: ['Staggered stance, stay in place', 'Straight down and up like an elevator', 'Finish all reps, then switch legs'],
+    cues: [
+      'Staggered stance, stay in place',
+      'Straight down and up like an elevator',
+      'Finish all reps, then switch legs',
+    ],
   },
   {
     slug: 'db-step-up',
@@ -620,7 +734,11 @@ export const SELECTION: Curated[] = [
     repRange: [8, 12],
     secondsPerRep: 4,
     setupSeconds: 15,
-    cues: ['Use a sturdy step or low bench', 'Drive through the top heel', 'Lower under control — don’t drop'],
+    cues: [
+      'Use a sturdy step or low bench',
+      'Drive through the top heel',
+      'Lower under control — don’t drop',
+    ],
   },
   {
     slug: 'split-jump',
@@ -633,7 +751,11 @@ export const SELECTION: Curated[] = [
     repRange: [8, 14],
     secondsPerRep: 2,
     setupSeconds: 5,
-    cues: ['Lunge, jump, switch legs mid-air', 'Land soft into the next lunge', 'Keep chest tall throughout'],
+    cues: [
+      'Lunge, jump, switch legs mid-air',
+      'Land soft into the next lunge',
+      'Keep chest tall throughout',
+    ],
   },
 
   // ─── Main: core ───────────────────────────────────────────────────────────
@@ -648,7 +770,11 @@ export const SELECTION: Curated[] = [
     repRange: [1, 1],
     secondsPerRep: 40, // timed hold: reps=1, tempo carries the duration
     setupSeconds: 10,
-    cues: ['Forearms down, body in one line', 'Squeeze glutes, brace the belly', 'Breathe — don’t hold your breath'],
+    cues: [
+      'Forearms down, body in one line',
+      'Squeeze glutes, brace the belly',
+      'Breathe — don’t hold your breath',
+    ],
   },
   {
     slug: 'side-plank',
@@ -661,7 +787,11 @@ export const SELECTION: Curated[] = [
     repRange: [1, 1],
     secondsPerRep: 30,
     setupSeconds: 10,
-    cues: ['Elbow under shoulder, feet stacked', 'Lift hips into one straight line', 'Hold, then switch sides'],
+    cues: [
+      'Elbow under shoulder, feet stacked',
+      'Lift hips into one straight line',
+      'Hold, then switch sides',
+    ],
   },
   {
     slug: 'dead-bug',
@@ -674,7 +804,11 @@ export const SELECTION: Curated[] = [
     repRange: [8, 14],
     secondsPerRep: 4,
     setupSeconds: 10,
-    cues: ['Low back pressed into the floor', 'Opposite arm and leg reach away', 'Slow and controlled, exhale as you extend'],
+    cues: [
+      'Low back pressed into the floor',
+      'Opposite arm and leg reach away',
+      'Slow and controlled, exhale as you extend',
+    ],
   },
   {
     slug: 'russian-twist',
@@ -713,7 +847,11 @@ export const SELECTION: Curated[] = [
     repRange: [10, 18],
     secondsPerRep: 3,
     setupSeconds: 10,
-    cues: ['Hands by your sides, knees bent', 'Draw knees toward your chest', 'Keep the low back quiet'],
+    cues: [
+      'Hands by your sides, knees bent',
+      'Draw knees toward your chest',
+      'Keep the low back quiet',
+    ],
   },
   {
     slug: 'db-side-bend',
@@ -726,7 +864,11 @@ export const SELECTION: Curated[] = [
     repRange: [10, 15],
     secondsPerRep: 3,
     setupSeconds: 5,
-    cues: ['One dumbbell, slide down your side', 'Pull back up with the opposite obliques', 'No leaning forward or back'],
+    cues: [
+      'One dumbbell, slide down your side',
+      'Pull back up with the opposite obliques',
+      'No leaning forward or back',
+    ],
   },
   {
     slug: 'mountain-climber',

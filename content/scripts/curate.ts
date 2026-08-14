@@ -84,7 +84,10 @@ async function main() {
         join(CACHE, 'img', img),
       )
       const out = `${sel.slug}_${i}.webp`
-      await sharp(jpg).resize({ width: 640, withoutEnlargement: true }).webp({ quality: 72 }).toFile(join(MEDIA_OUT, out))
+      await sharp(jpg)
+        .resize({ width: 640, withoutEnlargement: true })
+        .webp({ quality: 72 })
+        .toFile(join(MEDIA_OUT, out))
       images.push(`/exercise-media/${out}`)
     }
 

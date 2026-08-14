@@ -1,14 +1,6 @@
 import type { Exercise, MuscleGroup } from '../catalog/types'
 
-export type DayType =
-  | 'full_a'
-  | 'full_b'
-  | 'full_c'
-  | 'upper'
-  | 'lower'
-  | 'push'
-  | 'pull'
-  | 'legs'
+export type DayType = 'full_a' | 'full_b' | 'full_c' | 'upper' | 'lower' | 'push' | 'pull' | 'legs'
 
 export type FeedbackRating = 'too_easy' | 'right' | 'too_hard'
 
