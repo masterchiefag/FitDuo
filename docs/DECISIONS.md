@@ -23,6 +23,46 @@ CLAUDE.md should get *shorter* as the test suite grows.
 
 ---
 
+## 2026-08-14 — PR #1: the review tail, applied to itself
+
+The tail (frame → build → browser-verify → Grok → self-review → suite → merge)
+was documented, then skipped within the hour under delivery pressure. Two code
+commits shipped unreviewed. Running the reviews afterwards found **21 real
+issues** across four rounds, including a privacy leak and a data-model mistake
+that compounded daily.
+
+**What the escalation cost, and what it bought.** Prose → gate: a sha-bound
+record plus a PreToolUse hook that denies a merge, with `tests/merge-gate.test.ts`
+as its proof-of-bite. The gate then invalidated Grok's own approval mid-PR
+because code landed after it — which is the entire point.
+
+**Grok and `/code-review` overlapped on one finding out of twenty-one.** They
+see different classes: Grok reasons about the product and the data model over
+time ("stamp `mode` before the log fills"; "a 10-minute stretch marking the day
+Done invites skipping the workout"), while `/code-review` finds mechanical
+defects in the diff. Running one is not a substitute for the other.
+
+**The most useful thing that happened: a test that could not fail.** Grok
+pointed out that no test covered mobility XP. I wrote one, then mutation-tested
+it — reverted the code to the buggy version and the suite still passed. The
+test was theatre: the mobility session has no sets, so both implementations
+agreed. The test that bites is *two strength sessions in one day*, where
+day-keying pays each for all ten sets. **New rule: when a test is written to
+cover a specific bug, reintroduce the bug and watch it fail.**
+
+Bug classes worth remembering from this PR:
+- *Fixing at the wrong altitude.* Mode-aware XP was bolted onto date-keyed
+  replay; it paid a whole day at whichever session came first. The fix was to
+  make replay session-keyed, not to add another `mode ===` branch.
+- *A boundary that stops being true.* Set ownership used `startedAt + 6h`. Once
+  pausing could span hours, an overnight finish orphaned its own sets. The
+  right primitive was `endedAt`, which was being discarded.
+- *Reachability, not just correctness.* Resume worked — on a route reached only
+  from inside a session. Closing the lid landed on Today, where the next Start
+  silently discarded it.
+- *Gitignored is not the same as unpublished.* `profiles.local.json` stayed out
+  of the repo and went straight into the production bundle.
+
 ## 2026-08-14 — Session 1 (planning through mobility sessions)
 
 ### Decisions (and why)
