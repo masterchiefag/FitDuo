@@ -34,7 +34,7 @@ The player currently waits for a "Done" click per set. Rework to fully auto-flow
 - **Safety rule 2 — expiry is not proof of success.** Auto-logged sets carry `assumed: true`. Assumed sets count for session XP/sets/volume (the follow-along assumption, like a class), but are **excluded from PR detection and from progression's "all sets hit → +1 rep" rule** — silent sessions hold steady; progression advances only on explicit feedback taps or explicitly confirmed/adjusted sets. No fake PRs, no ratchet from assumed data.
 - Rest lengths stay parameterized per block (the budget fitter tunes within 45–150s).
 - UI: countdown ring on the work screen + rep pacing hint ("~1 rep / 3s"), 3-2-1 beeps before every transition (already built), Pause/Skip/adjust remain the only interactive controls.
-- **Open product question (blocks R1 detail, not its start): one shared pair of adjustable dumbbells or a set each?** Current design assumes both people lift simultaneously (shared `workSeconds`). If one pair is shared, the set becomes alternate-work (time budget = sum, not max) — needs Atul's answer.
+- **Resolved (2026-08-14): they each own a set of dumbbells.** Duo sets are therefore **simultaneous** — one shared timer, `workSeconds = max(setSeconds)` across participants, one auto-log per person at their own target. No alternate-work mode in v1.
 - Tests: reducer table + fuzz updated for timed work, grace-window pause, assumed-set flags; e2e drivers keep clicking "finish early" so suites stay fast.
 - **This section supersedes the "Session player" description in Architecture and the player bullets in Product spec wherever they conflict** (those still describe click-to-advance work).
 
