@@ -60,11 +60,4 @@ if [ "$FAIL" -ne 0 ]; then
   echo "NOT MERGE-READY at $SHORT." >&2
   exit 1
 fi
-# The 2026-08-15 incident happened on THIS path, not the failure one: records
-# existed at local HEAD, this script said OK, and the merge took a remote tip
-# that had never been pushed. So the reminder belongs on success — it is the
-# last text read before merging. Deliberately a line of text, not a check on
-# `@{u}`: that escalation has not been earned (docs/DECISIONS.md).
 note "merge-ready: OK at $SHORT"
-note "  → now: git push, and confirm HEAD == @{u}. These records bind to your"
-note "    LOCAL sha; the merge takes the remote tip."

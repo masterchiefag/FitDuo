@@ -57,10 +57,22 @@ about a sha that was not the one being merged. **`main` was then wrong while
 every record said it had been reviewed** — worse than an unreviewed merge,
 because it reads as a verified one.
 
-Fixed in CLAUDE.md step 5 as prose, not a hook: push and confirm `HEAD` equals
-`@{u}` before merging. Rung 0 on purpose — this has bitten once, the check is
-two commands, and this repo's merge gate has now produced exactly one false
-pass, which is not the record that earns more machinery.
+Fixed in CLAUDE.md step 4 as prose: push *before* the tail runs and after each
+fix inside it, so nothing records or attests a sha the remote lacks. (Step 5,
+the first attempt, was too late — the tail's own `post` had already published
+comments citing local-only shas. PR #5's three review comments name commits
+GitHub does not have.)
+
+**The reminder was then placed three times and never worked**, which is the part
+worth keeping. On the merge hook's deny string it could not fire, because the
+incident was a *green* gate. Moved to `merge-ready.sh`'s success output, it
+still could not: the hook runs that script `--quiet`, so on success it prints
+nothing. Both placements were reverted. *Class: before relocating a warning,
+establish which code path the incident actually took — a reminder on any other
+path is indistinguishable from no reminder, and reads as a fix.* The honest
+residue is that **only a `HEAD == @{u}` check would catch this**, and that
+escalation stays unearned at one occurrence. The instruction is the fix; if it
+is skipped and this recurs, that is the date that buys the check.
 
 *Class:* the same one already written below about `post` stamping `HEAD` instead
 of the reviewed sha — **a record of a check is only worth as much as the thing
@@ -70,7 +82,9 @@ And the sweep that sentence asks for immediately found a third: the review range
 defaulted to `main..HEAD`, but work happens in worktrees where local `main` sits
 in the primary checkout and never moves, so it had drifted two merges behind
 `origin/main` — every review on the PR that wrote this covered an
-already-merged commit. Defaulted to `origin/main..HEAD`. **Three steps of one
+already-merged commit. Defaulted to `origin/main..HEAD`, paired with a
+three-dot `git diff` (two-dot is a *tree* diff, so once main moves another PR's
+landed work appears as deletions mixed into yours). **Three steps of one
 pipeline, each binding to whichever ref was nearest to hand rather than the one
 carrying the consequence** — which is the whole class in one line, and why the
 sweep is the instruction rather than any of the three fixes.
