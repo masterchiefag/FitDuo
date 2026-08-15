@@ -43,6 +43,47 @@ imagined one is paid for by every future PR and buys a feeling of safety.
 
 ---
 
+## 2026-08-15 — Who wins when the reviewer says stop
+
+Two process PRs took **24 reviews** (20 Grok, 4 `/code-review`) and touched no
+product code. The owner was the tiebreaker at every divergence — *"are we
+over-engineering", "less machinery", "2-3 whys not 5"* — which is the real cost:
+the process could not improve without him spending his time on it.
+
+The mechanical cause was mine and is already in this file from an earlier
+incident: **correctness findings were treated as obligations and scope findings
+as advice.** Grok said *stop* three times and I kept fixing. Prose had already
+recorded that asymmetry; recording it again would not have helped.
+
+So the rule is in CLAUDE.md, and it is not "the author decides" or "the reviewer
+decides". **Neither wins — the framing that existed at the first review is the
+third party.** A finding is binding only if it names a concrete failure *this
+land* will cause, in work that framing already named; everything else is
+declined in one line and may not be re-raised except by naming a failure the
+decline accepted. Later rounds get a restricted vocabulary rather than an open
+debate, which is what lets two agents terminate without a human.
+
+**The insight worth keeping, from Grok's own review of the proposal:** removing
+the human does not produce a shipper and a critic, it produces *two reviewers* —
+they share a thoroughness loss function, so the equilibrium is **more** rounds,
+not fewer. Hence the written default is **land**, and *building* is the thing
+that needs authorisation. Today's implicit default was the opposite, and 24
+reviews is what that costs.
+
+Three of my own proposals were wrong and were corrected by that review, which is
+the process working: a done-criterion may not be phrased as *"the reviewer is
+satisfied"* (that is the same loop renamed); an unframed addition is not a
+reviewable delta, so reviewing it is how the deleted leak scanner happened; and
+scoping the light path by *path* would have exempted `scripts/dev/` — the
+directory holding the two worst binding bugs on record — using docs-PR pain as
+the excuse. The axis is prose vs executable.
+
+*Where a human stays:* a new gate, hook or script; `post` when personal data
+could be quoted; overturning a rung-0 accept; product scope PLAN.md has not
+decided. **Not** *"is this comment stale."*
+
+---
+
 ## 2026-08-15 — The merge that landed the first draft
 
 `merge-ready.sh` went green and `gh pr merge` merged a tree nobody had reviewed:
