@@ -516,7 +516,7 @@ describe('player reducer', () => {
     })
   })
 
-  it('EXTEND_REST pushes the deadline', () => {
+  it('EXTEND pushes the deadline, on a rest…', () => {
     const rest: PlayerState = {
       phase: 'rest',
       blockIndex: 1,
@@ -524,8 +524,16 @@ describe('player reducer', () => {
       nextItemIndex: 0,
       endsAt: 10_000,
     }
-    const { state } = run([{ type: 'EXTEND_REST', now: 5000, seconds: 15 }], rest)
+    const { state } = run([{ type: 'EXTEND', now: 5000, seconds: 15 }], rest)
     expect(state).toMatchObject({ phase: 'rest', endsAt: 25_000 })
+  })
+
+  it('…and on a set, which is the only way to take longer without pausing', () => {
+    // Done finishes a set EARLY. Without this, a set that needs more time than
+    // the catalog's pace allows can only be answered by Pause — mid-rep, with
+    // dumbbells in both hands.
+    const { state } = run([{ type: 'EXTEND', now: 60_000, seconds: 15 }], workAt(1, 0, 0))
+    expect(state).toMatchObject({ phase: 'work', endsAt: 115_000 })
   })
 
   it('ABANDON completes with abandoned flag', () => {
@@ -578,7 +586,7 @@ describe('player reducer', () => {
         target: fc.record({ targetReps: fc.integer({ min: 1, max: 30 }) }),
       }),
       fc.record({
-        type: fc.constant('EXTEND_REST' as const),
+        type: fc.constant('EXTEND' as const),
         now: fc.nat(),
         seconds: fc.integer({ min: 1, max: 60 }),
       }),

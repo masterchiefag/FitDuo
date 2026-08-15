@@ -78,7 +78,10 @@ export type PlayerEvent =
   | { type: 'FEEDBACK'; now: number; userId: string; exerciseId: string; rating: FeedbackRating }
   | { type: 'TIMER_FIRED'; now: number } // idempotent: no-op unless now >= endsAt
   | { type: 'SKIP'; now: number }
-  | { type: 'EXTEND_REST'; now: number; seconds: number }
+  /** "We need a bit longer" — on a set or on a rest. Sets are timed now, and
+   *  Done only finishes EARLY, so without this the only way to take more time
+   *  mid-set is Pause, which nobody reaches for mid-rep. */
+  | { type: 'EXTEND'; now: number; seconds: number }
   | { type: 'PAUSE'; now: number }
   | { type: 'RESUME'; now: number }
   | { type: 'ABANDON'; now: number }

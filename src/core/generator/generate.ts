@@ -249,11 +249,15 @@ export function workItemSeconds(ex: Exercise, perPerson: Record<string, PersonTa
  * `fitToBudget` plan a session that always overran.
  */
 export function estimatePlanSeconds(blocks: Block[]): number {
-  // One transition BETWEEN blocks, not one per block — the last block runs
-  // straight into the celebration.
-  let total = Math.max(0, blocks.length - 1) * TRANSITION_S
-  for (const b of blocks) {
-    if (b.kind === 'warmup' || b.kind === 'cooldown' || b.kind === 'mobility') {
+  let total = 0
+  for (const [i, b] of blocks.entries()) {
+    // The 20s transition follows a TIMED block only. A work block ends at the
+    // block gate, which waits for a person and then starts the next block on
+    // the same tick — billing 20s there invents ~80s a session, and the fitter
+    // then trims real work to make room for time the player never spends.
+    const timed = b.kind === 'warmup' || b.kind === 'cooldown' || b.kind === 'mobility'
+    if (timed && blocks[i + 1]) total += TRANSITION_S
+    if (timed) {
       total += b.items.reduce((a, i) => a + i.seconds, 0)
     } else {
       const round = b.items.reduce((a, i) => a + i.workSeconds, 0)

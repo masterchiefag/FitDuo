@@ -9,10 +9,10 @@ import {
   DURATION_MIN_S,
   ThinKitError,
   durationBand,
-  estimatePlanSeconds,
   generateWorkout,
 } from '../src/core/generator/generate'
-import { CHANGEOVER_SECONDS } from '../src/core/player/reducer'
+import { reduce } from '../src/core/player/reducer'
+import type { PlayerState } from '../src/core/player/types'
 import { addDays } from '../src/core/dates'
 import { nextTarget } from '../src/core/generator/progression'
 import type {
@@ -203,41 +203,43 @@ describe('generateWorkout properties', () => {
   })
 
   /**
-   * The estimate is what `fitToBudget` optimises against, so anything it forgets
-   * becomes overrun in the real session. Changeovers are ~3 minutes a session:
-   * dropping them from the estimate plans a session that always runs long.
+   * The estimate against the ONLY authority on how long a session takes: the
+   * player itself, run start to finish on a fake clock.
    *
-   * MUTATION-CHECKED: removing the changeover term from `estimatePlanSeconds`
-   * fails this — the recomputed total exceeds the reported one by 3×2×15s+.
+   * The previous version of this test recomputed the estimate by hand from the
+   * same rule the estimator uses, so when the block gate replaced the 20s
+   * transition after every work block, the test kept agreeing with an estimate
+   * that billed ~80s of time the player never spends. A test that restates the
+   * rule can only ever confirm it. This one asks the reducer.
+   *
+   * Gate holds are excluded by construction — CONTINUE fires on the same tick,
+   * because how long a human takes to tap is not plannable time.
+   *
+   * MUTATION-CHECKED: billing the transition after work blocks (the old rule)
+   * overshoots by 80s on a 4-block plan; dropping the changeover term
+   * undershoots by 3 min.
    */
-  it('the estimate counts the changeovers the player will actually insert', () => {
-    const plan = generateWorkout({
-      householdId: 'home',
-      dateISO: '2026-08-14',
-      generatorVersion: 1,
-      catalog,
-      scheduledDays: [true, true, true, true, true, false, false],
-      participants: [
-        { userId: 'p1', availableWeights: [5, 10], equipment: [...HOME_KIT], maxTier: 2, progression: {} },
-      ],
-      recentHistory: [],
-    })
-    let changeovers = 0
-    let byHand = 0
-    plan.blocks.forEach((b, i) => {
-      if (i > 0) byHand += 20 // BLOCK_TRANSITION_SECONDS
-      if (b.kind === 'superset' || b.kind === 'circuit') {
-        const perRound = b.items.reduce((a, it) => a + it.workSeconds, 0)
-        const co = b.items.length - 1 // all distinct within a block
-        changeovers += b.rounds * co
-        byHand += b.rounds * (perRound + co * CHANGEOVER_SECONDS) + (b.rounds - 1) * b.restSeconds
-      } else {
-        byHand += b.items.reduce((a, it) => a + it.seconds, 0)
-      }
-    })
-    expect(changeovers).toBeGreaterThan(0)
-    expect(estimatePlanSeconds(plan.blocks)).toBe(byHand)
-    expect(plan.estimatedSeconds).toBe(byHand)
+  it('the estimate equals the time the player actually programs', () => {
+    fc.assert(
+      fc.property(inputArb, fc.constantFrom(1200, 2100, 3300), (input, targetSeconds) => {
+        const plan = generateWorkout({ ...input, targetSeconds })
+        let state: PlayerState = { phase: 'idle' }
+        let now = 0
+        state = reduce(plan, state, { type: 'START', now }).state
+        for (let guard = 0; guard < 2000 && state.phase !== 'complete'; guard++) {
+          if (state.phase === 'block_gate') {
+            state = reduce(plan, state, { type: 'CONTINUE', now }).state
+            continue
+          }
+          if (!('endsAt' in state)) throw new Error(`player stuck in ${state.phase}`)
+          now = state.endsAt
+          state = reduce(plan, state, { type: 'TIMER_FIRED', now }).state
+        }
+        expect(state.phase).toBe('complete')
+        expect(Math.round(now / 1000)).toBe(plan.estimatedSeconds)
+      }),
+      { numRuns: 60 },
+    )
   })
 
   it('fits whatever duration it is asked for, and names short sessions short', () => {
