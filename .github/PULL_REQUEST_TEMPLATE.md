@@ -21,9 +21,14 @@
      you are about to build is not named above, it is a separate PR — fixes
      bypass this section in a way features cannot. See CLAUDE.md, filter 3. -->
 
-### Declined
+## Declined
 
-<!-- After round one, every finding gets a verdict here or a fix — nothing is
+<!-- `## `, not `### ` — merge-ready.sh reads the framing section as everything
+     up to the next `## `, so a subsection here would count decline lines as
+     framing text and pass an unfilled framing block (measured: 11 chars unfilled
+     -> fail; 108 with two declines -> pass).
+
+     After round one, every finding gets a verdict here or a fix — nothing is
      left open. One line each: the failure it names, and why it is accepted.
      Empty is valid. A declined item is not re-raised unless a later round
      names a concrete failure this decline accepted. See CLAUDE.md. -->
