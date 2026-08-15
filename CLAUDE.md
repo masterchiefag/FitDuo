@@ -15,7 +15,7 @@ Direct commits to `main` are for bootstrap only. One change at a time:
    - `scripts/dev/grok-review.sh diff main..HEAD` → fix → re-run → read it → `scripts/dev/grok-review.sh post` → `scripts/dev/record-step.sh grok` (`post` refuses a review not run against `HEAD`)
    - `/code-review` (medium) → fix → `scripts/dev/record-step.sh self-review`
    - `npm run typecheck && npm run test -- --run && npm run e2e` → `scripts/dev/record-step.sh suite`
-5. **Merge** with `gh pr merge --merge` — never `--squash` or `--rebase`; `main` keeps every commit (docs/DECISIONS.md). Blocked by `scripts/dev/merge-gate-hook.mjs` unless all three are recorded **at the current sha** — any new commit invalidates them, deliberately.
+5. **Push, verify, merge.** `git push`, then confirm `git rev-parse HEAD` equals `git rev-parse @{u}` — every step above records against your *local* sha while `gh pr merge` takes the *remote* tip, so an unpushed fix merges the version nobody reviewed, with the gate green (docs/DECISIONS.md, 2026-08-15). Then `gh pr merge --merge` — never `--squash` or `--rebase`; `main` keeps every commit (docs/DECISIONS.md). Blocked by `scripts/dev/merge-gate-hook.mjs` unless all three are recorded **at the current sha** — any new commit invalidates them, deliberately.
 
 `main`'s gate-verified line is `git log --first-parent`; branch commits below it were never verified at merge time.
 

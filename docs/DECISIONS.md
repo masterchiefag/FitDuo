@@ -4,6 +4,19 @@ Append-only. Newest first. This file exists so a **fresh session** (or another
 person) inherits the *why*, not just the code — and so lessons get encoded once
 instead of relearned.
 
+**Two or three whys, then stop.** Before routing anything, ask why it happened
+and why nothing caught it — but stop while the answer is still concrete. Chains
+run to four or five whys arrive at systemic causes whose only available fix is
+new machinery; that is how a two-person project acquires a team's apparatus one
+reasonable step at a time. If the honest answer at why-three is a mechanism,
+that is a finding to record, not a licence to build one.
+
+**Calibrate before borrowing.** The conventions in `~/dev/sherlock` are priced
+against ~300 merged PRs/month and real production incidents. This is two users
+on one laptop. Import the taxonomy — the ladder below, the classes of
+mistake — not the apparatus. *Earned 2026-08-15: three consecutive PRs here
+changed the review machinery and none changed the product.*
+
 **Placement rule** (borrowed from `~/dev/sherlock/docs/conventions/learning-loops.md`,
 whose central finding was: *every prose-only prevention eventually failed under
 velocity; every mechanical one held*). When something is learned, route it down
@@ -30,76 +43,100 @@ imagined one is paid for by every future PR and buys a feeling of safety.
 
 ---
 
-## 2026-08-15 — Eight review rounds on PR #3, and what the count meant
+## 2026-08-15 — The merge that landed the first draft
 
-PR #3 (`requires`, equipment eligibility) converged after **eight** Grok rounds.
-Every round found something real, which is the uncomfortable part — the tail was
-not being pedantic, it was doing work the build should have done.
+`merge-ready.sh` went green and `gh pr merge` merged a tree nobody had reviewed:
+the branch was pushed once at its first commit and never again, so twelve rounds
+of fixes stayed local while the remote tip — and so the merge — kept the first
+draft.
 
-**The diagnostic, and the only thing here that is a rule:** *past round two, the
-round count is a signal about the PR, not about the reviewer.* The instinct at
-round three is that the reviewer is thorough and the right move is to keep
-fixing. It isn't. Stop and ask which of the two shapes below you are in, because
-their prescriptions are opposite.
+Not a gate defect so much as an instruction one. Every tail step records against
+`git rev-parse HEAD`; `gh pr merge` acts on the remote branch. Nothing in the
+written workflow ever connected the two, so the gate could be perfectly correct
+about a sha that was not the one being merged. **`main` was then wrong while
+every record said it had been reviewed** — worse than an unreviewed merge,
+because it reads as a verified one.
 
-**Shape A — the fixes are generating the findings.** Recorded the day before, in
-*"A 15-line change that took six commits"*: a leak scanner built to discharge a
-finding, whose own findings were discharged by building more. Prescription:
-**stop building.** The mechanism is the problem, and "accept the risk and write
-it down" was available from the first minute.
+Fixed in CLAUDE.md step 5 as prose, not a hook: push and confirm `HEAD` equals
+`@{u}` before merging. Rung 0 on purpose — this has bitten once, the check is
+two commands, and this repo's merge gate has now produced exactly one false
+pass, which is not the record that earns more machinery.
 
-**Shape B — the findings were all in commit one; the reviewer could only see a
-slice at a time.** That is this PR. `d867ce8` was 20 files and ~1,180 insertions
-carrying five separable concerns: the core type change, generator equipment
-filtering (which had never existed), 24 content re-cues, the curation pipeline,
-and a Settings screen. Rounds 4, 6 and 7 were latent in that first commit and
-owed nothing to any fix — round 4's slug-prefix inference in `curate.ts` was
-written *in* it, and round 7's `>= 3` pool floor is a line `d867ce8` **edited**,
-to parameterise it by kit, without asking whether 3 was still the right number.
-It wasn't: a pull day consumes five. Prescription: the opposite of Shape A —
-**don't wait for round nine, go read the concerns nobody has looked at yet**,
-because the remaining findings are already sitting in your own diff.
-
-The two shapes share one cause — attention spread over more than it can hold —
-and nothing else. Telling them apart is the entire value of noticing the count.
-
-**"One concern per PR" — considered, not written as a rule.** It is the obvious
-lesson and it does not survive contact with this PR. The type change, the
-eligibility predicate and the generator wiring genuinely ship together: split
-them and `main` carries a `requires` field the generator ignores, which is a
-worse intermediate state, not a better one. Only the Settings screen and the
-content re-cues were actually separable. A rule stated more strongly than it can
-be followed gets discarded whole the first time it can't be — so this stays an
-observation: *when a PR does carry several concerns, expect findings serially,
-and audit the quiet ones before the reviewer does.*
-
-**"Design pass before code on core-type changes" — considered, not built.**
-Rounds 1 (the duo-eligibility intersection), 3 (chair/wall) and 8 (per-person
-load) were design findings that a short pre-code note would have caught for a
-fraction of what they cost once the code existed. CLAUDE.md already carries the
-trigger — *plan revisions get a Grok pass before execution starts* — and it
-simply never fired, because PR #3 changed a core type without touching PLAN.md.
-Widening it to "any core type or generator rule" buys a Grok round on every such
-PR against **n = 1**: this is the first PR to change a core type. The round-count
-diagnostic catches the same class one round later at no standing cost. Not
-earned yet — and this paragraph is the date, so a second occurrence can be
-decisive instead of arguable.
-
-**Rung 3, not rung 4.** The one-sentence version is a comment in the PR
-template's review-tail section, the only artifact re-read at the moment it
-applies. That template's framing comment already warns about Shape A (*"re-read
-this when a review finding tempts you to add a mechanism"*) and said nothing
-about Shape B, where the findings tempt you to nothing at all — they just keep
-arriving. Nothing goes in CLAUDE.md: this fires inside a PR that is already
-open, not before you know what you are working on. No gate either — gating a
-round count would be self-parody, and would punish the PRs where eight rounds is
-the correct answer.
-
-Same honest limit as the entry below: this will not stop the next session by
-itself. What stops it is somebody saying "we're on round four" and treating that
-sentence as a finding.
+*Class:* the same one already written below about `post` stamping `HEAD` instead
+of the reviewed sha — **a record of a check is only worth as much as the thing
+it is bound to.** It was fixed there for the review and left open for the merge.
+When a binding bug is found in one step of a pipeline, check the other steps
+that bind the same way.
 
 ---
+
+## 2026-08-15 — Eight review rounds on PR #3, and what the count meant
+
+PR #3 converged after eight Grok rounds and every round found something real —
+the tail was doing work the build should have done.
+
+**The rule:** *past round two, the round count is a signal about the PR, not
+about the reviewer.* The instinct at round three is that the reviewer is
+thorough and the answer is to keep fixing. Stop and ask which shape you are in;
+the prescriptions are opposite.
+
+- **Shape A — your fixes are generating the findings.** The entry below ("A
+  15-line change that took six commits") is the worked example. Prescription:
+  **stop building.** This includes *editing* a load-bearing rule, not only
+  adding one — the blast radius that makes a rule worth changing is what makes
+  changing it expensive mid-PR.
+- **Shape B — the findings were all in commit one; a review reads one diff at a
+  time.** PR #3's `d867ce8` was 20 files carrying five separable concerns: the
+  core type change, generator equipment filtering, content re-cues, the curation
+  pipeline, and a Settings screen. Three of its rounds found things latent in
+  that first commit and unrelated to any fix — including a `>= 3` pool floor on
+  a line `d867ce8` itself edited without asking whether 3 was still right (a
+  pull day consumes five). Prescription, the opposite of Shape A: **go read the
+  concerns nobody has looked at yet** — the findings are already in your diff.
+
+**Why the count runs up, underneath both shapes — the load-bearing part.**
+Sherlock's `learning-loops.md` principle 3: *a done-criterion stated up front and
+machine-checkable; never compensated for by manual verification.* Where a PR has
+no such criterion, the reviewer is the only oracle, and review terminates when
+the reviewer runs out of objections rather than when the work is done. Prose is
+the worst case — its surface is unbounded, and any edit creates new claims to
+check. **A change whose done-criterion cannot be machine-checked should be small
+enough to read once, or it will be reviewed forever.**
+
+**"One concern per PR" — considered, not adopted.** It does not survive contact
+with PR #3: the type change, the eligibility predicate and the generator wiring
+ship together or `main` carries a `requires` field the generator ignores. A rule
+stated more strongly than it can be followed gets discarded whole. It stays an
+observation — when a PR does carry several concerns, audit the quiet ones before
+the reviewer does.
+
+**A pre-code design pass for core-type changes — deferred, n = 1.** Three of PR
+#3's rounds were design findings a short note would have caught cheaply, and
+CLAUDE.md's trigger (*plan revisions get a Grok pass before execution starts*)
+never fired because PR #3 never touched PLAN.md. Still one occurrence: every
+other core-type change here either predates the workflow or had its design in
+PLAN.md first. Widen the trigger on the second, not on this one.
+
+**Verify substantively, not literally.** The candidate second occurrence was a
+commit that changed core types without touching PLAN.md — true, and irrelevant:
+PLAN.md had been revised for exactly those types twenty minutes earlier, so the
+design *was* reviewed before it was code. The literal question (*does this commit
+touch both files?*) is what `git show` answers in a second, which is why it gets
+asked; the substantive one (*was this design unreviewed before it became code?*)
+costs two more commands. Same shape as grepping today's catalog for a count that
+belongs to one commit. **A claim that survives only the cheap question has not
+survived anything** — this one moved a rule in CLAUDE.md before it was caught.
+
+**Where the diagnostic lives.** One comment in the PR template's *framing*
+block, read while the concerns are being named — the only point where the count
+can still be changed. Nothing else. A first version also printed it from
+`grok-review.sh` on every round; it fired a dozen times on the PR that added it,
+changed no decision once, and was deleted. *Class: a reminder you have already
+learned to skim is not a safeguard, and its firing count is the evidence.*
+
+**Accepted, not fixed (rung 0):** `grok-review.sh` uses `tee`, so `post`
+publishes only the last round — by construction the clean one, which defeats
+half of why posting exists. And `file` mode never checks its path resolves.
 
 ## 2026-08-14 — A 15-line change that took six commits, and why
 

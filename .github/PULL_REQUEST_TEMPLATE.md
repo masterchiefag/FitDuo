@@ -10,6 +10,12 @@
      - What is the simplest thing that solves it?
      - What are we deliberately NOT doing, and why?
      - Does this generalise, or is it bespoke to one person? (PLAN §A1)
+     - How many concerns is this, and what says it is done? A review reads one
+       diff, so a PR carrying several gets its findings one round at a time and
+       the quiet ones are already in there — audit those yourself. Where
+       nothing can be machine-checked (prose, docs, process), keep it small
+       enough to read in one pass; otherwise review ends when the reviewer runs
+       out of objections rather than when the work is done.
 
      Re-read this when a review finding tempts you to add a mechanism. If what
      you are about to build is not named above, it is a separate PR — fixes
@@ -27,13 +33,6 @@
 
 Each step is recorded against the head sha via `scripts/dev/record-step.sh`.
 Any new commit invalidates all of them — that is the point.
-
-<!-- Past round two, the round count is a signal about the PR, not the reviewer.
-     Either your fixes are generating the findings (stop building — see the
-     framing section above), or this PR carries more concerns than one diff read
-     can hold and the rest are already in it (go audit the ones nobody has
-     looked at, rather than waiting to be told). docs/DECISIONS.md, 2026-08-15. -->
-
 
 - [ ] `grok` — `scripts/dev/grok-review.sh diff main..HEAD` → fix → re-run against the final sha → read it → `scripts/dev/grok-review.sh post`; findings fixed or consciously declined
 - [ ] `self-review` — `/code-review` (medium), findings fixed or consciously declined
