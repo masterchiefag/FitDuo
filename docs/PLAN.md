@@ -58,7 +58,7 @@ Order: `progression` → `readiness` → `painLoad` → `sessionMode` → **`wei
 **4. Session shapes and day splits are content, not code.**
 `content/session-modes.json` (full / short / mobility: target duration band, block skeleton, whether load is allowed, streak + XP weighting) and `content/day-templates.json` (the pattern slots per day type — currently a hardcoded `TEMPLATES` map in `generate.ts`). A new split or session type becomes a content edit plus schema validation, the same way exercises already work.
 
-Consequence for sequencing: R1 lands the pipeline and phase changes; R4 and R5 then add *data and rules*, not new engines.
+Consequence for sequencing: **R1a lands only the pipeline's terminal invariant** — `weightSnap` and `repClamp`, as a property test that no rule can emit an unliftable or out-of-range prescription. The ordered adjuster *list* waits for R5, which supplies the first adjuster after `progression`; built now it would be an interface wrapping a single entry, which is the shape of a mechanism defending against something that has not happened yet (CLAUDE.md, filter 3). R1b–R1e land the phase changes; R4 and R5 then add *data and rules*, not new engines.
 
 ### R1 — Follow-along player (highest priority; do before M4)
 *(Amended after Grok review — the four safety rules below are load-bearing, not optional.)*
@@ -80,7 +80,7 @@ The player currently waits for a "Done" click per set. Rework to fully auto-flow
   - Auto-logged sets carry `assumed: true` and **do count as "target hit" for progression**, because that is exactly the follow-along contract — the app called the reps, you did them, like a class.
   - They are **excluded from PR detection only**. A personal record is a claim about maximal performance and requires an explicit signal: a finish-early `SET_DONE` or an adjusted set.
   - So: `easy` steps weight up, `hard` steps it down, `right` (tapped or via Continue) plus hit targets nudges reps up — all of it works hands-off, and no fake PRs.
-- **The plan is persisted on Start, not on Today.** Generating for the Today preview is local and disposable; the session row is upserted only when someone presses Start, and server-wins applies only among *started* sessions. Solo vs duo is a Start-time choice, not a property of the previewed plan.
+- **The plan is persisted on Start, not on Today — lands with M4, not R1.** The rule stands: generating for the Today preview is local and disposable, the session row is upserted only when someone presses Start, server-wins applies only among *started* sessions, and solo vs duo is a Start-time choice rather than a property of the previewed plan. But there is no plan row to persist yet — `src/infra/localstore.ts` appends a session record on *completion* and nothing writes one on Today — so inside R1 this bullet is a no-op with nothing to verify in a browser.
 - **Never intersect the two weight arrays.** An exercise is eligible if *each* participant can perform it (a dumbbell in that person's own list, or bodyweight). They own separate sets; intersecting them can produce an empty pool.
 - Rest lengths stay parameterized per block (the budget fitter tunes within 45–150s). UI: countdown ring on the work screen + rep pacing hint ("~1 rep / 3s"), 3-2-1 beeps before every transition (already built); Pause / Skip / adjust / rate are the only controls.
 - **Resolved (2026-08-14): they each own a set of dumbbells.** Duo sets are **simultaneous** — one shared timer, `workSeconds = max(setSeconds)`, one auto-log per person at their own target. No alternate-work mode in v1.
@@ -137,7 +137,14 @@ R5 ships before M4, so the schema must already carry what R1/R4/R5 produce or th
 6. **Cut from v1:** activity feed + emoji cheers, web push notifications, per-person schedules. M4 = auth + sync + derived partner card + onboarding. M5 loses push; keeps offline/install/polish/Lighthouse.
 
 ### Revised sequencing (one change at a time, each verified before the next starts)
-1. **R1** — follow-along player (the core feel change; rewrites the state machine, so it goes first and alone). Fold in R4's **short session** (targetSeconds input + 'cut it short' completion transition) since both touch session shape.
+1. **R1** — follow-along player (the core feel change; rewrites the state machine, so it goes first and alone), **split into five PRs**. R1 in one diff is the generator, the reducer, a 756-line player screen, new fuzz and new e2e; this repo's own review history says a diff that size does not converge (PR #1 closed eleven findings, PR #3 took eight rounds, both far smaller). The split is by capability, not by layer, so **every intermediate state is a working app** — the bar CLAUDE.md sets, and one a layer split fails by construction.
+   1. **R1a — target invariant.** `weightSnap` + `repClamp` as a property test: no rule can emit a weight that person does not own, or reps outside the exercise's range. Pure, no behaviour change, and it holds for every adjuster R5 later adds.
+   2. **R1b — timed work + changeover.** `workSeconds` on `WorkItem`; `work` gains `endsAt`; the 15s changeover phase; the late-timer rule extended so fast-forward never crosses a work phase; `assumed: true` on auto-logged sets; `SET_DONE` demoted to finish-early; countdown ring and pacing hint on the work screen. **Keeps the existing per-exercise feedback taps** — they are what feeds progression, and deleting them here would land a session that trains nobody until R1c.
+   3. **R1c — the block gate.** Rest expires into a hold; per-exercise, per-person easy/hard chips; one large Continue; unrated ⇒ `'right'`; the 5-minute unanswered-gate pause. Removes the old per-exercise taps, which this replaces.
+   4. **R1d — mid-set controls.** `EXTEND_WORK` (+15s) and `ADJUST` (per-person overrides scoped to the current work item, cleared on leaving it, Skip included).
+   5. **R1e — short strength session (R4's half).** `targetSeconds` as a strength-generator input, reusing the mechanism mobility already ships; "cut it short" as an explicit completion transition that rewrites the planned-set count at the block boundary.
+
+   R1b does not divide further: a timed work phase with no countdown on screen is a broken app, so the reducer and the player screen move together or not at all.
 2. ~~R4 mobility~~ — ✅ shipped early 2026-08-14, ahead of R1, because it needed no player rewrite (all-timed blocks)
 3. **R2a** — coach speaks, including the feedback prompt that keeps progression alive
 4. **R5** — readiness check + pain-aware generation + blocklist
