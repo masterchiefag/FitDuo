@@ -21,7 +21,7 @@
 # runs both. Read $OUT before posting; that habit is the only backstop there is.
 #
 # Usage:
-#   scripts/dev/grok-review.sh diff [range]     # default: main..HEAD
+#   scripts/dev/grok-review.sh diff [range]     # default: origin/main..HEAD
 #   scripts/dev/grok-review.sh file <path>      # e.g. the plan markdown
 #   scripts/dev/grok-review.sh post             # put the saved review on the PR
 #
@@ -93,8 +93,25 @@ case "$MODE" in
   diff)
     # Defaults to the whole branch: the only range the merge tail ever uses, and
     # `HEAD~1..HEAD` silently reviewed just the tip when the range was omitted.
-    RANGE="${2:-main..HEAD}"
-    TARGET="the output of \`git diff $RANGE\` and \`git log --oneline $RANGE\` in this repo"
+    #
+    # `origin/main`, not `main`. Work happens in worktrees, where local `main`
+    # lives in the primary checkout and does not move — `git fetch` updates
+    # `origin/main` and leaves `main` behind. Reviewing `main..HEAD` there
+    # covers commits that already merged, while `gh pr merge` applies only what
+    # is past `origin/main` (2026-08-15). Fetch first, or the ref is stale too.
+    RANGE="${2:-origin/main..HEAD}"
+    case "$RANGE" in
+      *...*) echo "pass a two-dot range: diff uses three-dot internally" >&2; exit 2 ;;
+    esac
+    # `git log A..B` lists this branch's commits, but `git diff A..B` is a TREE
+    # diff — once main moves, another PR's landed work shows up as deletions
+    # mixed into yours. Three-dot diffs from the merge base, which is what the
+    # PR shows. The pairing is deliberate: `git log A...B` would bring the
+    # main-only commits back (2026-08-15).
+    TARGET="the output of \`git diff ${RANGE/../...}\` and \`git log --oneline $RANGE\` in this repo"
+    # Two-dot here on purpose: LABEL is what a reader copies out of the posted
+    # comment to reproduce, and the three-dot form is rejected above. Only
+    # TARGET converts.
     LABEL="diff $RANGE"
     ;;
   file)
