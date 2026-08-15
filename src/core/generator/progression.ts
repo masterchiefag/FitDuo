@@ -46,9 +46,16 @@ export function nextTarget(
   progress: ExerciseProgress | undefined,
 ): PersonTarget {
   const t = nextTargetRaw(ex, availableWeights, progress)
-  // Whatever path produced it, the prescription must be liftable with the
-  // dumbbells the person actually owns today.
-  return t.weight === 0 ? t : { ...t, weight: snapToAvailable(availableWeights, t.weight) }
+  // The terminal pair (PLAN A0): whatever rule produced this target, and
+  // however many adjusters get added above it later, the prescription that
+  // leaves here is liftable with the dumbbells this person owns today and
+  // inside the movement's own rep range. Nothing upstream can violate that,
+  // because these two run last.
+  const [minReps, maxReps] = ex.repRange
+  return {
+    targetReps: Math.max(minReps, Math.min(maxReps, t.targetReps)),
+    weight: t.weight === 0 ? 0 : snapToAvailable(availableWeights, t.weight),
+  }
 }
 
 function nextTargetRaw(

@@ -1,12 +1,13 @@
 // M2 persistence: localStorage. Swapped for Dexie + Supabase outbox in M4 —
 // the player only talks to these functions, so the swap is contained here.
 import type { PlayerState, SetLogDraft } from '../core/player/types'
-import type { FeedbackRating, WorkoutPlan } from '../core/generator/types'
+import type { FeedbackRating, SessionMode, WorkoutPlan } from '../core/generator/types'
 
 const KEYS = {
-  // v2: player phases warmup/cooldown were unified into 'timed'; a v1
-  // snapshot would resume into a phase the reducer no longer knows.
-  snapshot: 'fitduo.snapshot.v2',
+  // v3: work became a timed phase and the block gate replaced the last
+  // work->transition edge, so a v2 snapshot resumes into a work state with no
+  // deadline. Plans also carry `workSeconds` now, which a v2 plan lacks.
+  snapshot: 'fitduo.snapshot.v3',
   setLogs: 'fitduo.setlogs.v1',
   feedback: 'fitduo.feedback.v1',
   sessions: 'fitduo.sessions.v1',
@@ -28,7 +29,7 @@ export interface FeedbackEntry {
 
 export interface SessionRecord {
   dateISO: string
-  mode: 'full' | 'mobility'
+  mode: SessionMode
   participantIds: string[]
   dayType: string
   startedAt: number

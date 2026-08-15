@@ -42,6 +42,13 @@ export default function SettingsScreen() {
         Weights and schedule will appear here. Editing lands with accounts (M4).
       </p>
 
+      <h2 className="mt-8 text-lg font-bold">Music during a session</h2>
+      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+        Play it from a separate app, not a second browser tab. The session runs itself on a timer,
+        and switching tabs hides this one — the player then pauses where it stood rather than
+        counting sets nobody was there to do.
+      </p>
+
       <h2 className="mt-8 text-lg font-bold">Your kit</h2>
       <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
         Exercises are filtered by what you own — a step-up needs a step the same way a curl needs a

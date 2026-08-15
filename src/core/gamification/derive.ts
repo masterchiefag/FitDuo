@@ -1,6 +1,6 @@
 import { addDays, daysBetween, localDateISO, weekdayIndex, type LocalDateISO } from '../dates'
 import { epleyE1rm } from '../generator/progression'
-import type { ExerciseProgress, FeedbackRating } from '../generator/types'
+import type { ExerciseProgress, FeedbackRating, SessionMode } from '../generator/types'
 
 // ─── event-log input shapes (assembled by the app layer) ─────────────────────
 
@@ -9,8 +9,9 @@ export interface SessionEvent {
   /** When the session actually finished, if it did. Sessions can now be paused
    *  for hours, so a fixed window from the start is the wrong boundary. */
   endedAt?: number
-  /** Recovery sessions keep the streak alive but are not strength days. */
-  mode: 'full' | 'mobility'
+  /** Recovery sessions keep the streak alive but are not strength days.
+   *  A `short` session is a real strength day, worth proportionally less XP. */
+  mode: SessionMode
   completed: boolean // false = abandoned
   participantIds: string[]
   startedAt: number // epoch ms
@@ -23,6 +24,12 @@ export interface SetEvent {
   actualReps: number
   weight: number
   loggedAt: number
+  /**
+   * The app called this set and nobody corrected it. It still counts as work —
+   * volume, XP, progression — but never as a personal record: a number nobody
+   * witnessed must not set the bar that future real sets have to clear.
+   */
+  assumed: boolean
 }
 
 export interface FeedbackEvent {
@@ -121,13 +128,27 @@ function makeEventSessionAssigner(
   }
 }
 
-/** XP a single completed session is worth. One place, so modes cannot drift. */
+/**
+ * XP a single completed session is worth. One place, so modes cannot drift.
+ *
+ * Short sessions earn a smaller base and a smaller clear bonus — the per-set
+ * term already scales itself. They keep FULL streak credit, deliberately: the
+ * streak is what protects motivation, and a 20-minute session on a bad day is
+ * exactly the behaviour worth protecting.
+ */
+const MODE_XP: Record<SessionMode, { base: number; fullClear: number }> = {
+  full: { base: 50, fullClear: 25 },
+  short: { base: 25, fullClear: 15 },
+  mobility: { base: 20, fullClear: 0 },
+}
+
 function sessionXp(session: SessionEvent, sets: SetEvent[], prCount: number): number {
   // Recovery work counts for the streak but is not a strength session.
-  if (session.mode === 'mobility') return 20
-  let xp = 50 + 2 * sets.length
+  if (session.mode === 'mobility') return MODE_XP.mobility.base
+  const rule = MODE_XP[session.mode]
+  let xp = rule.base + 2 * sets.length
   // Full-clear bonus: every set in THIS session hit its target reps.
-  if (sets.length > 0 && sets.every((s) => s.actualReps >= s.targetReps)) xp += 25
+  if (sets.length > 0 && sets.every((s) => s.actualReps >= s.targetReps)) xp += rule.fullClear
   return xp + 15 * Math.min(prCount, 2)
 }
 
@@ -182,6 +203,7 @@ export function deriveStats(
   const prDates: LocalDateISO[] = []
   const prCountBySession = new Map<number, number>()
   for (const s of mySets) {
+    if (s.assumed) continue
     const e = epleyE1rm(s.weight, s.actualReps)
     if (e > 0 && e > (bestE1rm.get(s.exerciseId) ?? 0) + 1e-9) {
       if (bestE1rm.has(s.exerciseId)) {
@@ -326,8 +348,11 @@ export function deriveProgression(
       [...myFeedback]
         .reverse()
         .find((f) => f.exerciseId === exerciseId && keyOf(f.loggedAt) === lastKey)?.rating ?? null
+    // Same rule as PR detection: only witnessed sets set the bar.
     let best = 0
-    for (const s of all) best = Math.max(best, epleyE1rm(s.weight, s.actualReps))
+    for (const s of all) {
+      if (!s.assumed) best = Math.max(best, epleyE1rm(s.weight, s.actualReps))
+    }
     out[exerciseId] = {
       lastWeight: lastSession[lastSession.length - 1]!.weight,
       lastTargetReps: lastSession[lastSession.length - 1]!.targetReps,

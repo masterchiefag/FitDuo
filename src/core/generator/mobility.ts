@@ -160,7 +160,7 @@ export function generateMobilitySession(input: MobilityInput): WorkoutPlan {
     participantIds,
     // One estimator for every plan shape — the player's own block-transition
     // constant included, so the number shown matches the session run.
-    estimatedSeconds: estimatePlanSeconds(new Map(catalog.map((e) => [e.id, e])), blocks),
+    estimatedSeconds: estimatePlanSeconds(blocks),
     blocks,
   }
 }
