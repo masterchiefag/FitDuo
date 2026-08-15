@@ -102,11 +102,19 @@ case "$MODE" in
     RANGE="${2:-origin/main..HEAD}"
     # `origin/main` needs a fetch to exist, unlike `main`. Fail here rather than
     # spending 30 turns on a diff that errors inside the agent.
+    case "$RANGE" in
+      *...*) echo "pass a two-dot range: diff uses three-dot internally" >&2; exit 2 ;;
+    esac
     for r in ${RANGE//../ }; do
       git rev-parse --verify -q "$r^{commit}" >/dev/null ||
         { echo "range '$RANGE': '$r' does not resolve — git fetch first" >&2; exit 2; }
     done
-    TARGET="the output of \`git diff $RANGE\` and \`git log --oneline $RANGE\` in this repo"
+    # `git log A..B` lists this branch's commits, but `git diff A..B` is a TREE
+    # diff — once main moves, another PR's landed work shows up as deletions
+    # mixed into yours. Three-dot diffs from the merge base, which is what the
+    # PR shows. The pairing is deliberate: `git log A...B` would bring the
+    # main-only commits back (2026-08-15).
+    TARGET="the output of \`git diff ${RANGE/../...}\` and \`git log --oneline $RANGE\` in this repo"
     LABEL="diff $RANGE"
     ;;
   file)
