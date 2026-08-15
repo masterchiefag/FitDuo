@@ -12,10 +12,12 @@
      - Does this generalise, or is it bespoke to one person? (PLAN §A1)
      - How many concerns is this, and what says it is done? A review reads one
        diff, so a PR carrying several gets its findings one round at a time and
-       the quiet ones are already in there — audit those yourself. Where
-       nothing can be machine-checked (prose, docs, process), keep it small
-       enough to read in one pass; otherwise review ends when the reviewer runs
-       out of objections rather than when the work is done.
+       the quiet ones are already in there — audit those yourself. State the
+       done-criterion as an EXTERNAL FACT someone can check by reading the
+       result ("step 4 says push before the tail"). "The reviewer has no
+       remaining objections" is not a criterion — it is the loop, renamed, and
+       CLAUDE.md rules it out. Where nothing is machine-checkable, keep the
+       change small enough to read in one pass.
 
      Re-read this when a review finding tempts you to add a mechanism. If what
      you are about to build is not named above, it is a separate PR — fixes
