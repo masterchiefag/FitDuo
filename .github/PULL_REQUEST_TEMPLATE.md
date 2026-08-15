@@ -26,9 +26,11 @@
 ## Declined
 
 <!-- `## `, not `### ` — merge-ready.sh reads the framing section as everything
-     up to the next `## `, so a subsection here would count decline lines as
-     framing text and pass an unfilled framing block (measured: 11 chars unfilled
-     -> fail; 108 with two declines -> pass).
+     up to the next `## `. Nested under `### `, decline text lands inside that
+     range and counts as framing, so a PR with declines and an EMPTY framing
+     block clears the length check. No figure is quoted here on purpose: it
+     scales with how many decline lines a PR happens to have, and a number
+     picked rather than derived stops matching what it guards.
 
      After round one, every finding gets a verdict here or a fix — nothing is
      left open. One line each: the failure it names, and why it is accepted.
