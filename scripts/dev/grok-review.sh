@@ -109,7 +109,10 @@ case "$MODE" in
     # PR shows. The pairing is deliberate: `git log A...B` would bring the
     # main-only commits back (2026-08-15).
     TARGET="the output of \`git diff ${RANGE/../...}\` and \`git log --oneline $RANGE\` in this repo"
-    LABEL="diff ${RANGE/../...}"
+    # Two-dot here on purpose: LABEL is what a reader copies out of the posted
+    # comment to reproduce, and the three-dot form is rejected above. Only
+    # TARGET converts.
+    LABEL="diff $RANGE"
     ;;
   file)
     [ $# -ge 2 ] || { echo "usage: $0 file <path>" >&2; exit 2; }
