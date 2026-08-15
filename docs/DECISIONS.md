@@ -30,6 +30,77 @@ imagined one is paid for by every future PR and buys a feeling of safety.
 
 ---
 
+## 2026-08-15 — Eight review rounds on PR #3, and what the count meant
+
+PR #3 (`requires`, equipment eligibility) converged after **eight** Grok rounds.
+Every round found something real, which is the uncomfortable part — the tail was
+not being pedantic, it was doing work the build should have done.
+
+**The diagnostic, and the only thing here that is a rule:** *past round two, the
+round count is a signal about the PR, not about the reviewer.* The instinct at
+round three is that the reviewer is thorough and the right move is to keep
+fixing. It isn't. Stop and ask which of the two shapes below you are in, because
+their prescriptions are opposite.
+
+**Shape A — the fixes are generating the findings.** Recorded the day before, in
+*"A 15-line change that took six commits"*: a leak scanner built to discharge a
+finding, whose own findings were discharged by building more. Prescription:
+**stop building.** The mechanism is the problem, and "accept the risk and write
+it down" was available from the first minute.
+
+**Shape B — the findings were all in commit one; the reviewer could only see a
+slice at a time.** That is this PR. `d867ce8` was 20 files and ~1,180 insertions
+carrying five separable concerns: the core type change, generator equipment
+filtering (which had never existed), 24 content re-cues, the curation pipeline,
+and a Settings screen. Rounds 4, 6 and 7 were latent in that first commit and
+owed nothing to any fix — round 4's slug-prefix inference in `curate.ts` was
+written *in* it, and round 7's `>= 3` pool floor is a line `d867ce8` **edited**,
+to parameterise it by kit, without asking whether 3 was still the right number.
+It wasn't: a pull day consumes five. Prescription: the opposite of Shape A —
+**don't wait for round nine, go read the concerns nobody has looked at yet**,
+because the remaining findings are already sitting in your own diff.
+
+The two shapes share one cause — attention spread over more than it can hold —
+and nothing else. Telling them apart is the entire value of noticing the count.
+
+**"One concern per PR" — considered, not written as a rule.** It is the obvious
+lesson and it does not survive contact with this PR. The type change, the
+eligibility predicate and the generator wiring genuinely ship together: split
+them and `main` carries a `requires` field the generator ignores, which is a
+worse intermediate state, not a better one. Only the Settings screen and the
+content re-cues were actually separable. A rule stated more strongly than it can
+be followed gets discarded whole the first time it can't be — so this stays an
+observation: *when a PR does carry several concerns, expect findings serially,
+and audit the quiet ones before the reviewer does.*
+
+**"Design pass before code on core-type changes" — considered, not built.**
+Rounds 1 (the duo-eligibility intersection), 3 (chair/wall) and 8 (per-person
+load) were design findings that a short pre-code note would have caught for a
+fraction of what they cost once the code existed. CLAUDE.md already carries the
+trigger — *plan revisions get a Grok pass before execution starts* — and it
+simply never fired, because PR #3 changed a core type without touching PLAN.md.
+Widening it to "any core type or generator rule" buys a Grok round on every such
+PR against **n = 1**: this is the first PR to change a core type. The round-count
+diagnostic catches the same class one round later at no standing cost. Not
+earned yet — and this paragraph is the date, so a second occurrence can be
+decisive instead of arguable.
+
+**Rung 3, not rung 4.** The one-sentence version is a comment in the PR
+template's review-tail section, the only artifact re-read at the moment it
+applies. That template's framing comment already warns about Shape A (*"re-read
+this when a review finding tempts you to add a mechanism"*) and said nothing
+about Shape B, where the findings tempt you to nothing at all — they just keep
+arriving. Nothing goes in CLAUDE.md: this fires inside a PR that is already
+open, not before you know what you are working on. No gate either — gating a
+round count would be self-parody, and would punish the PRs where eight rounds is
+the correct answer.
+
+Same honest limit as the entry below: this will not stop the next session by
+itself. What stops it is somebody saying "we're on round four" and treating that
+sentence as a finding.
+
+---
+
 ## 2026-08-14 — A 15-line change that took six commits, and why
 
 Worth recording as a failure of *process*, not of code — every commit below was

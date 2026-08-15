@@ -28,6 +28,13 @@
 Each step is recorded against the head sha via `scripts/dev/record-step.sh`.
 Any new commit invalidates all of them — that is the point.
 
+<!-- Past round two, the round count is a signal about the PR, not the reviewer.
+     Either your fixes are generating the findings (stop building — see the
+     framing section above), or this PR carries more concerns than one diff read
+     can hold and the rest are already in it (go audit the ones nobody has
+     looked at, rather than waiting to be told). docs/DECISIONS.md, 2026-08-15. -->
+
+
 - [ ] `grok` — `scripts/dev/grok-review.sh diff main..HEAD` → fix → re-run against the final sha → read it → `scripts/dev/grok-review.sh post`; findings fixed or consciously declined
 - [ ] `self-review` — `/code-review` (medium), findings fixed or consciously declined
 - [ ] `suite` — `npm run typecheck && npm run test -- --run && npm run e2e` green on the FINAL sha
