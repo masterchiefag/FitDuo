@@ -21,7 +21,7 @@
 # runs both. Read $OUT before posting; that habit is the only backstop there is.
 #
 # Usage:
-#   scripts/dev/grok-review.sh diff [range]     # default: main..HEAD
+#   scripts/dev/grok-review.sh diff [range]     # default: origin/main..HEAD
 #   scripts/dev/grok-review.sh file <path>      # e.g. the plan markdown
 #   scripts/dev/grok-review.sh post             # put the saved review on the PR
 #
