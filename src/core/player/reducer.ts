@@ -383,8 +383,8 @@ export function reduce(plan: WorkoutPlan, state: PlayerState, event: PlayerEvent
       return { state, effects: [] }
     }
 
-    case 'EXTEND_REST': {
-      if (state.phase !== 'rest') return { state, effects: [] }
+    case 'EXTEND': {
+      if (state.phase !== 'rest' && state.phase !== 'work') return { state, effects: [] }
       return {
         state: { ...state, endsAt: state.endsAt + event.seconds * 1000 },
         effects: [{ type: 'PERSIST_SNAPSHOT' }],

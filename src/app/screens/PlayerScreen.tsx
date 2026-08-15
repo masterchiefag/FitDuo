@@ -347,6 +347,14 @@ function WorkView({
         Done ✓
       </motion.button>
       <div className="mt-3 flex items-center justify-center gap-4 text-sm text-slate-500">
+        {/* The set ends on its own, so "we need longer" has to be one tap and
+            not Pause — which nobody reaches for mid-rep. */}
+        <button
+          onClick={() => dispatch({ type: 'EXTEND', now: Date.now(), seconds: 15 })}
+          className="rounded-lg px-2 py-1 font-semibold hover:bg-slate-100 dark:hover:bg-slate-800"
+        >
+          +15s
+        </button>
         {nextEx && (
           <span>
             Next: <span className="font-semibold">{nextEx.name}</span>
@@ -445,7 +453,7 @@ function RestView({
       )}
       <div className="mt-5 flex justify-center gap-3">
         <button
-          onClick={() => dispatch({ type: 'EXTEND_REST', now: Date.now(), seconds: 15 })}
+          onClick={() => dispatch({ type: 'EXTEND', now: Date.now(), seconds: 15 })}
           className="rounded-xl bg-slate-100 px-4 py-2 text-sm font-bold dark:bg-slate-800"
         >
           +15s
