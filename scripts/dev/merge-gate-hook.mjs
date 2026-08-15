@@ -36,8 +36,9 @@ process.stdin.on('end', () => {
               'Merge blocked — the review tail has not run against this commit.\n' +
               detail +
               '\n\nRun the missing steps (grok review, /code-review, full suite), record each ' +
-              'with scripts/dev/record-step.sh, then merge. Do not bypass this by editing ' +
-              'the record files.',
+              'with scripts/dev/record-step.sh, then `git push` and confirm HEAD == @{u} ' +
+              'before merging — the records bind to your local sha and the merge takes the ' +
+              'remote tip. Do not bypass this by editing the record files.',
           },
         }
       }
