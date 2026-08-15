@@ -100,6 +100,12 @@ case "$MODE" in
     # covers commits that already merged, while `gh pr merge` applies only what
     # is past `origin/main` (2026-08-15). Fetch first, or the ref is stale too.
     RANGE="${2:-origin/main..HEAD}"
+    # `origin/main` needs a fetch to exist, unlike `main`. Fail here rather than
+    # spending 30 turns on a diff that errors inside the agent.
+    for r in ${RANGE//../ }; do
+      git rev-parse --verify -q "$r^{commit}" >/dev/null ||
+        { echo "range '$RANGE': '$r' does not resolve — git fetch first" >&2; exit 2; }
+    done
     TARGET="the output of \`git diff $RANGE\` and \`git log --oneline $RANGE\` in this repo"
     LABEL="diff $RANGE"
     ;;

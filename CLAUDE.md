@@ -11,11 +11,11 @@ Direct commits to `main` are for bootstrap only. One change at a time:
 1. **Branch** — `git checkout -b <slug>`.
 2. **Frame it** — fill the PR template's *"Are we solving the right problem?"* section. Cheapest step to skip, most expensive to skip. `merge-ready.sh` checks it is filled.
 3. **Build**, and **verify in a real browser** — a green suite is not a working app.
-4. **Open the PR**, then run the tail against the final sha:
+4. **Push, then open the PR** and run the tail against the final sha. Push *before* the tail and after every fix inside it: each step records and attests your **local** sha, so an unpushed commit gets a review comment citing a sha the remote does not have (2026-08-15).
    - `git fetch && scripts/dev/grok-review.sh diff` (defaults to `origin/main..HEAD`; local `main` is stale in a worktree) → fix → re-run → read it → `scripts/dev/grok-review.sh post` → `scripts/dev/record-step.sh grok` (`post` refuses a review not run against `HEAD`)
    - `/code-review` (medium) → fix → `scripts/dev/record-step.sh self-review`
    - `npm run typecheck && npm run test -- --run && npm run e2e` → `scripts/dev/record-step.sh suite`
-5. **Push, verify, merge.** `git push`, then confirm `git rev-parse HEAD` equals `git rev-parse @{u}` — every step above records against your *local* sha while `gh pr merge` takes the *remote* tip, so an unpushed fix merges the version nobody reviewed, with the gate green (docs/DECISIONS.md, 2026-08-15). Then `gh pr merge --merge` — never `--squash` or `--rebase`; `main` keeps every commit (docs/DECISIONS.md). Blocked by `scripts/dev/merge-gate-hook.mjs` unless all three are recorded **at the current sha** — any new commit invalidates them, deliberately.
+5. **Verify, then merge.** Confirm `git rev-parse HEAD` equals `git rev-parse @{u}` — the records bind to your local sha and `gh pr merge` takes the remote tip, so an unpushed fix merges the version nobody reviewed with the gate green (docs/DECISIONS.md, 2026-08-15). Then `gh pr merge --merge` — never `--squash` or `--rebase`; `main` keeps every commit (docs/DECISIONS.md). Blocked by `scripts/dev/merge-gate-hook.mjs` unless all three are recorded **at the current sha** — any new commit invalidates them, deliberately.
 
 `main`'s gate-verified line is `git log --first-parent`; branch commits below it were never verified at merge time.
 
