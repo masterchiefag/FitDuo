@@ -19,7 +19,21 @@ Direct commits to `main` are for bootstrap only. One change at a time:
 
 `main`'s gate-verified line is `git log --first-parent`; branch commits below it were never verified at merge time.
 
-Grok and `/code-review` reliably find *different* classes of problem; run both. Plan revisions get a Grok pass before execution starts.
+Grok and `/code-review` reliably find *different* classes of problem; run both. Plan revisions get a Grok pass before execution starts. Record each step the moment it runs — batching `record-step.sh` at the end is how a step gets recorded that never ran.
+
+**When review stops.** The framing section's done-criterion decides, never reviewer silence. It must name an external fact (*"step 4 says push before the tail"*); a criterion phrased as a clean round or no remaining objections is illegal, because that is the loop with a new name. After round one, post a verdict on **every** finding in the PR before re-reviewing:
+
+| Finding | Action |
+|---|---|
+| Names a concrete failure *this land* will cause, in work the **original** framing named | Fix it, or decline in one line under `Declined` — the failure, and why it is accepted |
+| Anything else — stale comments, labels, wording, nits | **Decline.** Do not fix. |
+| *"This should not exist"* / stop adding | Stop adding: revert the unframed work, or land without it. Building a replacement here is forbidden — see filter 3. |
+
+Widening the framing mid-PR to absorb a finding **is** unframed work, and unframed work is not a reviewable delta: revert it or make it its own PR. Later rounds may only check a fix, or overturn a decline by naming a concrete failure that decline accepted — re-raising a declined item on any other ground is out of scope, and is a finding against the reviewer. **The default is land; building is what needs authorisation** — two agents left alone share a thoroughness loss function and will always agree to do more.
+
+**Scope by surface, not by path.** Prose — `docs/`, `.github/`, and a CLAUDE.md edit that shortens or restates — gets one Grok round, then land. Anything executable (`src/`, `content/`, `tests/`, `e2e/`, **`scripts/dev/`**) and any CLAUDE.md change that *widens* a rule gets the full tail. `scripts/dev/` is explicitly not prose: the two worst binding bugs on record live there.
+
+**Escalate to the user only for:** a new gate, hook or script; `post` when the transcript may quote personal data; overturning a rung-0 accept; or product scope PLAN.md does not already decide. Not for *"is this comment stale"* — that is a decline.
 
 **Why it is a gate and not a paragraph:** this tail existed as prose in this file and was skipped within the hour under delivery pressure (see docs/DECISIONS.md). Prose preventions fail under velocity; mechanical ones hold. `tests/merge-gate.test.ts` is the gate's proof-of-bite — keep it passing, or the gate has silently become a no-op.
 
