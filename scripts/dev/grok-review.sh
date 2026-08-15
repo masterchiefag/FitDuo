@@ -93,7 +93,13 @@ case "$MODE" in
   diff)
     # Defaults to the whole branch: the only range the merge tail ever uses, and
     # `HEAD~1..HEAD` silently reviewed just the tip when the range was omitted.
-    RANGE="${2:-main..HEAD}"
+    #
+    # `origin/main`, not `main`. Work happens in worktrees, where local `main`
+    # lives in the primary checkout and does not move — `git fetch` updates
+    # `origin/main` and leaves `main` behind. Reviewing `main..HEAD` there
+    # covers commits that already merged, while `gh pr merge` applies only what
+    # is past `origin/main` (2026-08-15). Fetch first, or the ref is stale too.
+    RANGE="${2:-origin/main..HEAD}"
     TARGET="the output of \`git diff $RANGE\` and \`git log --oneline $RANGE\` in this repo"
     LABEL="diff $RANGE"
     ;;

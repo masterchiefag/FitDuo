@@ -34,7 +34,7 @@
 Each step is recorded against the head sha via `scripts/dev/record-step.sh`.
 Any new commit invalidates all of them — that is the point.
 
-- [ ] `grok` — `scripts/dev/grok-review.sh diff main..HEAD` → fix → re-run against the final sha → read it → `scripts/dev/grok-review.sh post`; findings fixed or consciously declined
+- [ ] `grok` — `git fetch && scripts/dev/grok-review.sh diff` → fix → re-run against the final sha → read it → `scripts/dev/grok-review.sh post`; findings fixed or consciously declined
 - [ ] `self-review` — `/code-review` (medium), findings fixed or consciously declined
 - [ ] `suite` — `npm run typecheck && npm run test -- --run && npm run e2e` green on the FINAL sha
 

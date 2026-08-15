@@ -64,9 +64,16 @@ pass, which is not the record that earns more machinery.
 
 *Class:* the same one already written below about `post` stamping `HEAD` instead
 of the reviewed sha — **a record of a check is only worth as much as the thing
-it is bound to.** It was fixed there for the review and left open for the merge.
-When a binding bug is found in one step of a pipeline, check the other steps
-that bind the same way.
+it is bound to.** Fixed there for the review sha, left open for the merge.
+
+And the sweep that sentence asks for immediately found a third: the review range
+defaulted to `main..HEAD`, but work happens in worktrees where local `main` sits
+in the primary checkout and never moves, so it had drifted two merges behind
+`origin/main` — every review on the PR that wrote this covered an
+already-merged commit. Defaulted to `origin/main..HEAD`. **Three steps of one
+pipeline, each binding to whichever ref was nearest to hand rather than the one
+carrying the consequence** — which is the whole class in one line, and why the
+sweep is the instruction rather than any of the three fixes.
 
 ---
 
