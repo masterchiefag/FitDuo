@@ -8,10 +8,19 @@ import {
   DURATION_MAX_S,
   DURATION_MIN_S,
   ThinKitError,
+  durationBand,
+  estimatePlanSeconds,
   generateWorkout,
 } from '../src/core/generator/generate'
+import { CHANGEOVER_SECONDS } from '../src/core/player/reducer'
 import { addDays } from '../src/core/dates'
-import type { DayHistory, GeneratorInput, ParticipantInput } from '../src/core/generator/types'
+import { nextTarget } from '../src/core/generator/progression'
+import type {
+  DayHistory,
+  ExerciseProgress,
+  GeneratorInput,
+  ParticipantInput,
+} from '../src/core/generator/types'
 
 const catalog = catalogSchema.parse(
   JSON.parse(readFileSync(join(__dirname, '..', 'content', 'catalog.json'), 'utf8')),
@@ -169,6 +178,111 @@ describe('generateWorkout properties', () => {
     )
   })
 
+  it('every work item carries the max set length across participants', () => {
+    const byId = new Map(catalog.map((e) => [e.id, e]))
+    fc.assert(
+      fc.property(inputArb, (input) => {
+        const plan = generateWorkout(input)
+        for (const b of plan.blocks) {
+          if (b.kind !== 'superset' && b.kind !== 'circuit') continue
+          for (const item of b.items) {
+            const ex = byId.get(item.exerciseId)!
+            const each = Object.values(item.perPerson).map(
+              (t) =>
+                ex.setupSeconds +
+                (ex.repRange[0] === 1 && ex.repRange[1] === 1 ? 1 : t.targetReps) *
+                  ex.secondsPerRep *
+                  (ex.unilateral ? 2 : 1),
+            )
+            expect(item.workSeconds).toBe(Math.max(...each))
+          }
+        }
+      }),
+      { numRuns: 60 },
+    )
+  })
+
+  /**
+   * The estimate is what `fitToBudget` optimises against, so anything it forgets
+   * becomes overrun in the real session. Changeovers are ~3 minutes a session:
+   * dropping them from the estimate plans a session that always runs long.
+   *
+   * MUTATION-CHECKED: removing the changeover term from `estimatePlanSeconds`
+   * fails this — the recomputed total exceeds the reported one by 3×2×15s+.
+   */
+  it('the estimate counts the changeovers the player will actually insert', () => {
+    const plan = generateWorkout({
+      householdId: 'home',
+      dateISO: '2026-08-14',
+      generatorVersion: 1,
+      catalog,
+      scheduledDays: [true, true, true, true, true, false, false],
+      participants: [
+        { userId: 'p1', availableWeights: [5, 10], equipment: [...HOME_KIT], maxTier: 2, progression: {} },
+      ],
+      recentHistory: [],
+    })
+    let changeovers = 0
+    let byHand = 0
+    plan.blocks.forEach((b, i) => {
+      if (i > 0) byHand += 20 // BLOCK_TRANSITION_SECONDS
+      if (b.kind === 'superset' || b.kind === 'circuit') {
+        const perRound = b.items.reduce((a, it) => a + it.workSeconds, 0)
+        const co = b.items.length - 1 // all distinct within a block
+        changeovers += b.rounds * co
+        byHand += b.rounds * (perRound + co * CHANGEOVER_SECONDS) + (b.rounds - 1) * b.restSeconds
+      } else {
+        byHand += b.items.reduce((a, it) => a + it.seconds, 0)
+      }
+    })
+    expect(changeovers).toBeGreaterThan(0)
+    expect(estimatePlanSeconds(plan.blocks)).toBe(byHand)
+    expect(plan.estimatedSeconds).toBe(byHand)
+  })
+
+  it('fits whatever duration it is asked for, and names short sessions short', () => {
+    fc.assert(
+      fc.property(inputArb, fc.constantFrom(1200, 2100, 3300), (input, targetSeconds) => {
+        const plan = generateWorkout({ ...input, targetSeconds })
+        const [min, max] = durationBand(targetSeconds)
+        expect(plan.estimatedSeconds).toBeGreaterThanOrEqual(min)
+        expect(plan.estimatedSeconds).toBeLessThanOrEqual(max)
+        expect(plan.mode).toBe(targetSeconds <= 2700 ? 'short' : 'full')
+        // Still a real session: warm-up, at least one work block, cool-down.
+        expect(plan.blocks.some((b) => b.kind === 'warmup')).toBe(true)
+        expect(plan.blocks.some((b) => b.kind === 'cooldown')).toBe(true)
+        expect(
+          plan.blocks.filter((b) => b.kind === 'superset' || b.kind === 'circuit').length,
+        ).toBeGreaterThanOrEqual(1)
+      }),
+      { numRuns: 120 },
+    )
+  })
+
+  it('a 20-minute session is the same engine, not a truncated one', () => {
+    const base: GeneratorInput = {
+      householdId: 'home',
+      dateISO: '2026-08-14',
+      generatorVersion: 1,
+      catalog,
+      scheduledDays: [true, true, true, true, true, false, false],
+      participants: [
+        { userId: 'p1', availableWeights: [5, 10], equipment: [...HOME_KIT], maxTier: 2, progression: {} },
+      ],
+      recentHistory: [],
+    }
+    const short = generateWorkout({ ...base, targetSeconds: 1200 })
+    const full = generateWorkout(base)
+    expect(short.estimatedSeconds).toBeLessThan(full.estimatedSeconds)
+    // Fewer blocks and a shorter warm-up — not the same plan cut off midway.
+    expect(short.blocks.length).toBeLessThan(full.blocks.length)
+    const warmupItems = (p: typeof short) =>
+      p.blocks.find((b) => b.kind === 'warmup')!.items.length
+    expect(warmupItems(short)).toBeLessThan(warmupItems(full))
+    // Deterministic, like every other plan.
+    expect(generateWorkout({ ...base, targetSeconds: 1200 })).toEqual(short)
+  })
+
   it('honors the 3-day no-repeat window when simulating consecutive days', () => {
     const base: GeneratorInput = {
       householdId: 'home',
@@ -214,6 +328,48 @@ describe('generateWorkout properties', () => {
       if (history.length > 14) history.shift()
       date = addDays(date, 1)
     }
+  })
+})
+
+/**
+ * The terminal invariant of the target pipeline (PLAN A0): `weightSnap` and
+ * `repClamp` run last, so no rule above them — today's progression, tomorrow's
+ * readiness and pain adjusters — can emit a prescription that cannot be lifted
+ * or is outside the movement's rep range.
+ *
+ * It lands with R1 because R1 is where targets start being prescribed with
+ * nobody confirming them: an unliftable number used to be caught by a human
+ * looking at the screen before tapping Done.
+ *
+ * MUTATION-CHECKED: dropping either clamp from `nextTarget` fails this — a
+ * stale 17.5 kg in history survives into a plan for someone who owns 5s and
+ * 10s, and a 40-rep history entry survives into a 8–12 rep movement.
+ */
+describe('no rule can emit an unliftable or out-of-range prescription', () => {
+  const progressArb = (repCeiling: number): fc.Arbitrary<ExerciseProgress> =>
+    fc.record({
+      lastWeight: fc.constantFrom(0, 1, 3, 5, 12.5, 17.5, 40),
+      lastTargetReps: fc.integer({ min: 1, max: repCeiling }),
+      lastActualReps: fc.array(fc.integer({ min: 0, max: repCeiling }), { maxLength: 5 }),
+      lastFeedback: fc.constantFrom('too_easy' as const, 'right' as const, 'too_hard' as const, null),
+      bestE1rm: fc.nat(),
+    })
+
+  it('holds for every exercise, kit and history the log can produce', () => {
+    fc.assert(
+      fc.property(
+        fc.constantFrom(...catalog),
+        weightsArb,
+        fc.option(progressArb(50), { nil: undefined }),
+        (ex, weights, progress) => {
+          const target = nextTarget(ex, weights, progress)
+          if (target.weight !== 0) expect(weights).toContain(target.weight)
+          expect(target.targetReps).toBeGreaterThanOrEqual(ex.repRange[0])
+          expect(target.targetReps).toBeLessThanOrEqual(ex.repRange[1])
+        },
+      ),
+      { numRuns: 500 },
+    )
   })
 })
 

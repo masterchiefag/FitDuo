@@ -5,7 +5,9 @@ import { exercisesById } from '../lib/catalog'
 import { PROFILES, USING_EXAMPLE_PROFILES } from '../lib/profiles'
 import {
   DAY_TYPE_LABEL,
+  DEFAULT_STRENGTH_MINUTES,
   PATTERN_LABEL,
+  STRENGTH_DURATIONS,
   mobilityPlan,
   tryPlanForToday,
   statsFor,
@@ -37,11 +39,15 @@ export default function TodayScreen() {
   // Solo is checked separately on purpose: a duo movement must suit BOTH kits,
   // so the duo pool is the smaller one. One person owning nothing must not take
   // the other person's workout away.
-  const duoAttempt = useMemo(() => tryPlanForToday(everyone), [everyone])
+  // How long they have today. A short session is the same generated workout at
+  // a smaller budget — full streak credit, proportionally less XP — and it is
+  // the difference between training and breaking the streak on a bad day.
+  const [minutes, setMinutes] = useState<number>(DEFAULT_STRENGTH_MINUTES)
+  const duoAttempt = useMemo(() => tryPlanForToday(everyone, minutes), [everyone, minutes])
   const previewPlan = duoAttempt.ok ? duoAttempt.plan : null
   const soloAvailable = useMemo(
-    () => new Set(PROFILES.filter((p) => tryPlanForToday([p.id]).ok).map((p) => p.id)),
-    [],
+    () => new Set(PROFILES.filter((p) => tryPlanForToday([p.id], minutes).ok).map((p) => p.id)),
+    [minutes],
   )
   const canStartSomething = previewPlan !== null || soloAvailable.size > 0
   const stats = useMemo(() => PROFILES.map((p) => ({ profile: p, s: statsFor(p.id) })), [])
@@ -50,6 +56,9 @@ export default function TodayScreen() {
     .flatMap((b) => (b.kind === 'superset' || b.kind === 'circuit' ? b.items : []))
     .map((i) => exercisesById.get(i.exerciseId)?.name ?? i.exerciseId)
   const mins = Math.round((previewPlan?.estimatedSeconds ?? 0) / 60)
+  const blockCount = (previewPlan?.blocks ?? []).filter(
+    (b) => b.kind === 'superset' || b.kind === 'circuit',
+  ).length
 
   // Default to everyone, like the strength card — tapping a focus starts
   // immediately, so a solo default silently drops the partner's credit.
@@ -76,7 +85,7 @@ export default function TodayScreen() {
     // Only rendered for combinations already known to generate, but the button
     // and the check are separate reads of the same profiles — re-check rather
     // than throw out of an onClick.
-    const attempt = tryPlanForToday(participantIds)
+    const attempt = tryPlanForToday(participantIds, minutes)
     if (!attempt.ok) return
     start(attempt.plan)
     void navigate('/workout')
@@ -157,12 +166,30 @@ export default function TodayScreen() {
             <h2 className="mt-1 text-2xl font-extrabold">Today's Workout</h2>
             <p className="mt-1 text-sm opacity-90">
               {previewPlan
-                ? `~${mins} min · warm-up + 4 blocks + stretch`
+                ? `~${mins} min · warm-up + ${blockCount} blocks + stretch`
                 : 'Not everyone’s kit covers a full session — start solo below'}
             </p>
           </div>
           <div className="p-5">
-            <p className="text-sm text-slate-500 dark:text-slate-400">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-semibold text-slate-400">How long have you got?</span>
+              <div className="flex gap-1 rounded-xl bg-slate-100 p-1 dark:bg-slate-800">
+                {STRENGTH_DURATIONS.map((m) => (
+                  <button
+                    key={m}
+                    onClick={() => setMinutes(m)}
+                    className={`rounded-lg px-3 py-1 text-sm font-bold transition-colors ${
+                      minutes === m
+                        ? 'bg-white text-slate-900 shadow dark:bg-slate-700 dark:text-white'
+                        : 'text-slate-500 dark:text-slate-400'
+                    }`}
+                  >
+                    {m} min
+                  </button>
+                ))}
+              </div>
+            </div>
+            <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">
               {[...new Set(mainExercises)].join(' · ')}
             </p>
             <div className="mt-4 flex flex-col gap-2 sm:flex-row">

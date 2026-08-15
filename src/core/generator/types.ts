@@ -37,6 +37,12 @@ export interface GeneratorInput {
   scheduledDays: boolean[] // Mon..Sun (household schedule for day-type rotation)
   participants: ParticipantInput[] // 1 = solo, 2 = duo
   recentHistory: DayHistory[] // merged household history, last 14 days, oldest first
+  /**
+   * How long they have. The generator fits the session to this, shrinking the
+   * structure itself when the budget is short — the same input mobility
+   * sessions already take, so "20 minutes today" is data, not a second mode.
+   */
+  targetSeconds?: number
 }
 
 /** One person's target for one exercise (constant across rounds in v1). */
@@ -53,6 +59,15 @@ export interface TimedItem {
 export interface WorkItem {
   exerciseId: string
   perPerson: Record<string, PersonTarget> // userId -> target
+  /**
+   * How long this set runs, in seconds — the MAX across participants, since
+   * they lift simultaneously with their own dumbbells (docs/DECISIONS.md).
+   *
+   * Carried on the plan rather than recomputed by the player: the reducer runs
+   * work as a timed phase and never sees the catalog, and one number computed
+   * once is one number the estimate and the countdown cannot disagree about.
+   */
+  workSeconds: number
 }
 
 export type Block =
@@ -74,9 +89,14 @@ export type Block =
     }
   | { kind: 'cooldown'; items: TimedItem[] }
 
-/** What kind of session this is. Strength days drive progression and
- *  muscle-balance history; recovery days deliberately do not. */
-export type SessionMode = 'full' | 'mobility'
+/**
+ * What kind of session this is. Strength days (full AND short) drive
+ * progression and muscle-balance history; recovery days deliberately do not.
+ *
+ * `short` is the same engine at a smaller `targetSeconds` — not a second
+ * generator — and earns full streak credit with proportionally less XP.
+ */
+export type SessionMode = 'full' | 'short' | 'mobility'
 
 export interface WorkoutPlan {
   planVersion: 1
@@ -85,6 +105,6 @@ export interface WorkoutPlan {
   mode: SessionMode
   dayType: DayType
   participantIds: string[]
-  estimatedSeconds: number // invariant: 3000..3600
+  estimatedSeconds: number // invariant: inside durationBand(targetSeconds)
   blocks: Block[]
 }

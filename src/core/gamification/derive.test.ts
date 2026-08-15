@@ -7,6 +7,7 @@ import {
   type SessionEvent,
   type SetEvent,
 } from './derive'
+import type { SessionMode } from '../generator/types'
 
 const U = 'p1'
 const WEEKDAYS = [true, true, true, true, true, false, false] // Mon–Fri
@@ -18,7 +19,7 @@ const ms = (dateISO: string, hour = 18) =>
 
 function session(
   dateISO: string,
-  opts: { completed?: boolean; duo?: boolean; hour?: number; mode?: 'full' | 'mobility' } = {},
+  opts: { completed?: boolean; duo?: boolean; hour?: number; mode?: SessionMode } = {},
 ): SessionEvent {
   return {
     dateISO,
@@ -37,6 +38,7 @@ function setsFor(dateISO: string, count: number, weight = 10, reps = 10, target 
     actualReps: reps,
     weight,
     loggedAt: ms(dateISO) + i * 60_000,
+    assumed: false,
   }))
 }
 
@@ -187,6 +189,7 @@ describe('deriveStats', () => {
       actualReps: 10,
       weight: 10,
       loggedAt: ms('2026-08-03', 18) + i * 60_000,
+      assumed: false,
     }))
     const stats = deriveStats(U, [morning, evening], strengthSets, WEEKDAYS, '2026-08-03')
     // 20 (recovery) + 50 base + 2x10 sets + 25 full clear = 115
@@ -220,6 +223,7 @@ describe('deriveStats', () => {
       actualReps: 10,
       weight: 10,
       loggedAt: ms('2026-08-03', 7) + i * 60_000,
+      assumed: false,
     }))
     const stats = deriveStats(U, [strengthFirst, mobilityLater], sets, WEEKDAYS, '2026-08-03')
     expect(stats.totalXp).toBe(20 + 50 + 20 + 25)
@@ -245,6 +249,7 @@ describe('deriveStats', () => {
         actualReps: 10,
         weight: 10,
         loggedAt: ms('2026-08-03', hour) + i * 60_000,
+        assumed: false,
       }))
     const stats = deriveStats(
       U,
@@ -278,6 +283,7 @@ describe('deriveStats', () => {
         actualReps: 10,
         weight: 10,
         loggedAt: ms('2026-08-03', 21) + i * 60_000,
+        assumed: false,
       })),
       // Resumed well past the old 6h cut-off.
       ...Array.from({ length: 4 }, (_, i) => ({
@@ -287,6 +293,7 @@ describe('deriveStats', () => {
         actualReps: 10,
         weight: 10,
         loggedAt: Date.parse('2026-08-04T03:00:00') + i * 60_000,
+        assumed: false,
       })),
     ]
     const stats = deriveStats(U, [overnight], sets, WEEKDAYS, '2026-08-04')
@@ -315,6 +322,73 @@ describe('deriveStats', () => {
     expect(stats.achievements.map((a) => a.id)).toContain('first_pr')
     // day2 XP includes +15 for the PR
     expect(stats.totalXp).toBe(50 + 6 + 25 + (50 + 6 + 25 + 15))
+  })
+
+  /**
+   * The follow-along player logs sets nobody confirmed. Volume and XP are
+   * honest for those — the app called the reps and they did them — but a
+   * personal record has to be witnessed, or every hands-off session mints PRs
+   * for weights that were never actually moved, forever ratcheting the target.
+   *
+   * MUTATION-CHECKED: dropping the `assumed` skip in the PR loop makes this
+   * report 1 PR and pay the +15.
+   */
+  it('assumed sets earn XP and volume but can never set a PR', () => {
+    const assume = (s: SetEvent): SetEvent => ({ ...s, assumed: true })
+    const sets = [
+      ...setsFor('2026-08-03', 3, 10, 10).map(assume),
+      ...setsFor('2026-08-04', 3, 12.5, 10, 10).map(assume),
+    ]
+    const sessions = [session('2026-08-03'), session('2026-08-04')]
+    const stats = deriveStats(U, sessions, sets, ALL_DAYS, '2026-08-04')
+    expect(stats.prCount).toBe(0)
+    expect(stats.achievements.map((a) => a.id)).not.toContain('first_pr')
+    // Same two sessions as the PR test above, minus the +15.
+    expect(stats.totalXp).toBe(50 + 6 + 25 + (50 + 6 + 25))
+    expect(stats.totalVolumeKg).toBe(3 * 100 + 3 * 125)
+  })
+
+  it('corrected sets still set and beat records, assumed ones around them aside', () => {
+    const sets = [
+      // A witnessed 10 kg establishes the bar; the assumed sets beside it do not.
+      ...setsFor('2026-08-03', 1, 10, 10),
+      ...setsFor('2026-08-03', 2, 20, 10).map((s): SetEvent => ({ ...s, assumed: true })),
+      // Someone tapped adjust the next day: this one was witnessed, and beats it.
+      ...setsFor('2026-08-04', 1, 12.5, 10, 10),
+    ]
+    const stats = deriveStats(
+      U,
+      [session('2026-08-03'), session('2026-08-04')],
+      sets,
+      ALL_DAYS,
+      '2026-08-04',
+    )
+    expect(stats.prCount).toBe(1)
+  })
+
+  it('a short session earns full streak credit at a smaller XP rate', () => {
+    const short = deriveStats(
+      U,
+      [session('2026-08-03', { mode: 'short' })],
+      setsFor('2026-08-03', 8),
+      WEEKDAYS,
+      '2026-08-03',
+    )
+    expect(short.totalXp).toBe(25 + 16 + 15)
+    expect(short.streak).toBe(1)
+    // It IS a workout — it counts for muscle-balance history and milestones,
+    // which is exactly what separates it from a recovery session.
+    expect(short.sessionsCompleted).toBe(1)
+    expect(short.workoutDates.has('2026-08-03')).toBe(true)
+
+    const full = deriveStats(
+      U,
+      [session('2026-08-03')],
+      setsFor('2026-08-03', 8),
+      WEEKDAYS,
+      '2026-08-03',
+    )
+    expect(short.totalXp).toBeLessThan(full.totalXp)
   })
 
   it('perfect week and duo day unlock', () => {
@@ -396,6 +470,7 @@ describe('deriveProgression', () => {
         actualReps: 10,
         weight: 10,
         loggedAt: ms('2026-08-03', 23) + 60_000,
+        assumed: false,
       },
       {
         userId: U,
@@ -404,6 +479,7 @@ describe('deriveProgression', () => {
         actualReps: 10,
         weight: 10,
         loggedAt: afterMidnight,
+        assumed: false,
       },
     ]
     const prog = deriveProgression(U, [lateSession], sets, [])

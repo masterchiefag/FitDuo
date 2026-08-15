@@ -50,6 +50,9 @@ export function setEvents(): SetEvent[] {
     actualReps: l.actualReps,
     weight: l.weight,
     loggedAt: l.loggedAt,
+    // Sets logged before R1 predate the follow-along player: every one of them
+    // was a human tapping Done, which is exactly what `assumed: false` means.
+    assumed: l.assumed ?? false,
   }))
 }
 
@@ -136,8 +139,15 @@ export function mobilityPlan(
   })
 }
 
-export function planForToday(participantIds: string[]): WorkoutPlan {
-  return generateWorkout(generatorInputFor(participantIds, localDateISO(Date.now())))
+/** Session lengths offered on Today. The longest is a normal full session. */
+export const STRENGTH_DURATIONS = [20, 35, 55] as const
+export const DEFAULT_STRENGTH_MINUTES = 55
+
+export function planForToday(participantIds: string[], minutes = DEFAULT_STRENGTH_MINUTES) {
+  return generateWorkout({
+    ...generatorInputFor(participantIds, localDateISO(Date.now())),
+    targetSeconds: minutes * 60,
+  })
 }
 
 /** Human names for the movement slots, so a failure can say what ran out. */
@@ -168,9 +178,12 @@ export type PlanAttempt =
  * Only `ThinKitError` is converted; anything else is a real defect and still
  * throws, rather than being reported to the user as a missing dumbbell.
  */
-export function tryPlanForToday(participantIds: string[]): PlanAttempt {
+export function tryPlanForToday(
+  participantIds: string[],
+  minutes = DEFAULT_STRENGTH_MINUTES,
+): PlanAttempt {
   try {
-    return { ok: true, plan: planForToday(participantIds) }
+    return { ok: true, plan: planForToday(participantIds, minutes) }
   } catch (err) {
     if (err instanceof ThinKitError) return { ok: false, thinPattern: err.pattern }
     throw err

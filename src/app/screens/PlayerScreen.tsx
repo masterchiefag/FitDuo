@@ -6,8 +6,9 @@ import { exercisesById } from '../lib/catalog'
 import { PROFILES, profileById } from '../lib/profiles'
 import { loadSnapshot, clearSnapshot } from '../../infra/localstore'
 import { playCue } from '../../infra/audio'
+import { BLOCK_TRANSITION_SECONDS, CHANGEOVER_SECONDS } from '../../core/player/reducer'
 import type { Block, WorkItem, WorkoutPlan } from '../../core/generator/types'
-import type { PlayerState } from '../../core/player/types'
+import type { Overrides, PlayerState } from '../../core/player/types'
 import type { Exercise } from '../../core/catalog/types'
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
@@ -23,12 +24,19 @@ function phaseTotalSeconds(plan: WorkoutPlan, state: PlayerState): number {
         ? ((b.items[state.itemIndex] as { seconds: number }).seconds ?? 1)
         : 1
     }
+    case 'work': {
+      const b = plan.blocks[state.blockIndex]
+      const item = b && (b.kind === 'superset' || b.kind === 'circuit') ? b.items[state.itemIndex] : undefined
+      return item?.workSeconds ?? 1
+    }
+    case 'changeover':
+      return CHANGEOVER_SECONDS
     case 'rest': {
       const b = plan.blocks[state.blockIndex]
       return b && (b.kind === 'superset' || b.kind === 'circuit') ? b.restSeconds : 1
     }
     case 'block_transition':
-      return 20
+      return BLOCK_TRANSITION_SECONDS
     default:
       return 1
   }
@@ -53,12 +61,19 @@ function sessionProgress(plan: WorkoutPlan, state: PlayerState): number {
       const items = b && 'items' in b ? b.items.length : 1
       return (before(s.blockIndex) + s.round * items + s.itemIndex) / total
     }
+    case 'changeover': {
+      const b = plan.blocks[s.blockIndex]
+      const items = b && 'items' in b ? b.items.length : 1
+      return (before(s.blockIndex) + s.round * items + s.nextItemIndex) / total
+    }
     case 'rest': {
       const b = plan.blocks[s.blockIndex]
       const items = b && 'items' in b ? b.items.length : 1
       return (before(s.blockIndex) + s.round * items) / total
     }
     case 'block_transition':
+      return before(s.nextBlockIndex) / total
+    case 'block_gate':
       return before(s.nextBlockIndex) / total
 
     case 'complete':
@@ -200,8 +215,9 @@ function TargetPanel({
   onAdjust,
 }: {
   item: WorkItem
-  overrides: Record<string, { targetReps?: number; weight?: number }>
-  onAdjust: (userId: string, field: 'targetReps' | 'weight', delta: number) => void
+  overrides: Overrides
+  /** Absent on preview panels (changeover, rest): nothing to correct yet. */
+  onAdjust?: (userId: string, field: 'targetReps' | 'weight', delta: number) => void
 }) {
   const ex = exercisesById.get(item.exerciseId)
   const hold = ex ? holdSeconds(ex) : null
@@ -233,15 +249,15 @@ function TargetPanel({
                   <p className="text-2xl font-extrabold tabular-nums">
                     {reps} <span className="text-sm font-semibold text-slate-400">reps</span>
                   </p>
-                  <div className="flex gap-1">
+                  <div className={`flex gap-1 ${onAdjust ? '' : 'hidden'}`}>
                     <button
-                      onClick={() => onAdjust(userId, 'targetReps', -1)}
+                      onClick={() => onAdjust?.(userId, 'targetReps', -1)}
                       className="h-7 w-7 rounded-lg bg-slate-100 text-sm font-bold dark:bg-slate-800"
                     >
                       −
                     </button>
                     <button
-                      onClick={() => onAdjust(userId, 'targetReps', 1)}
+                      onClick={() => onAdjust?.(userId, 'targetReps', 1)}
                       className="h-7 w-7 rounded-lg bg-slate-100 text-sm font-bold dark:bg-slate-800"
                     >
                       +
@@ -252,7 +268,7 @@ function TargetPanel({
                   <p className="text-lg font-bold text-slate-600 dark:text-slate-300">
                     {fmtWeight(weight)}
                   </p>
-                  {target.weight > 0 && (
+                  {target.weight > 0 && onAdjust && (
                     <div className="flex gap-1">
                       <button
                         onClick={() => onAdjust(userId, 'weight', -2.5)}
@@ -281,40 +297,31 @@ function TargetPanel({
 function WorkView({
   plan,
   state,
+  remaining,
 }: {
   plan: WorkoutPlan
   state: Extract<PlayerState, { phase: 'work' }>
+  remaining: number
 }) {
   const dispatch = usePlayerStore((s) => s.dispatch)
   const block = plan.blocks[state.blockIndex] as Extract<Block, { kind: 'superset' | 'circuit' }>
   const item = block.items[state.itemIndex]!
   const ex = exercisesById.get(item.exerciseId)
-  const [overrides, setOverrides] = useState<
-    Record<string, { targetReps?: number; weight?: number }>
-  >({})
-  // Reset adjustments when the exercise/set changes.
-  const key = `${state.blockIndex}:${state.round}:${state.itemIndex}`
-  const lastKey = useRef(key)
-  if (lastKey.current !== key) {
-    lastKey.current = key
-    if (Object.keys(overrides).length > 0) setOverrides({})
-  }
+  // Adjustments live in the reducer, not here: the set can end on its own
+  // timer, and a correction held in component state would be lost exactly then.
+  const overrides = state.overrides ?? {}
 
   const nextItem = block.items[state.itemIndex + 1]
   const nextEx = nextItem ? exercisesById.get(nextItem.exerciseId) : null
 
   const adjust = (userId: string, field: 'targetReps' | 'weight', delta: number) => {
-    setOverrides((o) => {
-      const target = item.perPerson[userId]!
-      const cur = {
-        targetReps: o[userId]?.targetReps ?? target.targetReps,
-        weight: o[userId]?.weight ?? target.weight,
-      }
-      const next = {
-        ...cur,
-        [field]: Math.max(field === 'weight' ? 0 : 1, cur[field] + delta),
-      }
-      return { ...o, [userId]: next }
+    const target = item.perPerson[userId]!
+    const current = overrides[userId]?.[field] ?? target[field]
+    dispatch({
+      type: 'ADJUST',
+      now: Date.now(),
+      userId,
+      target: { [field]: Math.max(field === 'weight' ? 0 : 1, current + delta) },
     })
   }
 
@@ -324,24 +331,17 @@ function WorkView({
         {block.label} · Round {state.round + 1}/{block.rounds}
       </p>
       <h2 className="mt-1 text-3xl font-extrabold tracking-tight">{ex?.name ?? item.exerciseId}</h2>
-      {ex && (
-        <div className="mt-3">
-          <ExerciseMedia ex={ex} />
-        </div>
-      )}
+      <div className="mt-3 grid items-center gap-3 sm:grid-cols-[1fr_auto]">
+        <div>{ex && <ExerciseMedia ex={ex} />}</div>
+        <RingTimer remaining={remaining} total={item.workSeconds} />
+      </div>
       <div className="mt-4">
         <TargetPanel item={item} overrides={overrides} onAdjust={adjust} />
       </div>
       {ex && <Cues ex={ex} />}
       <motion.button
         whileTap={{ scale: 0.96 }}
-        onClick={() =>
-          dispatch({
-            type: 'SET_DONE',
-            now: Date.now(),
-            overrides: Object.keys(overrides).length > 0 ? overrides : undefined,
-          })
-        }
+        onClick={() => dispatch({ type: 'SET_DONE', now: Date.now() })}
         className="mt-5 w-full max-w-xl rounded-2xl bg-indigo-600 py-4 text-xl font-extrabold text-white shadow-lg shadow-indigo-600/30 hover:bg-indigo-500"
       >
         Done ✓
@@ -359,6 +359,49 @@ function WorkView({
           Skip
         </button>
       </div>
+    </div>
+  )
+}
+
+/** Swapping dumbbells between two movements in a round — short and unmissable. */
+function ChangeoverView({
+  plan,
+  state,
+  remaining,
+}: {
+  plan: WorkoutPlan
+  state: Extract<PlayerState, { phase: 'changeover' }>
+  remaining: number
+}) {
+  const dispatch = usePlayerStore((s) => s.dispatch)
+  const block = plan.blocks[state.blockIndex] as Extract<Block, { kind: 'superset' | 'circuit' }>
+  const next = block.items[state.nextItemIndex]
+  const nextEx = next ? exercisesById.get(next.exerciseId) : null
+  return (
+    <div className="mx-auto max-w-2xl p-4 text-center">
+      <p className="text-sm font-bold tracking-widest text-amber-500 uppercase">Switch over</p>
+      <h2 className="mt-1 text-3xl font-extrabold tracking-tight">{nextEx?.name ?? 'Next up'}</h2>
+      <div className="mt-4">
+        <RingTimer remaining={remaining} total={CHANGEOVER_SECONDS} />
+      </div>
+      {nextEx && (
+        <>
+          <div className="mt-4">
+            <ExerciseMedia ex={nextEx} />
+          </div>
+          {next && (
+            <div className="mt-4">
+              <TargetPanel item={next} overrides={{}} />
+            </div>
+          )}
+        </>
+      )}
+      <button
+        onClick={() => dispatch({ type: 'SKIP', now: Date.now() })}
+        className="mt-4 rounded-xl px-4 py-2 text-sm font-semibold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+      >
+        Skip →
+      </button>
     </div>
   )
 }
@@ -434,11 +477,7 @@ function BlockTransitionView({
   remaining: number
 }) {
   const dispatch = usePlayerStore((s) => s.dispatch)
-  const feedbackGiven = usePlayerStore((s) => s.feedbackGiven)
-  const prevBlock = plan.blocks[state.nextBlockIndex - 1]
   const nextBlock = plan.blocks[state.nextBlockIndex]
-  const prevWork =
-    prevBlock && (prevBlock.kind === 'superset' || prevBlock.kind === 'circuit') ? prevBlock : null
   const nextLabel = !nextBlock
     ? 'Finish'
     : nextBlock.kind === 'cooldown'
@@ -449,17 +488,60 @@ function BlockTransitionView({
 
   return (
     <div className="mx-auto max-w-2xl p-4 text-center">
-      <p className="text-sm font-bold tracking-widest text-indigo-500 uppercase">
-        {prevWork ? 'Block done! 🎉' : 'Get ready'}
-      </p>
+      <p className="text-sm font-bold tracking-widest text-indigo-500 uppercase">Get ready</p>
       <h2 className="mt-1 text-2xl font-extrabold">Up next: {nextLabel}</h2>
       <div className="mt-4">
-        <RingTimer remaining={remaining} total={20} />
+        <RingTimer remaining={remaining} total={BLOCK_TRANSITION_SECONDS} />
       </div>
-      {prevWork && (
-        <div className="mx-auto mt-4 max-w-xl space-y-3 text-left">
-          <p className="text-center text-sm font-semibold text-slate-500">How was that block?</p>
-          {prevWork.items.map((item) => {
+      <button
+        onClick={() => dispatch({ type: 'SKIP', now: Date.now() })}
+        className="mt-4 rounded-xl bg-slate-100 px-4 py-2 text-sm font-bold dark:bg-slate-800"
+      >
+        Start now →
+      </button>
+    </div>
+  )
+}
+
+/**
+ * The block gate: the session's only required interaction, ~4 taps in an hour.
+ *
+ * It holds — no countdown ring, nothing expiring underneath them — because it
+ * is a presence check, not a rest. Continue alone is a complete answer: an
+ * unrated exercise records "just right", which is what a human confirming the
+ * block actually means, and keeps progression moving without demanding taps.
+ */
+function BlockGateView({
+  plan,
+  state,
+}: {
+  plan: WorkoutPlan
+  state: Extract<PlayerState, { phase: 'block_gate' }>
+}) {
+  const dispatch = usePlayerStore((s) => s.dispatch)
+  const block = plan.blocks[state.blockIndex]
+  const done = block && (block.kind === 'superset' || block.kind === 'circuit') ? block : null
+  const nextBlock = plan.blocks[state.nextBlockIndex]
+  const nextLabel = !nextBlock
+    ? 'Finish'
+    : nextBlock.kind === 'cooldown'
+      ? 'Cool-down stretch'
+      : nextBlock.kind === 'warmup'
+        ? 'Warm-up'
+        : nextBlock.label
+
+  return (
+    <div className="mx-auto max-w-2xl p-4 text-center">
+      <p className="text-sm font-bold tracking-widest text-emerald-500 uppercase">
+        {done?.label ?? 'Block'} done! 🎉
+      </p>
+      <h2 className="mt-1 text-2xl font-extrabold">Up next: {nextLabel}</h2>
+      {done && (
+        <div className="mx-auto mt-5 max-w-xl space-y-3 text-left">
+          <p className="text-center text-sm font-semibold text-slate-500">
+            How was that? (optional — Continue means “just right”)
+          </p>
+          {done.items.map((item) => {
             const ex = exercisesById.get(item.exerciseId)
             return (
               <div
@@ -470,7 +552,7 @@ function BlockTransitionView({
                 <div className="mt-2 grid gap-2 sm:grid-cols-2">
                   {Object.keys(item.perPerson).map((userId) => {
                     const profile = profileById(userId) ?? PROFILES[0]!
-                    const chosen = feedbackGiven[`${userId}:${item.exerciseId}`]
+                    const chosen = state.ratings[`${userId}:${item.exerciseId}`]
                     return (
                       <div key={userId} className="flex items-center justify-between gap-2">
                         <span className={`text-xs font-bold uppercase ${profile.accent.text}`}>
@@ -505,11 +587,20 @@ function BlockTransitionView({
           })}
         </div>
       )}
-      <button
-        onClick={() => dispatch({ type: 'SKIP', now: Date.now() })}
-        className="mt-4 rounded-xl bg-slate-100 px-4 py-2 text-sm font-bold dark:bg-slate-800"
+      <motion.button
+        whileTap={{ scale: 0.96 }}
+        onClick={() => dispatch({ type: 'CONTINUE', now: Date.now() })}
+        className="mt-5 w-full max-w-xl rounded-2xl bg-indigo-600 py-4 text-xl font-extrabold text-white shadow-lg shadow-indigo-600/30 hover:bg-indigo-500"
       >
-        Start now →
+        Continue →
+      </motion.button>
+      {/* Ending here is a completion, not an abandon: the rest was never
+          programmed, so it does not count against them. */}
+      <button
+        onClick={() => dispatch({ type: 'FINISH_EARLY', now: Date.now() })}
+        className="mt-3 rounded-xl px-4 py-2 text-sm font-semibold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+      >
+        Finish here
       </button>
     </div>
   )
@@ -592,7 +683,11 @@ export default function PlayerScreen() {
       const now = Date.now()
       setNowMs(now)
       const s = usePlayerStore.getState().state
-      if ('endsAt' in s) {
+      // The gate has no deadline to render, but it still has to be able to
+      // conclude that nobody is here — so it needs the tick too.
+      if (s.phase === 'block_gate') {
+        if (now >= s.pauseAt) usePlayerStore.getState().dispatch({ type: 'TIMER_FIRED', now })
+      } else if ('endsAt' in s) {
         if (now >= s.endsAt) {
           usePlayerStore.getState().dispatch({ type: 'TIMER_FIRED', now })
         } else {
@@ -743,11 +838,17 @@ export default function PlayerScreen() {
                 />
               )
             })()}
-          {state.phase === 'work' && <WorkView plan={plan} state={state} />}
+          {state.phase === 'work' && (
+            <WorkView plan={plan} state={state} remaining={remaining} />
+          )}
+          {state.phase === 'changeover' && (
+            <ChangeoverView plan={plan} state={state} remaining={remaining} />
+          )}
           {state.phase === 'rest' && <RestView plan={plan} state={state} remaining={remaining} />}
           {state.phase === 'block_transition' && (
             <BlockTransitionView plan={plan} state={state} remaining={remaining} />
           )}
+          {state.phase === 'block_gate' && <BlockGateView plan={plan} state={state} />}
           {state.phase === 'complete' && <CompleteView />}
         </motion.div>
       </div>

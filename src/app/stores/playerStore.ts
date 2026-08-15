@@ -29,11 +29,18 @@ export interface CompletionSummary {
   people: PersonSummary[]
 }
 
-function plannedSetsPerPerson(plan: WorkoutPlan): number {
+/**
+ * Sets programmed for one person. `throughBlockIndex` is what "cut it short"
+ * needs: ending on purpose at a block boundary means the later blocks were
+ * never programmed, so counting them would report a session they chose to
+ * finish as one they only two-thirds did.
+ */
+function plannedSetsPerPerson(plan: WorkoutPlan, throughBlockIndex?: number): number {
   let sets = 0
-  for (const b of plan.blocks) {
+  plan.blocks.forEach((b, i) => {
+    if (throughBlockIndex !== undefined && i > throughBlockIndex) return
     if (b.kind === 'superset' || b.kind === 'circuit') sets += b.rounds * b.items.length
-  }
+  })
   return sets
 }
 
@@ -143,7 +150,7 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
           }))
           break
         case 'SESSION_COMPLETE': {
-          const setsPlanned = plannedSetsPerPerson(plan)
+          const setsPlanned = plannedSetsPerPerson(plan, e.plannedThroughBlockIndex)
           const durationSeconds = Math.round((event.now - startedAt) / 1000)
           const counts = get().setsLogged
           // XP shown = derived-XP delta, so the toast can never disagree with

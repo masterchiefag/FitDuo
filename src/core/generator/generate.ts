@@ -1,7 +1,7 @@
 import { allCanPerform } from '../catalog/equipment'
 import type { Exercise, Pattern } from '../catalog/types'
 import { daysBetween, weekdayIndex } from '../dates'
-import { BLOCK_TRANSITION_SECONDS } from '../player/reducer'
+import { BLOCK_TRANSITION_SECONDS, CHANGEOVER_SECONDS } from '../player/reducer'
 import { fnv1a32, mulberry32, pick, shuffle } from './prng'
 import { nextTarget } from './progression'
 import type {
@@ -14,13 +14,33 @@ import type {
   WorkoutPlan,
 } from './types'
 
-export const DURATION_MIN_S = 3000 // 50 min
-export const DURATION_MAX_S = 3600 // 60 min
+/** A normal session: 55 minutes. Everything else is this, scaled. */
+export const DEFAULT_TARGET_SECONDS = 3300
+
+/** Anything under this is a `short` session — its own mode and XP rule. */
+export const SHORT_SESSION_MAX_S = 2700 // 45 min
+
+/**
+ * How close to the requested length a plan has to land. Duration is an input
+ * now, so the band has to be a function of it: a fixed 50–60 min window would
+ * make every 20-minute request unsatisfiable by construction.
+ */
+const BAND_TOLERANCE = 0.09
+
+export function durationBand(targetSeconds: number): [min: number, max: number] {
+  return [
+    Math.round(targetSeconds * (1 - BAND_TOLERANCE)),
+    Math.round(targetSeconds * (1 + BAND_TOLERANCE)),
+  ]
+}
+
+export const [DURATION_MIN_S, DURATION_MAX_S] = durationBand(DEFAULT_TARGET_SECONDS)
+
 const WARMUP_ITEMS = 7
 const WARMUP_SECONDS = 40
 const COOLDOWN_ITEMS = 5
 const COOLDOWN_SECONDS = 60
-// The player's between-block pause — shared so estimates match real sessions.
+// The player's own pauses — shared so estimates match real sessions.
 const TRANSITION_S = BLOCK_TRANSITION_SECONDS
 const NO_REPEAT_DAYS = 3
 const WEEKLY_TARGET_SETS = 10
@@ -217,12 +237,18 @@ function setSeconds(ex: Exercise, target: PersonTarget): number {
   return ex.setupSeconds + target.targetReps * ex.secondsPerRep * sides
 }
 
-function workItemSeconds(byId: Map<string, Exercise>, item: WorkItem): number {
-  const ex = byId.get(item.exerciseId)!
-  return Math.max(...Object.values(item.perPerson).map((t) => setSeconds(ex, t)))
+/** The set's length: the MAX across participants — they lift simultaneously. */
+export function workItemSeconds(ex: Exercise, perPerson: Record<string, PersonTarget>): number {
+  return Math.max(...Object.values(perPerson).map((t) => setSeconds(ex, t)))
 }
 
-export function estimatePlanSeconds(byId: Map<string, Exercise>, blocks: Block[]): number {
+/**
+ * How long the plan actually takes to run, including every pause the player
+ * inserts. The changeovers are the load-bearing part: 15s between different
+ * movements inside a round is ~3 minutes a session, and leaving them out made
+ * `fitToBudget` plan a session that always overran.
+ */
+export function estimatePlanSeconds(blocks: Block[]): number {
   // One transition BETWEEN blocks, not one per block — the last block runs
   // straight into the celebration.
   let total = Math.max(0, blocks.length - 1) * TRANSITION_S
@@ -230,40 +256,69 @@ export function estimatePlanSeconds(byId: Map<string, Exercise>, blocks: Block[]
     if (b.kind === 'warmup' || b.kind === 'cooldown' || b.kind === 'mobility') {
       total += b.items.reduce((a, i) => a + i.seconds, 0)
     } else {
-      const round = b.items.reduce((a, i) => a + workItemSeconds(byId, i), 0)
-      total += b.rounds * round + (b.rounds - 1) * b.restSeconds
+      const round = b.items.reduce((a, i) => a + i.workSeconds, 0)
+      total += b.rounds * (round + changeoversPerRound(b.items) * CHANGEOVER_SECONDS)
+      total += (b.rounds - 1) * b.restSeconds
     }
   }
   return total
 }
 
+/** Changeovers sit between DIFFERENT consecutive movements, never on the round
+ *  boundary — that edge is rest (or the block gate). */
+function changeoversPerRound(items: WorkItem[]): number {
+  let n = 0
+  for (let i = 1; i < items.length; i++) {
+    if (items[i]!.exerciseId !== items[i - 1]!.exerciseId) n++
+  }
+  return n
+}
+
 type WorkBlock = Extract<Block, { kind: 'superset' | 'circuit' }>
 
-/** Deterministic, bounded fitting into [DURATION_MIN_S, DURATION_MAX_S]. */
-function fitToBudget(byId: Map<string, Exercise>, blocks: Block[]): Block[] {
+const MIN_ROUNDS = 2
+const MAX_ROUNDS = 4
+
+/**
+ * Deterministic, bounded fitting into the band around `targetSeconds`.
+ *
+ * Three levers, coarsest first: how many work blocks there are, how many rounds
+ * each runs, and how long the rests are. The first is what makes a 20-minute
+ * request possible at all — no amount of rest-trimming fits four blocks and a
+ * seven-move warm-up into twenty minutes.
+ */
+function fitToBudget(blocks: Block[], [minS, maxS]: [number, number]): Block[] {
   const work = () =>
     blocks.filter((b): b is WorkBlock => b.kind === 'superset' || b.kind === 'circuit')
-  const estimate = () => estimatePlanSeconds(byId, blocks)
+  const estimate = () => estimatePlanSeconds(blocks)
 
-  // Coarse: add/remove rounds (bounded passes).
-  for (let guard = 0; guard < 8 && estimate() < DURATION_MIN_S; guard++) {
-    const target = work().find((b) => b.rounds < 4)
-    if (!target) break
-    target.rounds += 1
+  const fitRounds = () => {
+    for (let guard = 0; guard < 8 && estimate() < minS; guard++) {
+      const target = work().find((b) => b.rounds < MAX_ROUNDS)
+      if (!target) break
+      target.rounds += 1
+    }
+    for (let guard = 0; guard < 8 && estimate() > maxS; guard++) {
+      const target = [...work()].reverse().find((b) => b.rounds > MIN_ROUNDS)
+      if (!target) break
+      target.rounds -= 1
+    }
   }
-  for (let guard = 0; guard < 8 && estimate() > DURATION_MAX_S; guard++) {
-    const target = [...work()].reverse().find((b) => b.rounds > 2)
-    if (!target) break
-    target.rounds -= 1
+
+  // Structural: still over budget with the rounds floored means there is simply
+  // one block too many. Drop from the end (the finisher goes first).
+  for (let guard = 0; guard < 8; guard++) {
+    fitRounds()
+    if (estimate() <= maxS) break
+    const blocksOfWork = work()
+    if (blocksOfWork.length <= 1) break
+    const last = blocksOfWork[blocksOfWork.length - 1]!
+    blocks = blocks.filter((b) => b !== last)
   }
 
   // Fine: distribute the remaining gap across rest periods (45–150s each).
   const gap = () =>
-    estimate() < DURATION_MIN_S
-      ? DURATION_MIN_S - estimate()
-      : estimate() > DURATION_MAX_S
-        ? DURATION_MAX_S - estimate()
-        : 0
+    estimate() < minS ? minS - estimate() : estimate() > maxS ? maxS - estimate() : 0
   for (let guard = 0; guard < 40 && gap() !== 0; guard++) {
     const restSlots = work().reduce((a, b) => a + (b.rounds - 1), 0)
     if (restSlots === 0) break
@@ -286,9 +341,11 @@ function fitToBudget(byId: Map<string, Exercise>, blocks: Block[]): Block[] {
 
 export function generateWorkout(input: GeneratorInput): WorkoutPlan {
   const { catalog, dateISO, generatorVersion, householdId, participants, recentHistory } = input
-  const seed = fnv1a32(`${householdId}|${dateISO}|v${generatorVersion}`)
+  const targetSeconds = input.targetSeconds ?? DEFAULT_TARGET_SECONDS
+  // Duration is part of the plan's identity: a 20-minute Tuesday and a
+  // 55-minute Tuesday are different sessions, so they get different seeds.
+  const seed = fnv1a32(`${householdId}|${dateISO}|${targetSeconds}|v${generatorVersion}`)
   const rng = mulberry32(seed)
-  const byId = new Map(catalog.map((e) => [e.id, e]))
   const dayType = dayTypeFor(input.scheduledDays, dateISO)
   const template = TEMPLATES[dayType]
 
@@ -336,7 +393,7 @@ export function generateWorkout(input: GeneratorInput): WorkoutPlan {
     for (const p of participants) {
       perPerson[p.userId] = nextTarget(ex, p.availableWeights, p.progression[ex.id])
     }
-    return { exerciseId: ex.id, perPerson }
+    return { exerciseId: ex.id, perPerson, workSeconds: workItemSeconds(ex, perPerson) }
   }
 
   // Fixed call order: supersets in template order, then circuit, then warmup/cooldown.
@@ -355,30 +412,39 @@ export function generateWorkout(input: GeneratorInput): WorkoutPlan {
     items: template.circuit.map((p) => toWorkItem(selectForSlot(p, ctx))),
   }
 
+  // A short session gets a shorter warm-up and cool-down too — spending six of
+  // twenty minutes on arm circles is not a workout. Floors, not proportions,
+  // at the bottom: warming up is the part you skip last, not first.
+  const ratio = targetSeconds / DEFAULT_TARGET_SECONDS
+  const scale = (full: number, floor: number) =>
+    Math.max(floor, Math.min(full, Math.round(full * ratio)))
   const warmupPool = performable.filter((e) => e.role === 'warmup')
   const cooldownPool = performable.filter((e) => e.role === 'cooldown')
   const warmup: TimedItem[] = shuffle(rng, warmupPool)
-    .slice(0, WARMUP_ITEMS)
+    .slice(0, scale(WARMUP_ITEMS, 3))
     .map((e) => ({ exerciseId: e.id, seconds: WARMUP_SECONDS }))
   const cooldown: TimedItem[] = shuffle(rng, cooldownPool)
-    .slice(0, COOLDOWN_ITEMS)
+    .slice(0, scale(COOLDOWN_ITEMS, 2))
     .map((e) => ({ exerciseId: e.id, seconds: COOLDOWN_SECONDS }))
 
-  const blocks: Block[] = fitToBudget(byId, [
-    { kind: 'warmup', items: warmup },
-    ...supersetBlocks,
-    circuitBlock,
-    { kind: 'cooldown', items: cooldown },
-  ])
+  const blocks: Block[] = fitToBudget(
+    [
+      { kind: 'warmup', items: warmup },
+      ...supersetBlocks,
+      circuitBlock,
+      { kind: 'cooldown', items: cooldown },
+    ],
+    durationBand(targetSeconds),
+  )
 
   return {
     planVersion: 1,
     seed,
     dateISO,
-    mode: 'full',
+    mode: targetSeconds <= SHORT_SESSION_MAX_S ? 'short' : 'full',
     dayType,
     participantIds: participants.map((p) => p.userId),
-    estimatedSeconds: estimatePlanSeconds(byId, blocks),
+    estimatedSeconds: estimatePlanSeconds(blocks),
     blocks,
   }
 }
