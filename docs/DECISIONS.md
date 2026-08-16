@@ -43,6 +43,53 @@ imagined one is paid for by every future PR and buys a feeling of safety.
 
 ---
 
+## 2026-08-16 — Session 2 (R1 follow-along player)
+
+### Bugs, and the class of mistake behind each
+
+- **A test that restated the rule confirmed the bug it was written to catch.**
+  R1's block gate replaced the 20s `block_transition` after every work block,
+  but `estimatePlanSeconds` kept billing it — ~80s of phantom time a session,
+  which `fitToBudget` made room for by trimming real work (a 55-min request
+  programmed ~49 min while Today advertised ~51). The test recomputed the
+  estimate by hand *from the same rule the estimator uses*, so it agreed with
+  the arithmetic instead of checking it. → *Class: an assertion derived from the
+  implementation's own rule can only ever confirm it — assert against an
+  independent authority.* This repo already knew that: `tests/generator.test.ts`
+  deliberately checks equipment against raw `requires` data rather than calling
+  `canPerform`, and says why in a comment ten lines above where the bad test was
+  written. Encoded as: the estimate is now checked by *running the reducer* over
+  the plan and comparing elapsed time, so the estimator and the player cannot
+  drift again.
+- **A number verified by reading the label that printed it.** The browser drives
+  were load-bearing — they proved the hands-off flow, ADJUST scoping and the
+  gate pause — but "~51 min" on the Today card was the same wrong arithmetic
+  displaying itself, and looking at it proved nothing. → *Class: driving the UI
+  verifies behaviour nobody modelled; it does not verify a number whose only
+  witness is the code that computed it. That needs a second source.*
+- **An optional review step, skipped silently.** The Grok review was optional and
+  was skipped without saying so; run afterwards it found the estimate bug in one
+  round. → *Class: an optional step declined in silence is indistinguishable
+  from one forgotten.* Encoded in CLAUDE.md: one round is now mandatory per PR,
+  and declining a finding requires the reason in the PR.
+- **A red suite that had tested a different application.** `npm run e2e` uses
+  `reuseExistingServer` on a fixed port, and another project's dev server held
+  :5173 — all six specs failed against someone else's app, and every failure
+  looked like a real regression. → *Class: a pass/fail signal from shared mutable
+  infrastructure is not a signal until you know what it ran against.* Still
+  unfixed; the workaround is a throwaway config on a free port.
+
+### Practices that earned their keep
+
+- **An accelerated page clock** (`Date.now` overridden in the page) to drive a
+  55-minute session end to end in the browser. Everything — reducer deadlines,
+  the grace window, the rendered countdown — reads that one clock, so the
+  session is identical, only faster. The only way a follow-along flow gets
+  verified more than once.
+- **The pure reducer paying off**: "does the estimate match what the player
+  actually does?" was answerable in a unit test by running the player. No
+  browser, no wall clock, no mocking.
+
 ## 2026-08-15 — Who wins when the reviewer says stop
 
 Two process PRs took **24 reviews** (20 Grok, 4 `/code-review`) and touched no
