@@ -8,8 +8,9 @@ Duolingo-style guided dumbbell workout PWA for exactly two users (a couple shari
 
 1. Branch → build → **verify in a real browser** — a green suite is not a working app; the one bug that shipped was caught by driving the UI, not by review (docs/DECISIONS.md).
 2. `npm run typecheck && npm run test -- --run && npm run e2e` green.
-3. **One round of `scripts/dev/grok-review.sh diff` — mandatory, every PR.** Take what's real, decline the rest *with the reason in the PR*, ship. One round, not a loop: reviewer silence is never the goal, a working app is. Verification and review catch different things — the browser catches behaviour nobody modelled, review catches a number whose only witness is the code that computed it (2026-08-16, docs/DECISIONS.md).
-4. Open a PR with one paragraph: what, why, what you verified in the browser, and what the review found. Merge with `gh pr merge --merge` (never squash/rebase — `main` keeps every commit).
+3. **Open the PR first** — one paragraph: what, why, what you verified in the browser.
+4. **Then one round of `scripts/dev/grok-review.sh diff`, and `post` it to that PR — mandatory, every PR.** The PR has to exist first or the review has nowhere to land and survives only as your summary of it, which is not a second opinion, it is you again. Read `$OUT` before posting (the remote is public). Take what's real, decline the rest *with the reason in a PR comment*, ship. One round, not a loop: reviewer silence is never the goal, a working app is. Verification and review catch different things — the browser catches behaviour nobody modelled, review catches a number whose only witness is the code that computed it (2026-08-16, docs/DECISIONS.md).
+5. Merge with `gh pr merge --merge` (never squash/rebase — `main` keeps every commit).
 
 ## Commands
 
