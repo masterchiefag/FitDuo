@@ -109,6 +109,87 @@ A trainer asks how you're feeling and works around your bad shoulder. Two couple
   - After ~2 weeks of a continuously renewed flag, the app suggests seeing a professional **once**, without nagging, and never offers a diagnosis or rehab protocol. FitDuo adjusts load and gets out of the way; it does not treat injuries.
 - **Permanent per-person blocklist** ("never show me this again") in Settings — deferred to post-launch per Grok; the in-session swap covers the real cases first.
 
+### R6 — The session says what it knows (the journey work; do before R2a)
+
+Added 2026-08-16 from [JOURNEY.md](JOURNEY.md), which argued the problem and has
+no backlog of its own. **The player requires nothing and therefore notices
+nothing**; every motivational mechanism we have sits on screens visited outside
+the session, while 95% of user-time is the 55 minutes inside it. This item is the
+visual half of the fix — no voice, no new engines, only signals the code already
+computes.
+
+**Why before R2a, not after:** deciding what the *screen* says is deciding what
+the *coach* will say. R2a then speaks lines that have already been read, argued
+about and revised in a form you can edit. Building the voice first means
+iterating on speech to settle content, which is the expensive order.
+
+Three surfaces, from JOURNEY Part 5. **Ship them as separate slices, each one a
+real session the household can train with** — three surfaces changing at once
+makes the feedback undifferentiated.
+
+- **R6a — the dead third** (rest + changeover, ~33% of every session at every
+  duration; the only surface where nothing competes with a rep). Position ("block
+  2 of 4 · 12 sets to go"), what to grab per person, and one earned fact:
+  *last time 7.5 kg × 10* beside today's target, **shown only when it differs**,
+  from a progression snapshot captured at Start (sets logged during the session
+  change `deriveProgression` immediately, and "last time" must keep meaning the
+  previous session). Includes marking the Finisher as the peak — distinct
+  treatment, the preceding gate announcing it as *framing only, never a control
+  competing with the ratings*, and its own gate acknowledging it ended.
+- **R6b — the landing** (cool-down → complete). Peak–end says these five minutes
+  and the last screen *are* the memory. Cool-down framed as the ending rather
+  than admin; the completion screen says something about the body — volume moved
+  this session — not only the scoreboard.
+- **R6c — the entry** (Today → Start). Deferred until R6a/b have been trained
+  with: the card reads as an invoice today, but that is the least-evidenced of
+  the three claims.
+
+**Constraints, from JOURNEY Parts 2 and 6** — these are why the item is cheap and
+must stay cheap: nothing motivational *inside* a set (a form cue is instruction,
+which reduces load; motivation spends attention); no copy that can only be true
+for one of two people on one screen; **no rep counter derived from planned
+tempo** (`workSeconds` carries `setupSeconds`, doubles for unilateral, and is
+maxed across two different rep targets, so it would lie); no "heaviest ever"
+(see the witness decision below); no new achievements; no XP anywhere inside the
+session.
+
+### Three decisions this plan now makes (2026-08-16)
+
+**1. Personal records stay dormant; progression gets its own celebration.**
+R1's follow-along contract logs uncorrected sets `assumed: true`, and
+`bestE1rm` deliberately ignores assumed sets, so PRs, the +15 XP PR bonus and
+`first_pr`/`pr_10` are currently unreachable. **Do not "fix" this by trusting
+assumed sets** — the exclusion is correct, and a gate tap means "we are here",
+not "I did ten". But the thing worth celebrating still happens: **the weight went
+up.** Add a *moved up* moment derived from `lastWeight` vs today's target — real,
+honest, already in the data, and it is what principle 2 means by *the prize for
+good work is better work*. PRs revive on their own the day a witness exists
+(R2b's "I did eight", or an upward adjust). Achievements keyed to PRs stay
+locked and are not renamed.
+
+**2. The 20-minute session gets a peak.** Measured across 20 dates, `fitToBudget`
+drops the `Finisher` at 20 minutes every time, so the shortest session is the
+only one that ends Strength C → cool-down. That is the session done on the worst
+day, and peak–end says its memory is the one that decides whether there is a
+tomorrow — while principle 5 says a light day is a feature, not a shrug. So the
+short session keeps a **1-round Finisher**, funded by one round from one strength
+block. Generator work (§A0's budget logic), sequenced after R6a — not a screen,
+and explicitly not something a mock may resolve.
+
+**3. Act 3 sustains the effort and escalates the information.** The middle of the
+session must not escalate intensity — the peak is the Finisher, and arriving at
+it spent means there is no peak. But "sustain" must not become a licence to leave
+the boring part boring, which is the complaint that started this. So: **intensity
+flat, interest rising.** Block A's rest screens are plain orientation; by block C
+they carry more — what the household has done today, what is left, the peak
+coming. One rule, testable in a real session, and the first thing to revise if it
+does not survive contact.
+
+**Deferred with a trigger, not decided: the endgame.** JOURNEY notes the level
+curve flattens near week ten and nothing takes over. Deciding that now, from zero
+sessions of real use, would be the same mistake this plan already made once by
+designing before anyone trained. Revisit after eight weeks of real sessions.
+
 ### Data-model amendments — apply to `supabase/migrations/0001_init.sql` **before R1 lands**, not during M4
 R5 ships before M4, so the schema must already carry what R1/R4/R5 produce or the first sync silently drops it (losing `assumed` flags means fake PRs and ratchets return).
 - `set_logs.assumed boolean not null default false`.
@@ -123,13 +204,17 @@ R5 ships before M4, so the schema must already carry what R1/R4/R5 produce or th
 6. **Cut from v1:** activity feed + emoji cheers, web push notifications, per-person schedules. M4 = auth + sync + derived partner card + onboarding. M5 loses push; keeps offline/install/polish/Lighthouse.
 
 ### Revised sequencing (one change at a time, each verified before the next starts)
-1. **R1** — follow-along player, incl. the short strength session. **One PR** — splitting was tried twice and rejected: every seam ships an app worse than both sides of it. Invariants and the done-drive are in the R1 section.
+1. ~~**R1**~~ — ✅ follow-along player shipped 2026-08-16 (PR #9), incl. the short strength session and the estimate fix (PR #10).
 2. ~~R4 mobility~~ — ✅ shipped early 2026-08-14, ahead of R1, because it needed no player rewrite (all-timed blocks)
-3. **R2a** — coach speaks, including the feedback prompt that keeps progression alive
-4. **R5** — readiness check + pain-aware generation + blocklist
-5. **R3a** — "Watch form ▶" video links
-6. **R2b** — voice commands (hands-free control)
-7. **M4** — accounts/sync/partner card/onboarding (slimmed) → **M5** PWA polish (no push) → **M6** launch
+3. **R6a** — the dead third: a rest screen worth reading, and the Finisher marked as the peak. *The first thing the household actually trains with after R1.*
+4. **R6b** — the landing: cool-down as an ending, completion as more than a receipt.
+5. **The 20-minute peak** (decision 2 above) — generator/budget work, small, straight after R6a.
+6. **R2a** — coach speaks *the lines R6 already wrote*, including the feedback prompt that keeps progression alive
+7. **R5** — readiness check + pain-aware generation + blocklist
+8. **R6c** — the entry (Today → Start), once R6a/b have been trained with
+9. **R3a** — "Watch form ▶" video links
+10. **R2b** — voice commands (hands-free control) — and the first real witness, which is what revives personal records (decision 1 above)
+11. **M4** — accounts/sync/partner card/onboarding (slimmed) → **M5** PWA polish (no push) → **M6** launch
 
 Post-launch: R2c conversational coach, R2d authored TTS, R3b self-recorded clips, activity feed, push.
 
