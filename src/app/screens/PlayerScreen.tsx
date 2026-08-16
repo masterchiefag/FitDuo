@@ -115,12 +115,37 @@ function ExerciseMedia({ ex, size = 'large' }: { ex: Exercise; size?: 'large' | 
   )
 }
 
-function RingTimer({ remaining, total }: { remaining: number; total: number }) {
+/**
+ * A bare countdown is ambiguous: the same ring meant "you are lifting" on the
+ * work screen and "you are getting ready" on the changeover, and they were
+ * told apart by a small word at the top. First real session: "first time I saw
+ * it I thought it had started the set." So a ring now carries its own meaning —
+ * colour AND a caption under the number saying what it is counting to.
+ */
+const RING_TONE = {
+  work: 'stroke-indigo-500',
+  ready: 'stroke-amber-500',
+  rest: 'stroke-emerald-500',
+} as const
+
+function RingTimer({
+  remaining,
+  total,
+  tone = 'work',
+  caption,
+  size = 'lg',
+}: {
+  remaining: number
+  total: number
+  tone?: keyof typeof RING_TONE
+  caption?: string
+  size?: 'lg' | 'xl'
+}) {
   const r = 64
   const c = 2 * Math.PI * r
   const frac = Math.max(0, Math.min(1, remaining / Math.max(1, total)))
   return (
-    <div className="relative mx-auto h-40 w-40">
+    <div className={`relative mx-auto ${size === 'xl' ? 'h-52 w-52' : 'h-40 w-40'}`}>
       <svg viewBox="0 0 160 160" className="h-full w-full -rotate-90">
         <circle
           cx="80"
@@ -133,15 +158,24 @@ function RingTimer({ remaining, total }: { remaining: number; total: number }) {
           cx="80"
           cy="80"
           r={r}
-          className="fill-none stroke-indigo-500 transition-[stroke-dashoffset] duration-200"
+          className={`fill-none ${RING_TONE[tone]} transition-[stroke-dashoffset] duration-200`}
           strokeWidth="10"
           strokeLinecap="round"
           strokeDasharray={c}
           strokeDashoffset={c * (1 - frac)}
         />
       </svg>
-      <div className="absolute inset-0 flex items-center justify-center text-4xl font-extrabold tabular-nums">
-        {Math.ceil(remaining)}
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span
+          className={`font-extrabold tabular-nums ${size === 'xl' ? 'text-6xl' : 'text-4xl'}`}
+        >
+          {Math.ceil(remaining)}
+        </span>
+        {caption && (
+          <span className="mt-0.5 text-[11px] font-bold tracking-wider text-slate-400 uppercase">
+            {caption}
+          </span>
+        )}
       </div>
     </div>
   )
@@ -205,6 +239,42 @@ function TimedView({
       >
         Skip →
       </button>
+    </div>
+  )
+}
+
+/**
+ * What the next block actually IS — the movements, not its label.
+ *
+ * A superset alternates its two exercises for every round, so a block is four
+ * sets of the same pair and a session feels like it owns two movements. The
+ * screen between blocks is the only moment that can say otherwise, and
+ * "Up next: Strength B" says nothing at all. First real session, first
+ * reaction: "I keep seeing lateral raises and chair dips only" — from someone
+ * who had stopped at the gate, one tap short of two different exercises.
+ */
+function NextUpPreview({ block }: { block: Block | undefined }) {
+  if (!block) return null
+  const rounds = block.kind === 'superset' || block.kind === 'circuit' ? block.rounds : null
+  return (
+    <div className="mx-auto mt-3 flex max-w-xl flex-wrap items-center justify-center gap-2">
+      {block.items.map((item, i) => {
+        const ex = exercisesById.get(item.exerciseId)
+        return (
+          <div
+            key={`${item.exerciseId}-${i}`}
+            className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-2 py-1.5 dark:border-slate-800 dark:bg-slate-900"
+          >
+            {ex && <ExerciseMedia ex={ex} size="small" />}
+            <span className="pr-1 text-sm font-semibold">{ex?.name ?? item.exerciseId}</span>
+          </div>
+        )
+      })}
+      {rounds !== null && (
+        <span className="text-xs font-semibold text-slate-400">
+          × {rounds} round{rounds === 1 ? '' : 's'}
+        </span>
+      )}
     </div>
   )
 }
@@ -327,13 +397,21 @@ function WorkView({
 
   return (
     <div className="mx-auto max-w-2xl p-4 text-center">
-      <p className="text-sm font-bold tracking-widest text-indigo-500 uppercase">
-        {block.label} · Round {state.round + 1}/{block.rounds}
-      </p>
-      <h2 className="mt-1 text-3xl font-extrabold tracking-tight">{ex?.name ?? item.exerciseId}</h2>
+      <div className="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-4 py-1.5">
+        <span className="text-sm font-extrabold tracking-widest text-white uppercase">
+          Go — {block.label} · Round {state.round + 1}/{block.rounds}
+        </span>
+      </div>
+      <h2 className="mt-2 text-3xl font-extrabold tracking-tight">{ex?.name ?? item.exerciseId}</h2>
       <div className="mt-3 grid items-center gap-3 sm:grid-cols-[1fr_auto]">
         <div>{ex && <ExerciseMedia ex={ex} />}</div>
-        <RingTimer remaining={remaining} total={item.workSeconds} />
+        <RingTimer
+          remaining={remaining}
+          total={item.workSeconds}
+          tone="work"
+          caption="left in set"
+          size="xl"
+        />
       </div>
       <div className="mt-4">
         <TargetPanel item={item} overrides={overrides} onAdjust={adjust} />
@@ -371,7 +449,14 @@ function WorkView({
   )
 }
 
-/** Swapping dumbbells between two movements in a round — short and unmissable. */
+/**
+ * The get-ready screen between two movements in a round.
+ *
+ * Deliberately NOT a smaller work screen: it leads with the instruction (pick
+ * this up), counts down to a start rather than to an end, and carries none of
+ * the work screen's controls. It is the only place that can tell you what is
+ * about to happen while your hands are still free.
+ */
 function ChangeoverView({
   plan,
   state,
@@ -385,30 +470,61 @@ function ChangeoverView({
   const block = plan.blocks[state.blockIndex] as Extract<Block, { kind: 'superset' | 'circuit' }>
   const next = block.items[state.nextItemIndex]
   const nextEx = next ? exercisesById.get(next.exerciseId) : null
+  const hold = nextEx ? holdSeconds(nextEx) : null
   return (
     <div className="mx-auto max-w-2xl p-4 text-center">
-      <p className="text-sm font-bold tracking-widest text-amber-500 uppercase">Switch over</p>
-      <h2 className="mt-1 text-3xl font-extrabold tracking-tight">{nextEx?.name ?? 'Next up'}</h2>
+      <div className="inline-flex items-center gap-2 rounded-full bg-amber-100 px-4 py-1.5 dark:bg-amber-950">
+        <span className="text-lg">🔄</span>
+        <span className="text-sm font-extrabold tracking-widest text-amber-700 uppercase dark:text-amber-300">
+          Get ready
+        </span>
+      </div>
+      <p className="mt-4 text-sm font-semibold text-slate-500">Coming up</p>
+      <h2 className="text-3xl font-extrabold tracking-tight">{nextEx?.name ?? 'Next up'}</h2>
+
+      {/* The one thing to DO right now: pick up the right weight. */}
+      {next && (
+        <div className="mx-auto mt-3 flex flex-wrap items-center justify-center gap-2">
+          {Object.entries(next.perPerson).map(([userId, target]) => {
+            const profile = profileById(userId) ?? PROFILES[0]!
+            return (
+              <div
+                key={userId}
+                className="rounded-2xl border-2 border-amber-300 bg-amber-50 px-4 py-2 dark:border-amber-800 dark:bg-amber-950"
+              >
+                <p className={`text-xs font-bold uppercase ${profile.accent.text}`}>
+                  {profile.name}
+                </p>
+                <p className="text-lg font-extrabold">
+                  {target.weight === 0 ? 'Bodyweight' : `Grab ${target.weight} kg`}
+                </p>
+                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                  {hold ? `${hold}s hold` : `${target.targetReps} reps`}
+                </p>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
       <div className="mt-4">
-        <RingTimer remaining={remaining} total={CHANGEOVER_SECONDS} />
+        <RingTimer
+          remaining={remaining}
+          total={CHANGEOVER_SECONDS}
+          tone="ready"
+          caption="to start"
+        />
       </div>
       {nextEx && (
-        <>
-          <div className="mt-4">
-            <ExerciseMedia ex={nextEx} />
-          </div>
-          {next && (
-            <div className="mt-4">
-              <TargetPanel item={next} overrides={{}} />
-            </div>
-          )}
-        </>
+        <div className="mt-3">
+          <ExerciseMedia ex={nextEx} />
+        </div>
       )}
       <button
         onClick={() => dispatch({ type: 'SKIP', now: Date.now() })}
-        className="mt-4 rounded-xl px-4 py-2 text-sm font-semibold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+        className="mt-4 rounded-xl bg-amber-500 px-5 py-2 text-sm font-extrabold text-white hover:bg-amber-400"
       >
-        Skip →
+        I&rsquo;m ready →
       </button>
     </div>
   )
@@ -431,7 +547,12 @@ function RestView({
     <div className="mx-auto max-w-2xl p-4 text-center">
       <p className="text-sm font-bold tracking-widest text-emerald-500 uppercase">Rest</p>
       <div className="mt-6">
-        <RingTimer remaining={remaining} total={block.restSeconds} />
+        <RingTimer
+          remaining={remaining}
+          total={block.restSeconds}
+          tone="rest"
+          caption="rest"
+        />
       </div>
       {nextEx && (
         <div className="mx-auto mt-6 flex max-w-sm items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3 text-left dark:border-slate-800 dark:bg-slate-900">
@@ -498,8 +619,14 @@ function BlockTransitionView({
     <div className="mx-auto max-w-2xl p-4 text-center">
       <p className="text-sm font-bold tracking-widest text-indigo-500 uppercase">Get ready</p>
       <h2 className="mt-1 text-2xl font-extrabold">Up next: {nextLabel}</h2>
+      <NextUpPreview block={nextBlock} />
       <div className="mt-4">
-        <RingTimer remaining={remaining} total={BLOCK_TRANSITION_SECONDS} />
+        <RingTimer
+          remaining={remaining}
+          total={BLOCK_TRANSITION_SECONDS}
+          tone="ready"
+          caption="to start"
+        />
       </div>
       <button
         onClick={() => dispatch({ type: 'SKIP', now: Date.now() })}
@@ -544,6 +671,7 @@ function BlockGateView({
         {done?.label ?? 'Block'} done! 🎉
       </p>
       <h2 className="mt-1 text-2xl font-extrabold">Up next: {nextLabel}</h2>
+      <NextUpPreview block={nextBlock} />
       {done && (
         <div className="mx-auto mt-5 max-w-xl space-y-3 text-left">
           <p className="text-center text-sm font-semibold text-slate-500">

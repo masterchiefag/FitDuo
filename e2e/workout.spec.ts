@@ -26,6 +26,11 @@ async function driveSessionToCompletion(page: Page) {
       await startNow.click()
       continue
     }
+    const ready = page.getByRole('button', { name: /I.m ready/ })
+    if (await ready.isVisible().catch(() => false)) {
+      await ready.click()
+      continue
+    }
     const skip = page.getByRole('button', { name: 'Skip →' })
     if (await skip.isVisible().catch(() => false)) {
       await skip.click()
@@ -126,7 +131,7 @@ test('an adjustment is logged for that set and does not leak to the next', async
   expect(first[1].assumed).toBe(true)
 
   // Next exercise: back to the prescribed target for everyone.
-  await page.getByRole('button', { name: 'Skip →' }).click() // through the changeover
+  await page.getByRole('button', { name: /I.m ready/ }).click() // through the changeover
   await expect(page.getByRole('button', { name: 'Done ✓' })).toBeVisible()
   await page.getByRole('button', { name: 'Done ✓' }).click()
   const second = await page.evaluate(() =>
@@ -152,6 +157,11 @@ test('the block gate records a rating, and assumes "right" for the rest', async 
     const done = page.getByRole('button', { name: 'Done ✓' })
     if (await done.isVisible().catch(() => false)) {
       await done.click()
+      continue
+    }
+    const ready = page.getByRole('button', { name: /I.m ready/ })
+    if (await ready.isVisible().catch(() => false)) {
+      await ready.click()
       continue
     }
     const skip = page.getByRole('button', { name: 'Skip →' })
