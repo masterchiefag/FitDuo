@@ -551,3 +551,86 @@ describe('equipment eligibility', () => {
     }
   })
 })
+
+/**
+ * The rest screen's one earned fact — "last time 7.5 kg × 10" — comes off the
+ * plan, not off the player.
+ *
+ * MUTATION-CHECKED: deriving it in the player instead is the failure this
+ * guards (PLAN §R6a). `deriveProgression` keys to the exercise's most recent
+ * SESSION, so the session's first logged set makes today that session and last
+ * becomes today — right for one set, gone for the rest of the block. Frozen at
+ * generate time it cannot move, and it survives a killed tab.
+ */
+describe('last time is baked into the plan', () => {
+  const base: GeneratorInput = {
+    householdId: 'home',
+    dateISO: '2026-08-16',
+    generatorVersion: 1,
+    catalog,
+    scheduledDays: [true, true, true, true, true, false, false],
+    participants: [
+      { userId: 'p1', availableWeights: [5, 7.5, 10], equipment: [...HOME_KIT], maxTier: 2, progression: {} },
+      { userId: 'p2', availableWeights: [2.5, 5], equipment: [...HOME_KIT], maxTier: 2, progression: {} },
+    ],
+    recentHistory: [],
+  }
+
+  const historyFor = (weight: number, reps: number[]): Record<string, ExerciseProgress> =>
+    Object.fromEntries(
+      catalog
+        .filter((e) => e.role === 'main')
+        .map((e) => [
+          e.id,
+          {
+            lastWeight: weight,
+            lastTargetReps: reps[0] ?? 10,
+            lastActualReps: reps,
+            lastFeedback: null,
+            bestE1rm: 0,
+          } satisfies ExerciseProgress,
+        ]),
+    )
+
+  const workItems = (plan: ReturnType<typeof generateWorkout>) =>
+    plan.blocks
+      .filter((b) => b.kind === 'superset' || b.kind === 'circuit')
+      .flatMap((b) => (b.kind === 'superset' || b.kind === 'circuit' ? b.items : []))
+
+  it('carries what each person actually did, per person', () => {
+    const plan = generateWorkout({
+      ...base,
+      participants: [
+        { ...base.participants[0]!, progression: historyFor(7.5, [10, 10, 9]) },
+        { ...base.participants[1]!, progression: historyFor(2.5, [12, 12, 12]) },
+      ],
+    })
+    const items = workItems(plan)
+    expect(items.length).toBeGreaterThan(0)
+    for (const item of items) {
+      // The set the progression state was read from — both numbers, one set.
+      expect(item.lastTime?.['p1']).toEqual({ weight: 7.5, reps: 9 })
+      expect(item.lastTime?.['p2']).toEqual({ weight: 2.5, reps: 12 })
+    }
+  })
+
+  it('says nothing about a movement nobody has done', () => {
+    for (const item of workItems(generateWorkout(base))) {
+      expect(item.lastTime).toBeUndefined()
+    }
+  })
+
+  it('is per person: one person’s history never speaks for the other', () => {
+    const plan = generateWorkout({
+      ...base,
+      participants: [
+        { ...base.participants[0]!, progression: historyFor(10, [8]) },
+        base.participants[1]!,
+      ],
+    })
+    for (const item of workItems(plan)) {
+      expect(item.lastTime?.['p1']).toEqual({ weight: 10, reps: 8 })
+      expect(item.lastTime?.['p2']).toBeUndefined()
+    }
+  })
+})

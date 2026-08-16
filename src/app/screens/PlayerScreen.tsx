@@ -7,7 +7,15 @@ import { PROFILES, profileById } from '../lib/profiles'
 import { loadSnapshot, clearSnapshot } from '../../infra/localstore'
 import { playCue } from '../../infra/audio'
 import { BLOCK_TRANSITION_SECONDS, CHANGEOVER_SECONDS } from '../../core/player/reducer'
-import type { Block, WorkItem, WorkoutPlan } from '../../core/generator/types'
+import { sessionPosition } from '../../core/player/position'
+import { lastTimeNews } from '../../core/player/lastTime'
+import type {
+  Block,
+  LastPerformance,
+  PersonTarget,
+  WorkItem,
+  WorkoutPlan,
+} from '../../core/generator/types'
 import type { Overrides, PlayerState } from '../../core/player/types'
 import type { Exercise } from '../../core/catalog/types'
 
@@ -15,6 +23,10 @@ import type { Exercise } from '../../core/catalog/types'
 
 const fmtWeight = (w: number) => (w === 0 ? 'bodyweight' : `${w} kg`)
 const holdSeconds = (ex: Exercise) => (ex.repRange[1] === 1 ? ex.secondsPerRep : null)
+/** The one thing to do before a set starts: pick up the right bell. */
+const grabLabel = (t: PersonTarget) => (t.weight === 0 ? 'Bodyweight' : `Grab ${t.weight} kg`)
+const lastTimeLabel = (last: LastPerformance) =>
+  last.weight === 0 ? `${last.reps} reps` : `${last.weight} kg × ${last.reps}`
 
 function phaseTotalSeconds(plan: WorkoutPlan, state: PlayerState): number {
   switch (state.phase) {
@@ -395,13 +407,29 @@ function WorkView({
     })
   }
 
+  // The last work block of every session that has one, resting 60s where the
+  // strength blocks rest 75: the generator already built a climax and the
+  // player rendered it in the same indigo pill as block one. Marked by KIND,
+  // never by its round count — that varies day to day (JOURNEY Part 5).
+  const isFinisher = block.kind === 'circuit'
+
   return (
     <div className="mx-auto max-w-2xl p-4 text-center">
-      <div className="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-4 py-1.5">
+      <div
+        className={`inline-flex items-center gap-2 rounded-full px-4 py-1.5 ${isFinisher ? 'bg-rose-600' : 'bg-indigo-600'}`}
+      >
         <span className="text-sm font-extrabold tracking-widest text-white uppercase">
-          Go — {block.label} · Round {state.round + 1}/{block.rounds}
+          {isFinisher ? '🔥 ' : 'Go — '}
+          {block.label} · Round {state.round + 1}/{block.rounds}
         </span>
       </div>
+      {/* Orientation, not encouragement: nothing motivational belongs inside a
+          set (JOURNEY principle 3). Where you are is instruction. */}
+      {isFinisher && (
+        <p className="mt-1 text-xs font-bold tracking-widest text-rose-500 uppercase">
+          Last block of the session
+        </p>
+      )}
       <h2 className="mt-2 text-3xl font-extrabold tracking-tight">{ex?.name ?? item.exerciseId}</h2>
       <div className="mt-3 grid items-center gap-3 sm:grid-cols-[1fr_auto]">
         <div>{ex && <ExerciseMedia ex={ex} />}</div>
@@ -495,9 +523,7 @@ function ChangeoverView({
                 <p className={`text-xs font-bold uppercase ${profile.accent.text}`}>
                   {profile.name}
                 </p>
-                <p className="text-lg font-extrabold">
-                  {target.weight === 0 ? 'Bodyweight' : `Grab ${target.weight} kg`}
-                </p>
+                <p className="text-lg font-extrabold">{grabLabel(target)}</p>
                 <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
                   {hold ? `${hold}s hold` : `${target.targetReps} reps`}
                 </p>
@@ -530,6 +556,15 @@ function ChangeoverView({
   )
 }
 
+/**
+ * Rest — a quarter of the session on its own, a third with the changeovers, and
+ * the only surface where nothing competes with a rep (JOURNEY Part 3).
+ *
+ * So it carries the three things a trainer would say here and nowhere else:
+ * where you are in the session, what to pick up next — per person, because rest
+ * is when you set up — and the one earned fact, last time beside today, shown
+ * only when the two differ.
+ */
 function RestView({
   plan,
   state,
@@ -543,10 +578,19 @@ function RestView({
   const block = plan.blocks[state.blockIndex] as Extract<Block, { kind: 'superset' | 'circuit' }>
   const next = block.items[state.nextItemIndex]
   const nextEx = next ? exercisesById.get(next.exerciseId) : null
+  const hold = nextEx ? holdSeconds(nextEx) : null
+  // Structural, from the plan — not from sets logged, which a SKIP makes drift.
+  const position = sessionPosition(plan, state)
   return (
     <div className="mx-auto max-w-2xl p-4 text-center">
       <p className="text-sm font-bold tracking-widest text-emerald-500 uppercase">Rest</p>
-      <div className="mt-6">
+      {position && (
+        <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">
+          Block {position.blockNumber} of {position.blockCount} · {position.setsToGo} set
+          {position.setsToGo === 1 ? '' : 's'} to go
+        </p>
+      )}
+      <div className="mt-5">
         <RingTimer
           remaining={remaining}
           total={block.restSeconds}
@@ -554,21 +598,53 @@ function RestView({
           caption="rest"
         />
       </div>
-      {nextEx && (
-        <div className="mx-auto mt-6 flex max-w-sm items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3 text-left dark:border-slate-800 dark:bg-slate-900">
-          <ExerciseMedia ex={nextEx} size="small" />
-          <div>
-            <p className="text-xs text-slate-400">
-              Next · Round {state.round + 1}/{block.rounds}
-            </p>
-            <p className="font-bold">{nextEx.name}</p>
-            {/* Rest is exactly when you get set up, so the note has to be here
-                too — the thumbnail beside it is the misleading gym frame. */}
-            {nextEx.setupNote && (
-              <p className="mt-0.5 text-xs text-slate-500 italic dark:text-slate-400">
-                {nextEx.setupNote}
+      {nextEx && next && (
+        <div className="mx-auto mt-6 max-w-xl rounded-2xl border border-slate-200 bg-white p-3 text-left dark:border-slate-800 dark:bg-slate-900">
+          <div className="flex items-center gap-3">
+            <ExerciseMedia ex={nextEx} size="small" />
+            <div>
+              <p className="text-xs text-slate-400">
+                Next · Round {state.round + 1}/{block.rounds}
               </p>
-            )}
+              <p className="font-bold">{nextEx.name}</p>
+              {/* Rest is exactly when you get set up, so the note has to be here
+                  too — the thumbnail beside it is the misleading gym frame. */}
+              {nextEx.setupNote && (
+                <p className="mt-0.5 text-xs text-slate-500 italic dark:text-slate-400">
+                  {nextEx.setupNote}
+                </p>
+              )}
+            </div>
+          </div>
+          <div
+            className={`mt-3 grid gap-2 ${Object.keys(next.perPerson).length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}
+          >
+            {Object.entries(next.perPerson).map(([userId, target]) => {
+              const profile = profileById(userId) ?? PROFILES[0]!
+              // A hold has no reps to compare — "last time 1 rep" is not a fact.
+              const news = hold ? null : lastTimeNews(target, next.lastTime?.[userId])
+              return (
+                <div
+                  key={userId}
+                  className="rounded-xl border border-slate-200 bg-slate-50 p-2.5 dark:border-slate-800 dark:bg-slate-950"
+                >
+                  <p className={`text-xs font-bold uppercase ${profile.accent.text}`}>
+                    {profile.name}
+                  </p>
+                  <p className="mt-0.5 text-lg font-extrabold">{grabLabel(target)}</p>
+                  <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                    {hold ? `${hold}s hold` : `${target.targetReps} reps`}
+                  </p>
+                  {/* The prize for good work is better work: today's number
+                      beside the one it beat, and nothing when it hasn't moved. */}
+                  {news && (
+                    <p className="mt-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
+                      Last time {lastTimeLabel(news)}
+                    </p>
+                  )}
+                </div>
+              )
+            })}
           </div>
         </div>
       )}
@@ -664,13 +740,29 @@ function BlockGateView({
       : nextBlock.kind === 'warmup'
         ? 'Warm-up'
         : nextBlock.label
+  // Act 4 has two beats and they sit on different gates: this screen announces
+  // the peak that is coming, and the peak's own gate says it happened.
+  const finisherNext = nextBlock?.kind === 'circuit'
+  const finisherDone = done?.kind === 'circuit'
 
   return (
     <div className="mx-auto max-w-2xl p-4 text-center">
-      <p className="text-sm font-bold tracking-widest text-emerald-500 uppercase">
-        {done?.label ?? 'Block'} done! 🎉
+      <p
+        className={`text-sm font-bold tracking-widest uppercase ${finisherDone ? 'text-rose-500' : 'text-emerald-500'}`}
+      >
+        {finisherDone ? '🔥 Finisher done' : `${done?.label ?? 'Block'} done! 🎉`}
       </p>
       <h2 className="mt-1 text-2xl font-extrabold">Up next: {nextLabel}</h2>
+      {/* Framing, never a control — the ratings below are what keep progression
+          alive and are the only required tap in the hour (JOURNEY Part 5). */}
+      {finisherNext && (
+        <p className="mt-1 text-sm font-bold text-rose-500">🔥 Last block — the Finisher.</p>
+      )}
+      {finisherDone && (
+        <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">
+          That was the peak. The hard work is done.
+        </p>
+      )}
       <NextUpPreview block={nextBlock} />
       {done && (
         <div className="mx-auto mt-5 max-w-xl space-y-3 text-left">

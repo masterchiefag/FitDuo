@@ -56,9 +56,26 @@ export interface TimedItem {
   seconds: number
 }
 
+/** What one person did the last time this movement came up. */
+export interface LastPerformance {
+  weight: number // 0 = bodyweight
+  reps: number
+}
+
 export interface WorkItem {
   exerciseId: string
   perPerson: Record<string, PersonTarget> // userId -> target
+  /**
+   * Last time, per person — absent for a movement nobody has done yet.
+   *
+   * Frozen here at generate time, beside the targets, because the player must
+   * NOT derive it: `deriveProgression` keys to the exercise's most recent
+   * SESSION, so this session's first logged set makes today that session and
+   * "last" becomes today — the fact would then be right for one set and gone
+   * for the rest of the block. A plan-borne value also survives a killed tab,
+   * which a snapshot taken at Start would not (persist-on-Start is M4).
+   */
+  lastTime?: Record<string, LastPerformance> // userId -> what they did
   /**
    * How long this set runs, in seconds — the MAX across participants, since
    * they lift simultaneously with their own dumbbells (docs/DECISIONS.md).
