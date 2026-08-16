@@ -330,6 +330,17 @@ will pull in three directions, and three screens designed against a shape
 cohere. **Every mock gets checked against this. A screen that is good on its own
 and wrong for its act is wrong.**
 
+**Five acts, three surfaces — the acts are not the deliverables.** Part 3
+measured where the time goes and principle 3 puts the set off limits, which
+leaves exactly three things to draw:
+
+1. **the entry** — Today → Start (acts 1–2)
+2. **the dead third** — rest and changeover, plus the Finisher gate that
+   announces the peak (acts 3–4)
+3. **the landing** — cool-down → complete (act 5)
+
+Everything else is either working or forbidden.
+
 *(It lives here rather than in a file of its own — one document is the single
 source of truth for this thinking, which is the lesson of the page that was
 deleted on the day it shipped.)*
@@ -337,12 +348,25 @@ deleted on the day it shipped.)*
 ### The claim: the session already has a shape, and the player renders it flat
 
 The generator builds `warmup → Strength A → B → C → Finisher → cooldown`. That
-last block is not another block: it is **named `Finisher`, and authored with
-fewer rounds and shorter rest than the strength blocks** — 2 rounds against
-their 3–4, 60s against 75 ([generate.ts:411](../src/core/generator/generate.ts:411)).
-Structurally it is a climax. The player shows it in the same indigo pill as
-Strength A, announced by a gate identical to the other three. **Nothing in the
-UI knows the difference between the first block and the peak.**
+last block is not another block: it is **named `Finisher` and rests 60s where the
+strength blocks rest 75** ([generate.ts:411](../src/core/generator/generate.ts:411)).
+Structurally it is a climax.
+
+Be precise about which part of that is dependable, because a mock will treat it
+as a fixture. Across 60 generated plans (20 dates × three durations) the **rest
+gap and the label held every time**; the *round* count did not — at 55 minutes
+the Finisher runs 3 rounds on 3 of 20 days, because `fitToBudget` lifts it once
+the strength blocks are already at their ceiling. So Act 4's signal is **the
+label and the rest length, never "2 rounds versus 4"** — draw a Finisher mock
+around that number and the first `Go — Finisher · Round 1/3` makes the brief
+look wrong.
+
+And the gap is **treatment, not naming**: the work pill already prints
+`Finisher`, the gate before it already says "Up next: Finisher", Preview labels
+it too. What is identical is the *chrome* — same indigo pill, same countdown,
+and the same "Block done! 🎉" when the hardest block in the session ends. **A
+mock whose idea is to add a Finisher label is solving a problem that isn't
+there.**
 
 So the design job is to *express a shape that already exists in the data*, not
 to invent one. That is the cheap, safe version of this work, and it is why the
@@ -358,40 +382,69 @@ three surfaces are enough.
 | **4. The peak** | Finisher, 2 rounds | One moment of chosen effort, *marked as such* — announced at the gate before it, framed while it runs, acknowledged when it ends | A climax that arrives with the same "Block done! 🎉" as everything else |
 | **5. The landing** | cool-down (2–5 items) → complete | Write the memory. End **quieter than the peak, warmer than the start**; the last thing said is about the person, not the numbers; the threshold's promise gets paid | Five silent holds and then a receipt |
 
-**Act 4 resolves the tension Part 4 left open.** There *is* a legitimate place for
-"one more" — the gate before the Finisher. Hands are free, both people are
-listening, it precedes the effort rather than interrupting it, and it is
-addressed to the household rather than to one body. Principles 3 and 7 forbid
-the ask *inside a set*; they have no objection to it here. An ask that happens
-once a session is also an ask that still means something.
+**Act 4 has two beats, and they sit on different screens.** The *announcement*
+can only be Strength C's `block_gate`, because that is the last screen before the
+Finisher starts — hands free, both people listening, preceding the effort rather
+than interrupting it, addressed to the household rather than one body.
+Principles 3 and 7 forbid the ask *inside a set*; they have no objection to it
+there. **But that screen already has a job** — it is the presence check whose
+ratings keep progression alive, and it is the only required tap in the hour. So
+the announcement is *framing on that screen, never a second control competing
+with the ratings*. If a mock has to choose, the ratings win.
+
+The *acknowledgement* is the Finisher's own gate, after it ends — which is
+currently the same "Block done! 🎉" as block one, and is the cheaper, uncontested
+place to mark that the peak happened.
+
+An ask that happens once a session is also an ask that still means something.
 
 ### Two rules that hold the arc together
 
 **The volume curve.** The app is present at the edges and quiet in the middle of
 effort. Attention gets spent at four gates and the landing; everything else is
-ambient. This is the constraint R2a should be built against — a coach that talks
-during sets is a coach you mute.
+ambient. This is the constraint R2a should be built against — a coach that
+*motivates* during sets is a coach you mute.
 
-**Ritual carries the shape; content carries the variety.** The arc is *identical*
-every session. Only what happens inside it changes. That is what makes "zero
-decisions before the start" possible, and it is why week thirty is cheap.
+The distinction matters, because R2a is next and this sentence would otherwise
+contradict it: **PLAN §R2a reads form cues during the set, and should.** A cue
+is *instruction* — it reduces the cognitive load act 3 exists to reduce.
+Motivation is the thing that spends attention. Say what to do with the elbow;
+save "one more" for the gate.
+
+**Ritual carries the shape; content carries the variety.** The act *sequence* is
+the same every session and only its content changes — which is what makes "zero
+decisions before the start" possible and why week thirty is cheap. One
+exception, measured below: at 20 minutes act 4 is absent entirely.
 
 ### Measured, and one problem it found **[measured]**
 
-| Setting | Shape |
-|---|---|
-| 55 min | warm-up(7) → A/B/C, 4 rounds each → **Finisher** → cool-down(5) |
-| 35 min | warm-up(4) → A/B/C, 3 rounds → **Finisher** → cool-down(3) |
-| 20 min | warm-up(3) → A/B/C, 2 rounds → cool-down(2) |
+The skeleton `fitToBudget` *usually* produces — 20 dates per setting, with the
+most common outcome shown and the variation noted. **These are modal shapes, not
+invariants; nothing in a mock may depend on a round count.**
 
-**At 20 minutes the Finisher is dropped, so the short session is the only one
-with no peak** — it ends Strength C → cool-down. Peak–end then predicts the
-flattest memory comes from the session you do on your *worst* day, which is
+| Setting | Usual shape | Varies |
+|---|---|---|
+| 55 min | warm-up(7) → A/B/C at 4 rounds → **Finisher** → cool-down(5) | 16/20; Finisher runs 3 rounds on 3/20, one block drops to 3 on 1/20 |
+| 35 min | warm-up(4) → A/B/C at 3 rounds → **Finisher** → cool-down(3) | 17/20; one block drops to 2 on 3/20 |
+| 20 min | warm-up(3) → A/B/C at 2 rounds → cool-down(2) | 18/20; **Finisher absent 20/20** |
+
+**At 20 minutes the Finisher is dropped every time, so the short session is the
+only one with no peak** — it ends Strength C → cool-down. Peak–end then predicts
+the flattest memory comes from the session you do on your *worst* day, which is
 exactly the day the memory decides whether there is a tomorrow. Principle 5 says
 a light day is a feature; a light day that ends on a shrug is not.
 
-Recorded as an open product question for PLAN.md — it is a generator/budget
-decision, not something a mock can fix.
+**This is a fork that must be settled before any mock, and it cannot be settled
+by one**, because it is `fitToBudget` / session-shape work (PLAN §A0, §R4), not
+a screen:
+
+- **(a)** the 20-minute session stays peakless in v1, and mocks target 35/55; or
+- **(b)** the peak becomes budget-independent — the shortest session keeps a
+  smaller Finisher and loses a strength round instead.
+
+**Default is (a) unless decided otherwise**, because (b) is generator work that
+would eat the week the mocks are meant to have. Written here so it is a decision
+rather than a footnote; it belongs in PLAN.md the moment it is made.
 
 ### Scope
 
