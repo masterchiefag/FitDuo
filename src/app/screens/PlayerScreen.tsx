@@ -938,8 +938,20 @@ function CompleteView() {
               {/* What the body did, in the biggest type on the card. XP and the
                   streak are the scoreboard and still here — they are just no
                   longer the only thing this screen says (JOURNEY act 5).
-                  Bodyweight sessions have no tonnage, so they count reps. */}
-              {p.volumeKg > 0 ? (
+                  Bodyweight sessions have no tonnage, so they count reps; a
+                  session that logged no sets at all — every mobility session,
+                  and a strength session skipped to the first gate — has neither,
+                  and leads with what IS true rather than a zero (Grok, PR #23). */}
+              {p.reps === 0 ? (
+                <>
+                  <p className="mt-2 text-4xl font-extrabold">+{p.xp} XP</p>
+                  {p.setsPlanned > 0 && (
+                    <p className="mt-1 text-sm text-slate-500">
+                      {p.setsLogged}/{p.setsPlanned} sets
+                    </p>
+                  )}
+                </>
+              ) : p.volumeKg > 0 ? (
                 <>
                   <p className="mt-2 text-4xl font-extrabold tabular-nums">
                     {p.volumeKg.toLocaleString()}{' '}
@@ -960,8 +972,10 @@ function CompleteView() {
                 </>
               )}
               <p className="mt-3 text-sm font-bold text-slate-500 dark:text-slate-400">
-                +{p.xp} XP
-                {!summary.abandoned && <> · 🔥 {p.streak}-day streak</>}
+                {/* XP is already the hero when there was no work to report. */}
+                {p.reps > 0 && <>+{p.xp} XP</>}
+                {p.reps > 0 && !summary.abandoned && ' · '}
+                {!summary.abandoned && <>🔥 {p.streak}-day streak</>}
               </p>
             </motion.div>
           )
