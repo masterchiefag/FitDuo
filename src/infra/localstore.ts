@@ -67,3 +67,16 @@ export const loadFeedback = () => read<FeedbackEntry[]>(KEYS.feedback, [])
 export const appendSession = (record: SessionRecord) =>
   write(KEYS.sessions, [...read<SessionRecord[]>(KEYS.sessions, []), record])
 export const loadSessions = () => read<SessionRecord[]>(KEYS.sessions, [])
+
+/**
+ * Wipe everything this app has stored on this browser.
+ *
+ * Named keys only — `localStorage.clear()` is keyed per ORIGIN, so on
+ * localhost it would also take out whatever another project on :5173 left
+ * behind. Adding a key to `KEYS` is enough to have it cleared here; the test
+ * asserts that, because a key this forgets is a set log that keeps feeding
+ * `deriveProgression` after the user asked for a clean slate.
+ */
+export const clearAllLocalData = () => {
+  for (const key of Object.values(KEYS)) localStorage.removeItem(key)
+}
