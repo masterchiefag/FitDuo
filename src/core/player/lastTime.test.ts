@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { lastTimeNews } from './lastTime'
+import { lastTimeNews, movedUp } from './lastTime'
 
 const target = (targetReps: number, weight: number) => ({ targetReps, weight })
 
@@ -30,5 +30,23 @@ describe('lastTimeNews', () => {
       weight: 7.5,
       reps: 10,
     })
+  })
+})
+
+describe('movedUp', () => {
+  it('is the heavier bell, whatever the reps did', () => {
+    // Double progression drops back to the bottom of the range on a weight step.
+    expect(movedUp(target(8, 10), { weight: 7.5, reps: 12 })).toBe(true)
+  })
+
+  /** What a "too hard" tap produces next session — true, but not a prize. */
+  it('is false on a step down', () => {
+    expect(movedUp(target(8, 7.5), { weight: 10, reps: 8 })).toBe(false)
+    expect(movedUp(target(8, 0), { weight: 0, reps: 10 })).toBe(false)
+  })
+
+  it('is the extra rep when the bell is unchanged', () => {
+    expect(movedUp(target(11, 7.5), { weight: 7.5, reps: 10 })).toBe(true)
+    expect(movedUp(target(12, 0), { weight: 0, reps: 10 })).toBe(true)
   })
 })

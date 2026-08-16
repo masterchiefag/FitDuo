@@ -8,7 +8,7 @@ import { loadSnapshot, clearSnapshot } from '../../infra/localstore'
 import { playCue } from '../../infra/audio'
 import { BLOCK_TRANSITION_SECONDS, CHANGEOVER_SECONDS } from '../../core/player/reducer'
 import { sessionPosition } from '../../core/player/position'
-import { lastTimeNews } from '../../core/player/lastTime'
+import { lastTimeNews, movedUp } from '../../core/player/lastTime'
 import type {
   Block,
   LastPerformance,
@@ -291,6 +291,60 @@ function NextUpPreview({ block }: { block: Block | undefined }) {
   )
 }
 
+/**
+ * One person's card for the movement that is about to start: what to pick up,
+ * for how many, and the one earned fact when today's number has moved.
+ *
+ * Shared by rest AND changeover on purpose. Rest only ever previews item 0 of
+ * the next round, so a superset's second movement and the Finisher's 2nd and
+ * 3rd reach the floor through a changeover — five of nine movements in a
+ * 55-minute session. Rendering the fact on one screen only would compute it
+ * for those and show it for none (Grok, PR #22).
+ */
+function NextTargetCard({
+  userId,
+  target,
+  last,
+  hold,
+  tone,
+}: {
+  userId: string
+  target: PersonTarget
+  last: LastPerformance | undefined
+  /** Timed holds have no reps to compare — "last time 1 rep" is not a fact. */
+  hold: number | null
+  tone: 'ready' | 'rest'
+}) {
+  const profile = profileById(userId) ?? PROFILES[0]!
+  const news = hold ? null : lastTimeNews(target, last)
+  const up = news ? movedUp(target, news) : false
+  return (
+    <div
+      className={
+        tone === 'ready'
+          ? 'rounded-2xl border-2 border-amber-300 bg-amber-50 px-4 py-2 dark:border-amber-800 dark:bg-amber-950'
+          : 'rounded-xl border border-slate-200 bg-slate-50 p-2.5 dark:border-slate-800 dark:bg-slate-950'
+      }
+    >
+      <p className={`text-xs font-bold uppercase ${profile.accent.text}`}>{profile.name}</p>
+      <p className="mt-0.5 text-lg font-extrabold">{grabLabel(target)}</p>
+      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+        {hold ? `${hold}s hold` : `${target.targetReps} reps`}
+      </p>
+      {/* The prize for good work is better work: today's number beside the one
+          it beat. A lighter day still says it — that is the app answering a
+          "too hard" tap — but without the colour that would celebrate it. */}
+      {news && (
+        <p
+          className={`mt-1 text-xs font-semibold ${up ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-500 dark:text-slate-400'}`}
+        >
+          Last time {lastTimeLabel(news)}
+        </p>
+      )}
+    </div>
+  )
+}
+
 function TargetPanel({
   item,
   overrides,
@@ -512,24 +566,17 @@ function ChangeoverView({
 
       {/* The one thing to DO right now: pick up the right weight. */}
       {next && (
-        <div className="mx-auto mt-3 flex flex-wrap items-center justify-center gap-2">
-          {Object.entries(next.perPerson).map(([userId, target]) => {
-            const profile = profileById(userId) ?? PROFILES[0]!
-            return (
-              <div
-                key={userId}
-                className="rounded-2xl border-2 border-amber-300 bg-amber-50 px-4 py-2 dark:border-amber-800 dark:bg-amber-950"
-              >
-                <p className={`text-xs font-bold uppercase ${profile.accent.text}`}>
-                  {profile.name}
-                </p>
-                <p className="text-lg font-extrabold">{grabLabel(target)}</p>
-                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                  {hold ? `${hold}s hold` : `${target.targetReps} reps`}
-                </p>
-              </div>
-            )
-          })}
+        <div className="mx-auto mt-3 flex flex-wrap items-center justify-center gap-2 text-left">
+          {Object.entries(next.perPerson).map(([userId, target]) => (
+            <NextTargetCard
+              key={userId}
+              userId={userId}
+              target={target}
+              last={next.lastTime?.[userId]}
+              hold={hold}
+              tone="ready"
+            />
+          ))}
         </div>
       )}
 
@@ -619,32 +666,16 @@ function RestView({
           <div
             className={`mt-3 grid gap-2 ${Object.keys(next.perPerson).length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}
           >
-            {Object.entries(next.perPerson).map(([userId, target]) => {
-              const profile = profileById(userId) ?? PROFILES[0]!
-              // A hold has no reps to compare — "last time 1 rep" is not a fact.
-              const news = hold ? null : lastTimeNews(target, next.lastTime?.[userId])
-              return (
-                <div
-                  key={userId}
-                  className="rounded-xl border border-slate-200 bg-slate-50 p-2.5 dark:border-slate-800 dark:bg-slate-950"
-                >
-                  <p className={`text-xs font-bold uppercase ${profile.accent.text}`}>
-                    {profile.name}
-                  </p>
-                  <p className="mt-0.5 text-lg font-extrabold">{grabLabel(target)}</p>
-                  <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                    {hold ? `${hold}s hold` : `${target.targetReps} reps`}
-                  </p>
-                  {/* The prize for good work is better work: today's number
-                      beside the one it beat, and nothing when it hasn't moved. */}
-                  {news && (
-                    <p className="mt-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
-                      Last time {lastTimeLabel(news)}
-                    </p>
-                  )}
-                </div>
-              )
-            })}
+            {Object.entries(next.perPerson).map(([userId, target]) => (
+              <NextTargetCard
+                key={userId}
+                userId={userId}
+                target={target}
+                last={next.lastTime?.[userId]}
+                hold={hold}
+                tone="rest"
+              />
+            ))}
           </div>
         </div>
       )}

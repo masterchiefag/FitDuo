@@ -22,3 +22,17 @@ export function lastTimeNews(
   if (last.weight === target.weight && last.reps === target.targetReps) return null
   return last
 }
+
+/**
+ * Whether today's prescription is the harder one.
+ *
+ * The fact is worth saying either way — a lighter day is the app visibly
+ * answering a "too hard" tap, and an answer nobody sees is why people stop
+ * telling you things. But only the harder day is the prize for good work
+ * (principle 2), so a step down must not borrow its styling: the same emerald
+ * "last time 10 kg × 8" beside today's 7.5 kg would celebrate a deload.
+ */
+export function movedUp(target: PersonTarget, last: LastPerformance): boolean {
+  if (target.weight !== last.weight) return target.weight > last.weight
+  return target.targetReps > last.reps
+}
