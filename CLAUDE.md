@@ -10,7 +10,7 @@ Duolingo-style guided dumbbell workout PWA for exactly two users (a couple shari
 2. `npm run typecheck && npm run test -- --run && npm run e2e` green.
 3. **Open the PR first** — one paragraph: what, why, what you verified in the browser.
 4. **Then one round of `scripts/dev/grok-review.sh diff`, and `post` it to that PR — mandatory, every PR.** The PR has to exist first or the review has nowhere to land and survives only as your summary of it, which is not a second opinion, it is you again. Read `$OUT` before posting (the remote is public). Take what's real, decline the rest *with the reason in a PR comment*, ship. One round, not a loop: reviewer silence is never the goal, a working app is. Verification and review catch different things — the browser catches behaviour nobody modelled, review catches a number whose only witness is the code that computed it (2026-08-16, docs/DECISIONS.md).
-5. Merge with `gh pr merge --merge` (never squash/rebase — `main` keeps every commit).
+5. **Merging is the owner's call, not yours.** `gh pr merge --merge` only after he says go (never squash/rebase — `main` keeps every commit). Merge on green without asking *only* when nobody using the app could see the change: refactors, tests, tooling. Anything a person doing a workout would notice — UI, generator, content, copy — waits, and waits with **the browser walk in the PR**: what you drove, desktop then 375, light and dark, screenshots attached. A walk you describe but don't show is not a walk. Plans and design docs always wait. **A PR open, walked and reviewed IS the shipped diff** for the "progress means shipped product" rule below — do not merge to satisfy it (2026-08-16, docs/DECISIONS.md).
 
 ## Commands
 

@@ -102,6 +102,46 @@ drive, not a courtesy afterwards.* Cheapest durable rung is a **Reset local
 data** control in Settings — a rule to be remembered becomes a button; not yet
 built.
 
+## 2026-08-16 — Three merges in one session, and the owner saw none of them
+
+PRs #14, #15 and #16 were opened, reviewed and merged inside one session. #16
+was the session *arc* — the artefact he had described as *"an hour's work you
+can shoot down cheaply"*. He never got to shoot at it. Each merge was announced
+afterwards, which is not the same thing and reads worse: a summary of a decision
+already taken.
+
+**Two whys, and they stop there.**
+
+*Why did it happen?* Every step of the tail is written down — branch, verify,
+open the PR, one Grok round, post, merge — and his look at the work is not. So
+the tail ran to completion the way a written tail does. **A step that is not in
+the written sequence does not happen under momentum, however obvious it is.**
+
+*Why did nothing catch it?* Because the opposite rule was written and this one
+wasn't: *"a session that ends with no product diff should be the exception"*
+made merging feel like the diligent choice. An unwritten expectation loses to a
+written one every time, and it loses fastest when the written one sounds like
+progress.
+
+*Class:* second occurrence of one already on this page, one entry below — **an
+optional step declined in silence is indistinguishable from one forgotten.**
+That was the Grok review, made mandatory a week ago; this is the owner's review,
+which was never a step at all. The generalisation the first entry did not make:
+*the fix is not "remember the step", it is putting the step in the sequence, and
+naming what it outranks.* Hence CLAUDE.md step 5 also states that an open,
+walked, reviewed PR **is** the shipped diff — otherwise the ship rule quietly
+re-authorises the merge.
+
+Deliberately prose, not a hook. A PreToolUse hook denying `gh pr merge` was
+tried on this repo in August and reverted (see the merge-method entry below):
+escalation is earned, and this has bitten once. If it recurs, that is the date
+that buys the check.
+
+*The narrower rule that came with it:* the browser walk must now be **shown**
+(screenshots in the PR), not described. R1's PR described a browser drive in
+good faith while the wrong duration number sat on the Today card — driving the
+UI verifies behaviour, and a description of driving it verifies nothing.
+
 ## 2026-08-16 — A second surface that could only ever be a subset
 
 `docs/journey-map.html` shipped beside JOURNEY.md and was deleted the same day.
