@@ -142,6 +142,24 @@ that buys the check.
 good faith while the wrong duration number sat on the Today card — driving the
 UI verifies behaviour, and a description of driving it verifies nothing.
 
+**And that rule immediately created a leak, which is the part worth keeping.**
+"Attach screenshots" plus a public remote plus `npm run dev` injecting
+`profiles.local.json` equals real names and loads published on every future UI
+PR — the class already on this page as *gitignored is not the same as
+unpublished*, recreated by the fix for a different problem, two minutes after
+writing it. Caught in review. The answer is a mechanism rather than a
+discipline: any Vite mode but `development` compiles local profiles to `null`
+(`vite.config.ts`), so `npm run dev -- --mode walk` renders `Person A` /
+`Person B` everywhere and Today shows the example-profiles banner as a receipt.
+*A screenshot cannot be told to anonymise the way the Grok prompt is.*
+
+The first draft of that mechanism was **"no banner, no posting"** — and driving
+it found that the banner only exists on `TodayScreen`, so the rule would have
+forbidden every player, settings and history frame, which is most of a walk.
+Written it would have looked airtight; run, it was wrong in ninety seconds.
+*Class: a rule about verification is worth exactly as much as running it once
+— the same reason the walk exists at all.*
+
 ## 2026-08-16 — A second surface that could only ever be a subset
 
 `docs/journey-map.html` shipped beside JOURNEY.md and was deleted the same day.
