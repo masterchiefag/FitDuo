@@ -4,6 +4,10 @@ Third document, beside [PLAN.md](PLAN.md) (what we are building) and
 [DECISIONS.md](DECISIONS.md) (what we learned). This one holds **why the
 experience works or doesn't, and what we refuse to build.**
 
+[journey-map.html](journey-map.html) is the same argument as a readable page
+(published as a private artifact). **This file is canonical** — the page is a
+summary and carries no claim that isn't here.
+
 It exists because R1 landed the mechanics — Start to celebration, hands free,
 ~4 taps — and the session still doesn't feel *energizing*. That is a design
 problem, and it will not be solved by adding XP to more places. So: answer four
@@ -260,7 +264,7 @@ table is in the doc rather than a list of features:
 
 | Signal | What it honestly supports | What it cannot |
 |---|---|---|
-| `muscleNeed`, rolling 7-day | **"Why this day", in one sentence.** The strongest cheap win in the product | — |
+| `muscleNeed`, rolling 7-day | **"Why this movement, in this slot"** — it is the `need` term in `scoreOf`, which ranks candidates *inside* an already-chosen pattern ([generate.ts:194](../src/core/generator/generate.ts:194)) | **not** "why this day". The day type is a fixed rotation over scheduled-day position ([generate.ts:59](../src/core/generator/generate.ts:59)) — a pull Wednesday is pull because it is the second scheduled day, not because your back is behind. Today already states the honest reason via `DAY_TYPE_LABEL` |
 | `lastWeight` / `lastTargetReps` | **"Last time 7.5 → try 10"** on the target panel. In the PLAN product spec since v1; never built | — |
 | `secondsPerRep`, `setupSeconds`, `sides` | the *planned* tempo | **not** a live rep counter. `workSeconds = setupSeconds + reps × secondsPerRep × sides`, maxed across two people with different rep targets ([generate.ts:234](../src/core/generator/generate.ts:234)). A counter derived from it would show "rep 2" while you're still picking up the bells, and cannot be either person's count on a shared timer |
 | `bestE1rm` | nothing yet | **"heaviest ever"** — the well is empty by construction until the witness problem above is solved |
@@ -280,16 +284,17 @@ bitten by unframed additions before (DECISIONS, 2026-08-15).
 |---|---|---|---|---|---|---|
 | **Today (cold)** | "Do I have it in me?" | A pull, and no decisions | Duration picker, exercise names, `~50 min`, streak/level cards | Reads as an invoice: a cost, a list, and a time quote | 4, 5 | `not scheduled` |
 | **Start** | Committed | Immediate motion | Straight into warm-up | — (works) | 7 | — |
-| **Warm-up** (`timed`, 10 min) | "Get on with it" | To be told what today is *for* | Images, ring, cues | The one moment framing is free, and nothing is framed | 4 | R2a |
+| **Warm-up** (7 × 40s, 4.7 min) | "Get on with it" | To be told what today is *for* | Images, ring, cues | The one moment framing is free, and nothing is framed. Note the real budget: 40 seconds an item, not the 10 minutes the measured table shows for warm-up **plus** cool-down | 4 | R2a |
 | **Changeover** (15s) | "Which bells?" | The instruction | "Grab 7.5 kg", next movement, ring captioned *to start* | — (works; was a real bug, fixed) | 7 | — |
 | **`work`** (~48s × 30) | rep 5: "how many left?" rep 9: "one more?" | Pace, a witness, an ask | Countdown of *seconds*, Done ✓, ±reps, +15s | Nobody counts; the reps are recorded whether done or not; effort with no witness decays | 1, 3 | R2a (voice); witness question open |
 | **Done ✓ early** | "Finished" | Acknowledgement | Silent advance | The most positive action in the session produces nothing | 1 | `not scheduled` |
-| **`SKIP`** | "Not this one" | To be asked why, and answered | Silent advance, nothing logged | Highest-signal action a user takes, thrown away — and it leaves guilt with no absolution | 1 | R5 (pain flags / substitution) |
+| **`SKIP`** | "Not this one" — it hurts, *or* the space is wrong, *or* they hate it | To be asked which, and answered | Silent advance, nothing logged | Highest-signal action a user takes, thrown away — and it leaves guilt with no absolution | 1 | R5 owns **only** the "it hurts" branch; the other two are `not scheduled`. A skip is not a pain flag — treating it as one would write the pain list from "no room for lunges" |
 | **`ADJUST`** | "That was too heavy" | To see it change something | Panel rings; feeds progression next session | Heard, never spoken back. Correct plumbing, invisible response | 1 | R2a |
-| **`rest`** (12 min/session) | "Breathe… how much more?" | Recovery, anticipation, one earned fact | Green ring, thumbnail, +15s | **A third of the session, and the only surface where nothing competes with a rep** | 3, 6 | R2a |
+| **`rest`** (12 min/session) | "Breathe… how much more?" | Recovery, anticipation, one earned fact | Green ring, thumbnail, +15s | A quarter of the session on its own — **a third once changeover and transition are counted with it**, and that combined surface is the only place where nothing competes with a rep | 3, 6 | R2a |
 | **`block_gate`** (×4) | "Block done. How was it?" | A coach's sentence | Rating chips, Continue, Finish here | The only human moment in an hour, spent on a form | 1, 6 | R2a |
 | **Finish here** | "That's enough today" | Permission, not penalty | Completes honestly, no penalty | — (works, and quietly important) | 5 | — |
-| **`complete`** | "Was that worth it?" | The memory, written well | 🎉, XP, sets, streak | Peak–end says this screen *is* the memory; it's a receipt | 6 | `not scheduled` |
+| **Cool-down** (5 × 60s, 5 min) | "Done — finishing up" | The peak–end *end*: the last five minutes are the ones that get remembered | Five silent 60-second holds, same `timed` view as the warm-up | **The row this doc nearly omitted, which would have been the whole argument failing on itself.** Principle 6 says design the ending; the ending is *here*, five minutes before the receipt, and it is the least designed screen in the session | 6 | `not scheduled` |
+| **`complete`** | "Was that worth it?" | The memory, closed | 🎉, XP, sets, streak | Peak–end says the *ending* is the memory — and this screen is the last frame of it, currently a receipt | 6 | `not scheduled` |
 | **Next morning** | "Did that do anything?" | Continuity | Today card, streak +1 | Yesterday is gone; nothing connects the two | 4 | `not scheduled` |
 | **Week six** | "Is this still working?" | Visible weekly progress | Level curve flattening, volume total | CD2 saturates here; nothing takes over | 2 | `not scheduled` |
 | **Month six** | "Who am I now?" | Identity, mastery | — | **No endgame exists.** Same abandonment PLAN §R5 names from the injury side | 2, 5 | `not scheduled` |
