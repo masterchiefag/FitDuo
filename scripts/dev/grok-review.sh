@@ -26,67 +26,26 @@
 # Usage:
 #   scripts/dev/grok-review.sh diff [range]     # default: origin/main..HEAD
 #   scripts/dev/grok-review.sh file <path>      # e.g. the plan markdown
-#   scripts/dev/grok-review.sh post             # fallback: put $OUT on the PR by hand
+#
+# There is no `post` command. It published the `tee` — the transcript this
+# change exists to keep off a public PR — so the failure path was the leak.
+# If no comment appears, write the findings into the PR yourself, citing $OUT.
 #
 # Env: GROK_BIN (default: grok on PATH), GROK_REVIEW_MAX_TURNS (default 30)
 set -euo pipefail
 
 GROK_BIN="${GROK_BIN:-grok}"
-MAX_TURNS="${GROK_REVIEW_MAX_TURNS:-30}"
+# 40, not 30: the self-post is the LAST turn, so a review that spends its budget
+# reading src/ exits having posted nothing — and findings that never reach the
+# PR survive only as the author's summary (2026-08-16). Headroom is the fix; a
+# wrapper checking whether the comment exists is more shell in the directory
+# that has produced this repo's worst bugs.
+MAX_TURNS="${GROK_REVIEW_MAX_TURNS:-40}"
 MODE="${1:-diff}"
 OUT="${GROK_REVIEW_OUT:-.grok-review-latest.md}"
 
-# `post` remains for the run whose own comment failed, or that found no PR. It
-# publishes the raw `tee` transcript, which is why it is the fallback and not
-# the path: Grok's own comment is the review it wrote, this one is everything it
-# said on the way there.
-#
 # Line 1 of the stamp is the reviewed sha, line 2 the range/target reviewed.
 STAMP="$OUT.sha"
-
-if [ "$MODE" = "post" ]; then
-  [ -s "$OUT" ] || { echo "no review at $OUT — run a review first" >&2; exit 2; }
-  command -v gh >/dev/null 2>&1 || { echo "gh not on PATH" >&2; exit 2; }
-
-  # The reviewed sha comes from the review run, never from HEAD. Stamping HEAD
-  # here would let: review A -> fix -> commit B -> post ("reviewed at B") ->
-  # record-step grok at B -> merge-ready passes, with B never reviewed. That is
-  # the gate certifying an unreviewed tree, in a comment whose own text says a
-  # new commit invalidates the review.
-  REVIEWED="$(sed -n 1p "$STAMP" 2>/dev/null || true)"
-  REVIEWED_LABEL="$(sed -n 2p "$STAMP" 2>/dev/null || true)"
-  HEAD_SHA="$(git rev-parse HEAD)"
-  if [ -z "$REVIEWED" ]; then
-    echo "no reviewed-sha stamp at $STAMP — re-run the review" >&2
-    exit 2
-  fi
-  if [ "$REVIEWED" != "$HEAD_SHA" ]; then
-    echo "refusing to post: $OUT reviewed ${REVIEWED:0:7}, HEAD is ${HEAD_SHA:0:7}." >&2
-    echo "Re-run the review against HEAD — posting the old one would attest a tree nobody reviewed." >&2
-    exit 2
-  fi
-
-  # GitHub caps a comment at 65536 bytes. $OUT is a raw agent transcript, so a
-  # big milestone review will exceed it; failing here beats a 422 mid-tail.
-  BYTES="$(wc -c <"$OUT" | tr -d ' ')"
-  if [ "$BYTES" -gt 60000 ]; then
-    echo "refusing to post: $OUT is ${BYTES}B, over GitHub's comment cap." >&2
-    echo "Post the findings by hand, or trim $OUT to the review itself." >&2
-    exit 2
-  fi
-
-  PR="$(gh pr view --json number --jq .number 2>/dev/null || true)"
-  [ -n "$PR" ] || { echo "no open PR for this branch" >&2; exit 2; }
-  {
-    # The range is in the header because a comment saying only "reviewed at
-    # <sha>" reads as a review of the whole PR even when it covered one commit.
-    printf '## Grok review — `%s`\n\nReviewed at `%s`. Raw CLI transcript, not a curated review. Any new commit invalidates it; see `scripts/dev/merge-ready.sh`.\n\n---\n\n' \
-      "${REVIEWED_LABEL:-unknown range}" "${REVIEWED:0:12}"
-    cat "$OUT"
-  } | gh pr comment "$PR" --body-file -
-  echo "posted $OUT to PR #$PR at ${REVIEWED:0:7}" >&2
-  exit 0
-fi
 
 command -v "$GROK_BIN" >/dev/null || { echo "grok not on PATH" >&2; exit 2; }
 
@@ -121,7 +80,7 @@ case "$MODE" in
     LABEL="file $2"
     ;;
   *)
-    echo "usage: $0 diff [range] | file <path> | post" >&2
+    echo "usage: $0 diff [range] | file <path>" >&2
     exit 2
     ;;
 esac
@@ -152,4 +111,4 @@ trap 'rm -f "$STAMP"' EXIT
 "$GROK_BIN" -p "$PROMPT" --always-approve --max-turns "$MAX_TURNS" --disable-web-search | tee "$OUT"
 trap - EXIT
 echo "--- $LABEL: reviewed $(sed -n 1p "$STAMP" | cut -c1-7); Grok posts its own review ---" >&2
-echo "--- transcript saved to $OUT — '$0 post' is now only for when its own post failed ---" >&2
+echo "--- transcript saved to $OUT — if no comment landed on the PR, write the findings in by hand ---" >&2

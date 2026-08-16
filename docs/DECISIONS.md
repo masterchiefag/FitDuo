@@ -69,6 +69,21 @@ gitignored file, not machinery. *Class: a risk stated as a category
 the comment it would hand a maintainer. The step that existed to keep raw
 narration off a public PR was the step putting it there.
 
+**This supersedes the residual-risk paragraph in the 2026-08-14 entry below**,
+which still describes a manual `post` and a tail that runs both steps. Newest
+first should win, but that paragraph reads as an instruction, and the next
+session to grep this file for `post` would put the tee back beside Grok's
+comment. There is no `post` command any more: its only job was uploading the
+transcript, so the recovery path was the leak.
+
+The review's own best finding was about the new arrangement, not the old one:
+the self-post is the *last* turn, so a review that spends its budget reading
+`src/` exits having posted nothing — the 2026-08-16 failure again, a review
+surviving only as the author's summary. Fixed with headroom (max-turns 40)
+rather than a wrapper that checks whether a comment exists, because that
+wrapper is how a process PR grows a second process PR. If nothing lands, the
+findings get written in by hand.
+
 A worktree sandbox was designed and dropped in the same conversation: run the
 review in a throwaway `git worktree`, where gitignored files simply are not
 present (verified). Complete, unlike the deleted scanner — but six lines of shell
