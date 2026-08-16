@@ -8,6 +8,7 @@ import type {
   Block,
   DayType,
   GeneratorInput,
+  LastPerformance,
   PersonTarget,
   TimedItem,
   WorkItem,
@@ -394,10 +395,25 @@ export function generateWorkout(input: GeneratorInput): WorkoutPlan {
 
   const toWorkItem = (ex: Exercise): WorkItem => {
     const perPerson: Record<string, PersonTarget> = {}
+    const lastTime: Record<string, LastPerformance> = {}
     for (const p of participants) {
-      perPerson[p.userId] = nextTarget(ex, p.availableWeights, p.progression[ex.id])
+      const progress = p.progression[ex.id]
+      perPerson[p.userId] = nextTarget(ex, p.availableWeights, progress)
+      // The set the progression state was read from: same set for both numbers,
+      // so "7.5 kg × 10" is one performance and not two halves of different ones.
+      if (progress) {
+        lastTime[p.userId] = {
+          weight: progress.lastWeight,
+          reps: progress.lastActualReps[progress.lastActualReps.length - 1] ?? progress.lastTargetReps,
+        }
+      }
     }
-    return { exerciseId: ex.id, perPerson, workSeconds: workItemSeconds(ex, perPerson) }
+    const item: WorkItem = {
+      exerciseId: ex.id,
+      perPerson,
+      workSeconds: workItemSeconds(ex, perPerson),
+    }
+    return Object.keys(lastTime).length > 0 ? { ...item, lastTime } : item
   }
 
   // Fixed call order: supersets in template order, then circuit, then warmup/cooldown.
