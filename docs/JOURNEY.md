@@ -4,10 +4,6 @@ Third document, beside [PLAN.md](PLAN.md) (what we are building) and
 [DECISIONS.md](DECISIONS.md) (what we learned). This one holds **why the
 experience works or doesn't, and what we refuse to build.**
 
-[journey-map.html](journey-map.html) is the same argument as a readable page
-(published as a private artifact). **This file is canonical** — the page is a
-summary and carries no claim that isn't here.
-
 It exists because R1 landed the mechanics — Start to celebration, hands free,
 ~4 taps — and the session still doesn't feel *energizing*. That is a design
 problem, and it will not be solved by adding XP to more places. So: answer four

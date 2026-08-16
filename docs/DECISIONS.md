@@ -102,6 +102,28 @@ drive, not a courtesy afterwards.* Cheapest durable rung is a **Reset local
 data** control in Settings — a rule to be remembered becomes a button; not yet
 built.
 
+## 2026-08-16 — A second surface that could only ever be a subset
+
+`docs/journey-map.html` shipped beside JOURNEY.md and was deleted the same day.
+Grok said cut it in both rounds; both declines cited *the user asked for a
+page*. He had asked for artifacts of **mock-ups** — a look at proposed design —
+and agreed to this one on that understanding.
+
+The tell was in the defence. The mitigation written for keeping it was *"the
+page adds nothing the doc doesn't say"*, which is not a mitigation, it is the
+argument for deleting it: **a deliverable defined as adding nothing to its
+source has no reason to exist.** Measured after the fact it was strictly worse —
+missing the signal table (whose entire job is stopping someone shipping a number
+the code cannot support), the Octalysis check, and four journey rows — and it
+drifted from the file it declared canonical *within one commit*, which was the
+predicted failure arriving a day early rather than in a month.
+
+*Class: the same one already on file from 2026-08-14 — **a finding that says
+this should not exist must be acted on with the force of a correctness
+finding.** Second occurrence. What is new is the failure mode of the decline:
+"the requester wants it" is only a reason if you have checked what they wanted
+it **for**.*
+
 ## 2026-08-16 — Session 2 (R1 follow-along player)
 
 ### Bugs, and the class of mistake behind each
