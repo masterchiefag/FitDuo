@@ -43,6 +43,53 @@ imagined one is paid for by every future PR and buys a feeling of safety.
 
 ---
 
+## 2026-08-16 — The reviewer posts its own review
+
+`post` was a separate manual command, justified at length on 2026-08-14: the
+remote is public, Grok runs `--always-approve`, and what `tee` captures is its
+*entire stdout* — narration turns included — so auto-posting once published a raw
+agent log to a public repo. Reversed today. Grok now posts at the end of its own
+run and `post` survives only as a fallback.
+
+**What changed the answer was evidence, not argument.** The owner runs the same
+arrangement on `~/dev/sherlock`, where Grok has posted its own reviews for months
+with no incident. That outranks this file's reasoning, which had never been
+tested against an actual occurrence — the leak it guarded has never happened
+here either.
+
+**And the concern was smaller than it was written up.** The largest-looking part
+of it — a review quoting the owner's name into a public comment — protects
+information `git log` publishes on every commit. What is genuinely non-public is
+one partner's name and the `painAreas` list; the fix for that is a nickname in a
+gitignored file, not machinery. *Class: a risk stated as a category
+("personal data") outlives the check of which parts of it are actually at risk.*
+
+**The reversal also fixes what the split was supposedly protecting.** Manual
+`post` publishes the `tee` — the transcript, not the review. Grok posting writes
+the comment it would hand a maintainer. The step that existed to keep raw
+narration off a public PR was the step putting it there.
+
+**This supersedes the residual-risk paragraph in the 2026-08-14 entry below**,
+which still describes a manual `post` and a tail that runs both steps. Newest
+first should win, but that paragraph reads as an instruction, and the next
+session to grep this file for `post` would put the tee back beside Grok's
+comment. There is no `post` command any more: its only job was uploading the
+transcript, so the recovery path was the leak.
+
+The review's own best finding was about the new arrangement, not the old one:
+the self-post is the *last* turn, so a review that spends its budget reading
+`src/` exits having posted nothing — the 2026-08-16 failure again, a review
+surviving only as the author's summary. Fixed with headroom (max-turns 40)
+rather than a wrapper that checks whether a comment exists, because that
+wrapper is how a process PR grows a second process PR. If nothing lands, the
+findings get written in by hand.
+
+A worktree sandbox was designed and dropped in the same conversation: run the
+review in a throwaway `git worktree`, where gitignored files simply are not
+present (verified). Complete, unlike the deleted scanner — but six lines of shell
+in `scripts/dev/`, the directory this file already names as holding the two worst
+binding bugs on record, for a risk that has never materialised. Rung 0.
+
 ## 2026-08-16 — First contact with a real user, and what only they could see
 
 R1 shipped verified: three browser drives, 111 unit tests, a property test that

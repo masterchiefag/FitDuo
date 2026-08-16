@@ -3,89 +3,49 @@
 # Reviews a commit range's diff, or a file (e.g. the plan).
 # Pattern borrowed from ~/dev/sherlock/scripts/dev/grok-review-pr.sh, simplified.
 #
-# Posting (`post`) puts the saved review on the branch's open PR as a plain
-# comment, anchored to the sha. Deliberately NOT the sherlock machinery
+# Grok posts its own review to the branch's open PR at the end of its run, so the
+# reviewer speaks for itself and what lands is the review it composed — not this
+# script's `tee` of its entire stdout, narration turns included, which is what
+# the old manual `post` published. `post` survives as a fallback for a run that
+# found no open PR, or whose own comment failed.
+#
+# Deliberately NOT the sherlock machinery
 # (PENDING->COMMENT submission, review-id snapshots, head-sha polling): that
 # exists because two agents ran in separate terminals with a human as the bus.
 # Here Grok and Claude share a session, so posting buys no latency — only a
 # durable trace next to `record-step.sh grok`, which otherwise records that a
 # review happened and keeps nothing of what it said.
 #
-# Posting is a separate command and never automatic. The remote is PUBLIC, and
-# what lands in $OUT is Grok's whole stdout transcript — narration turns and
-# all — not a curated review. Personal data is kept out by the privacy paragraph
-# in the prompt below, an instruction rather than a sandbox (a scanner was
-# written and deleted; docs/DECISIONS.md says why the half-working version was
-# the more dangerous option). An instruction can be missed and nothing here
-# catches that: `post` is a separate step, not a human sign-off — the merge tail
-# runs both. Read $OUT before posting; that habit is the only backstop there is.
+# The remote is PUBLIC. Personal data is kept out by the privacy paragraph in the
+# prompt below — an instruction, not a sandbox (a scanner was written and
+# deleted; docs/DECISIONS.md says why the half-working version was the more
+# dangerous option). Accepted knowingly 2026-08-16: the owner's name is already
+# in every commit, the review has never leaked anything here, and the same
+# arrangement has run without incident on ~/dev/sherlock.
 #
 # Usage:
 #   scripts/dev/grok-review.sh diff [range]     # default: origin/main..HEAD
 #   scripts/dev/grok-review.sh file <path>      # e.g. the plan markdown
-#   scripts/dev/grok-review.sh post             # put the saved review on the PR
+#
+# There is no `post` command. It published the `tee` — the transcript this
+# change exists to keep off a public PR — so the failure path was the leak.
+# If no comment appears, write the findings into the PR yourself, citing $OUT.
 #
 # Env: GROK_BIN (default: grok on PATH), GROK_REVIEW_MAX_TURNS (default 30)
 set -euo pipefail
 
 GROK_BIN="${GROK_BIN:-grok}"
-MAX_TURNS="${GROK_REVIEW_MAX_TURNS:-30}"
+# 40, not 30: the self-post is the LAST turn, so a review that spends its budget
+# reading src/ exits having posted nothing — and findings that never reach the
+# PR survive only as the author's summary (2026-08-16). Headroom is the fix; a
+# wrapper checking whether the comment exists is more shell in the directory
+# that has produced this repo's worst bugs.
+MAX_TURNS="${GROK_REVIEW_MAX_TURNS:-40}"
 MODE="${1:-diff}"
 OUT="${GROK_REVIEW_OUT:-.grok-review-latest.md}"
 
-# Posting is a SEPARATE command, deliberately. As a side effect of `diff` it
-# published a review to a public PR in the same breath as generating it, with
-# nobody having read it — and what `tee` captures is the whole stdout
-# transcript, narration turns included, not a finished review. Splitting the
-# command does not make the review vetted (the merge tail runs both steps), but
-# it does make the raw transcript visible at a step of its own.
-#
 # Line 1 of the stamp is the reviewed sha, line 2 the range/target reviewed.
 STAMP="$OUT.sha"
-
-if [ "$MODE" = "post" ]; then
-  [ -s "$OUT" ] || { echo "no review at $OUT — run a review first" >&2; exit 2; }
-  command -v gh >/dev/null 2>&1 || { echo "gh not on PATH" >&2; exit 2; }
-
-  # The reviewed sha comes from the review run, never from HEAD. Stamping HEAD
-  # here would let: review A -> fix -> commit B -> post ("reviewed at B") ->
-  # record-step grok at B -> merge-ready passes, with B never reviewed. That is
-  # the gate certifying an unreviewed tree, in a comment whose own text says a
-  # new commit invalidates the review.
-  REVIEWED="$(sed -n 1p "$STAMP" 2>/dev/null || true)"
-  REVIEWED_LABEL="$(sed -n 2p "$STAMP" 2>/dev/null || true)"
-  HEAD_SHA="$(git rev-parse HEAD)"
-  if [ -z "$REVIEWED" ]; then
-    echo "no reviewed-sha stamp at $STAMP — re-run the review" >&2
-    exit 2
-  fi
-  if [ "$REVIEWED" != "$HEAD_SHA" ]; then
-    echo "refusing to post: $OUT reviewed ${REVIEWED:0:7}, HEAD is ${HEAD_SHA:0:7}." >&2
-    echo "Re-run the review against HEAD — posting the old one would attest a tree nobody reviewed." >&2
-    exit 2
-  fi
-
-  # GitHub caps a comment at 65536 bytes. $OUT is a raw agent transcript, so a
-  # big milestone review will exceed it; failing here beats a 422 mid-tail.
-  BYTES="$(wc -c <"$OUT" | tr -d ' ')"
-  if [ "$BYTES" -gt 60000 ]; then
-    echo "refusing to post: $OUT is ${BYTES}B, over GitHub's comment cap." >&2
-    echo "Post the findings by hand, or trim $OUT to the review itself." >&2
-    exit 2
-  fi
-
-  PR="$(gh pr view --json number --jq .number 2>/dev/null || true)"
-  [ -n "$PR" ] || { echo "no open PR for this branch" >&2; exit 2; }
-  {
-    # The range is in the header because a comment saying only "reviewed at
-    # <sha>" reads as a review of the whole PR even when it covered one commit.
-    printf '## Grok review — `%s`\n\nReviewed at `%s`. Raw CLI transcript, not a curated review. Any new commit invalidates it; see `scripts/dev/merge-ready.sh`.\n\n---\n\n' \
-      "${REVIEWED_LABEL:-unknown range}" "${REVIEWED:0:12}"
-    cat "$OUT"
-  } | gh pr comment "$PR" --body-file -
-  echo "posted $OUT to PR #$PR at ${REVIEWED:0:7}" >&2
-  exit 0
-fi
 
 command -v "$GROK_BIN" >/dev/null || { echo "grok not on PATH" >&2; exit 2; }
 
@@ -120,7 +80,7 @@ case "$MODE" in
     LABEL="file $2"
     ;;
   *)
-    echo "usage: $0 diff [range] | file <path> | post" >&2
+    echo "usage: $0 diff [range] | file <path>" >&2
     exit 2
     ;;
 esac
@@ -133,7 +93,9 @@ Report ONLY findings a maintainer would act on, ranked by severity:
 - scope traps (work that should be cut or deferred for a 2-user v1)
 Skip style nits and generic advice. If it looks sound, say so in one line. Do not modify any files.
 
-You are the reviewer, not the workflow. CLAUDE.md describes a merge tail — read it for context, do not execute it. Never run this script's 'post' command, record-step.sh, any gh command, or a merge: doing so would publish a half-written transcript of this very review to a public PR, or record a review step that has not finished.
+When the review is finished, POST IT YOURSELF on this branch's open pull request, exactly once, as the last thing you do: find the number with \`gh pr view --json number --jq .number\` and comment with \`gh pr comment\`. Head it with the sha you reviewed (\`git rev-parse --short HEAD\`). Post the finished review you would hand a maintainer — not your working narration, and not a transcript of getting there. If no PR is open, say so and post nothing.
+
+That comment is the only write you may make. You are the reviewer, not the workflow: never merge, never push, never close or edit a PR or its title, never run this script, and never execute CLAUDE.md's tail — read it for context only.
 
 PRIVACY — this review is posted to a PUBLIC pull request. Do not open profiles.local.json or any .env file, and never quote a real person's name, weight, injury, pain area, or any credential. Refer to them by field name instead ('the pain-area list', 'the Supabase key'). Personal data lives outside the repo on purpose; a review does not need its values to make its point."
 
@@ -148,5 +110,5 @@ trap 'rm -f "$STAMP"' EXIT
 { git rev-parse HEAD; printf '%s\n' "$LABEL"; } >"$STAMP"
 "$GROK_BIN" -p "$PROMPT" --always-approve --max-turns "$MAX_TURNS" --disable-web-search | tee "$OUT"
 trap - EXIT
-echo "--- $LABEL: full review saved to $OUT (reviewed $(sed -n 1p "$STAMP" | cut -c1-7)) ---" >&2
-echo "--- read it, then: $0 post ---" >&2
+echo "--- $LABEL: reviewed $(sed -n 1p "$STAMP" | cut -c1-7); Grok posts its own review ---" >&2
+echo "--- transcript saved to $OUT — if no comment landed on the PR, write the findings in by hand ---" >&2
