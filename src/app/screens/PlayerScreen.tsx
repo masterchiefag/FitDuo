@@ -54,6 +54,22 @@ function phaseTotalSeconds(plan: WorkoutPlan, state: PlayerState): number {
   }
 }
 
+/**
+ * What the session was, said once as the cool-down's frame.
+ *
+ * Household-level on purpose — one screen, two bodies (JOURNEY principle 7).
+ * Blocks come from the plan (a block cannot be skipped; "Finish here" ends the
+ * session before the cool-down), and the set count is what was actually
+ * logged, not what was programmed, so a skipped set does not get claimed.
+ * Per-person work — the volume each body moved — waits for the completion
+ * cards, where each person has their own.
+ */
+function workDoneLine(plan: WorkoutPlan, setsDone: number): string {
+  const blocks = plan.blocks.filter((b) => b.kind === 'superset' || b.kind === 'circuit').length
+  const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`
+  return `That's the work done — ${plural(blocks, 'block')}, ${plural(setsDone, 'set')}.`
+}
+
 /** Linear progress through the whole session, 0..1. */
 function sessionProgress(plan: WorkoutPlan, state: PlayerState): number {
   const steps: number[] = plan.blocks.map((b) =>
@@ -138,6 +154,8 @@ const RING_TONE = {
   work: 'stroke-indigo-500',
   ready: 'stroke-amber-500',
   rest: 'stroke-emerald-500',
+  /** The cool-down: the same ring, deliberately the quietest one in the app. */
+  wind_down: 'stroke-slate-400',
 } as const
 
 function RingTimer({
@@ -212,6 +230,7 @@ function TimedView({
   total,
   nextLabel,
   focusCue,
+  ending,
   onSkip,
 }: {
   title: string
@@ -220,11 +239,23 @@ function TimedView({
   total: number
   nextLabel: string | null
   focusCue?: string | undefined
+  /**
+   * The cool-down, which is not a second warm-up: it is the last five minutes
+   * of the session, and peak–end says those are the ones that get remembered
+   * (JOURNEY act 5). Quieter type, a slate ring instead of the work indigo, and
+   * a line saying the work is behind them rather than "Next up".
+   */
+  ending?: { line: string; lastOne: boolean } | undefined
   onSkip: () => void
 }) {
   return (
     <div className="mx-auto max-w-2xl p-4 text-center">
-      <p className="text-sm font-bold tracking-widest text-indigo-500 uppercase">{title}</p>
+      <p
+        className={`text-sm font-bold tracking-widest uppercase ${ending ? 'text-slate-400' : 'text-indigo-500'}`}
+      >
+        {title}
+      </p>
+      {ending && <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{ending.line}</p>}
       <h2 className="mt-1 text-3xl font-extrabold tracking-tight">{exercise?.name ?? '—'}</h2>
       {exercise && (
         <div className="mt-4">
@@ -232,7 +263,7 @@ function TimedView({
         </div>
       )}
       <div className="mt-4">
-        <RingTimer remaining={remaining} total={total} />
+        <RingTimer remaining={remaining} total={total} tone={ending ? 'wind_down' : 'work'} />
       </div>
       {focusCue && (
         <p className="mx-auto mt-3 max-w-md rounded-xl bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200">
@@ -240,10 +271,16 @@ function TimedView({
         </p>
       )}
       {exercise && <Cues ex={exercise} />}
-      {nextLabel && (
-        <p className="mt-4 text-sm text-slate-500">
-          Next up: <span className="font-semibold">{nextLabel}</span>
+      {ending?.lastOne ? (
+        <p className="mt-4 text-sm font-semibold text-slate-500 dark:text-slate-400">
+          Last one — take it slow.
         </p>
+      ) : (
+        nextLabel && (
+          <p className="mt-4 text-sm text-slate-500">
+            Next up: <span className="font-semibold">{nextLabel}</span>
+          </p>
+        )
       )}
       <button
         onClick={onSkip}
@@ -898,17 +935,68 @@ function CompleteView() {
               <p className={`text-sm font-bold tracking-wide uppercase ${profile.accent.text}`}>
                 {profile.name}
               </p>
-              <p className="mt-2 text-4xl font-extrabold">+{p.xp} XP</p>
-              <p className="mt-1 text-sm text-slate-500">
-                {p.setsLogged}/{p.setsPlanned} sets
-              </p>
-              {!summary.abandoned && (
-                <p className="mt-2 text-lg font-bold">🔥 {p.streak}-day streak</p>
+              {/* What the body did, in the biggest type on the card. XP and the
+                  streak are the scoreboard and still here — they are just no
+                  longer the only thing this screen says (JOURNEY act 5).
+                  Bodyweight sessions have no tonnage, so they count reps; a
+                  session that logged no sets at all — every mobility session,
+                  and a strength session skipped to the first gate — has neither,
+                  and leads with what IS true rather than a zero (Grok, PR #23). */}
+              {p.reps === 0 ? (
+                <>
+                  <p className="mt-2 text-4xl font-extrabold">+{p.xp} XP</p>
+                  {p.setsPlanned > 0 && (
+                    <p className="mt-1 text-sm text-slate-500">
+                      {p.setsLogged}/{p.setsPlanned} sets
+                    </p>
+                  )}
+                </>
+              ) : p.volumeKg > 0 ? (
+                <>
+                  <p className="mt-2 text-4xl font-extrabold tabular-nums">
+                    {p.volumeKg.toLocaleString()}{' '}
+                    <span className="text-lg font-bold text-slate-400">kg moved</span>
+                  </p>
+                  <p className="mt-1 text-sm text-slate-500">
+                    {p.setsLogged}/{p.setsPlanned} sets · {p.reps} reps
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="mt-2 text-4xl font-extrabold tabular-nums">
+                    {p.reps} <span className="text-lg font-bold text-slate-400">reps</span>
+                  </p>
+                  <p className="mt-1 text-sm text-slate-500">
+                    {p.setsLogged}/{p.setsPlanned} sets
+                  </p>
+                </>
               )}
+              <p className="mt-3 text-sm font-bold text-slate-500 dark:text-slate-400">
+                {/* XP is already the hero when there was no work to report. */}
+                {p.reps > 0 && <>+{p.xp} XP</>}
+                {p.reps > 0 && !summary.abandoned && ' · '}
+                {!summary.abandoned && <>🔥 {p.streak}-day streak</>}
+              </p>
             </motion.div>
           )
         })}
       </div>
+      {/* The last thing said is about the people, not the numbers — and it is
+          said once a session, which is what keeps it from discounting to noise
+          (JOURNEY act 5, trainer trait 6). An abandoned session gets nothing:
+          "you finished it" would not be true. */}
+      {!summary.abandoned && (
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 + summary.people.length * 0.15 }}
+          className="mt-6 text-lg font-semibold text-slate-600 dark:text-slate-300"
+        >
+          {summary.people.length > 1
+            ? 'You both showed up, and you finished it.'
+            : 'You showed up, and you finished it.'}
+        </motion.p>
+      )}
       <button
         onClick={() => {
           reset()
@@ -931,6 +1019,10 @@ export default function PlayerScreen() {
   const resume = usePlayerStore((s) => s.resume)
   const navigate = useNavigate()
   const [nowMs, setNowMs] = useState(() => Date.now())
+  // Every LOG_SET path logs one row per participant, so this count is the same
+  // for both people — which is what lets the cool-down state it as one number.
+  const setsLogged = usePlayerStore((s) => s.setsLogged)
+  const setsDoneThisSession = Math.max(0, ...Object.values(setsLogged))
   const lastBeepSecond = useRef(-1)
   const [snapshotOffered, setSnapshotOffered] = useState(false)
 
@@ -1071,8 +1163,8 @@ export default function PlayerScreen() {
                 return null
               const item = b.items[state.itemIndex] as { exerciseId: string } | undefined
               const next = b.items[state.itemIndex + 1] as { exerciseId: string } | undefined
-              const heading =
-                b.kind === 'warmup' ? 'Warm-up' : b.kind === 'cooldown' ? 'Cool-down' : b.label
+              const winding = b.kind === 'cooldown'
+              const heading = b.kind === 'warmup' ? 'Warm-up' : winding ? 'Winding down' : b.label
               const nextBlock = plan.blocks[state.blockIndex + 1]
               const afterLabel = !nextBlock
                 ? 'Done! 🎉'
@@ -1083,7 +1175,15 @@ export default function PlayerScreen() {
                     : 'Strength blocks'
               return (
                 <TimedView
-                  title={`${heading} · ${state.itemIndex + 1}/${b.items.length}`}
+                  title={`${heading} · ${state.itemIndex + 1} of ${b.items.length}`}
+                  ending={
+                    winding
+                      ? {
+                          line: workDoneLine(plan, setsDoneThisSession),
+                          lastOne: state.itemIndex === b.items.length - 1,
+                        }
+                      : undefined
+                  }
                   exercise={item ? exercisesById.get(item.exerciseId) : undefined}
                   remaining={remaining}
                   total={total}
