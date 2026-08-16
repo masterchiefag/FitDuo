@@ -43,6 +43,65 @@ imagined one is paid for by every future PR and buys a feeling of safety.
 
 ---
 
+## 2026-08-16 — First contact with a real user, and what only they could see
+
+R1 shipped verified: three browser drives, 111 unit tests, a property test that
+runs the player itself, six e2e specs. The first five minutes a real person
+spent with it produced two problems, neither of which any of that could have
+found.
+
+### The builder cannot be the witness for meaning
+
+- **"I keep seeing lateral raises and chair dips only."** A superset alternates
+  its pair every round, so a block genuinely *is* four sets of two movements.
+  The one screen that could have said otherwise — the block gate — said
+  `Up next: Strength B`. I clicked Continue on that gate four times during
+  verification and never once wondered what it meant, **because I had the plan
+  in my head while looking at the screen.**
+- **"First time I saw it I thought it had started the set."** The changeover
+  reused the work screen's visual language: same ring, same layout, same size.
+  Both screens were *correct*. Told apart only by a small word at the top.
+
+→ *Class: verification performed by the person who wrote the spec confirms the
+model, not the product.* Tests derived from a spec confirm the spec. A drive
+performed by someone who knows what every screen means confirms the state
+machine, not the screen. **Every activity in this session that produced new
+information came from a witness who did not share the author's model** — the
+reviewer, who had not read the intent, and the user, who had not read the plan.
+Everything done alone confirmed what was already believed. This is structural,
+not a diligence failure: more self-verification produces more confirmation.
+
+Encoded as: for a PR that changes what a session looks or feels like, first
+contact is the user's, **before** merge — five minutes, they drive, the author
+watches what they ask. Not codifiable as a checklist; a "would a stranger
+understand this?" item cannot work, because the author cannot un-know the plan.
+
+### A countdown has to say what it is counting to
+
+The same ring meant "get ready" and "you are lifting". → *Class: an interface
+element that carries two meanings is a defect even when both are correct.*
+Encoded in code: rings take a tone and a caption (`left in set` / `to start` /
+`rest`), and the changeover leads with the instruction — *Grab 5 kg, 12 reps* —
+not the exercise name.
+
+### A check whose output only the author reads is not a check
+
+The review was made mandatory and then run *before* the PR existed, so it had
+nowhere to land: `grok-review.sh post` exists precisely to put it on the PR. It
+survived only as a summary written by the person it was reviewing — under a rule
+that explicitly permits declining findings. → *Class: a process step is only as
+independent as its audience.* Encoded in the workflow order: PR first, then the
+round, then `post`.
+
+### Verification that writes to the live store is not free
+
+Test sessions from the drives sat in `localStorage` and fed `deriveProgression`,
+raising a real target from 12 reps to 13 before the user's first session. →
+*Class: the app's data store is not a scratchpad, and cleanup is part of the
+drive, not a courtesy afterwards.* Cheapest durable rung is a **Reset local
+data** control in Settings — a rule to be remembered becomes a button; not yet
+built.
+
 ## 2026-08-16 — Session 2 (R1 follow-along player)
 
 ### Bugs, and the class of mistake behind each
