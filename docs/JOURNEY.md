@@ -322,7 +322,84 @@ almost nothing, but it is all we have and it points the same way as Part 1.
 
 ---
 
-## Part 5 — What we will not build
+## Part 5 — The arc
+
+Part 4 lists moments. This part says what the *session* should feel like as one
+shape, and it exists for one reason: three screens designed well on their own
+will pull in three directions, and three screens designed against a shape
+cohere. **Every mock gets checked against this. A screen that is good on its own
+and wrong for its act is wrong.**
+
+*(It lives here rather than in a file of its own — one document is the single
+source of truth for this thinking, which is the lesson of the page that was
+deleted on the day it shipped.)*
+
+### The claim: the session already has a shape, and the player renders it flat
+
+The generator builds `warmup → Strength A → B → C → Finisher → cooldown`. That
+last block is not another block: it is **named `Finisher`, and authored with
+fewer rounds and shorter rest than the strength blocks** — 2 rounds against
+their 3–4, 60s against 75 ([generate.ts:411](../src/core/generator/generate.ts:411)).
+Structurally it is a climax. The player shows it in the same indigo pill as
+Strength A, announced by a gate identical to the other three. **Nothing in the
+UI knows the difference between the first block and the peak.**
+
+So the design job is to *express a shape that already exists in the data*, not
+to invent one. That is the cheap, safe version of this work, and it is why the
+three surfaces are enough.
+
+### Five acts
+
+| Act | Where | Its one job | The failure it avoids |
+|---|---|---|---|
+| **1. Threshold** | Today → Start | Convert intention into motion with zero decisions, and make **one promise the landing pays back** | The card that reads as an invoice: a cost, a list, a time quote |
+| **2. On-ramp** | warm-up, 3–7 items (4.7 min at 55) | Cold body → committed body. The only place framing is free | Item 7 looking exactly like item 1, so nothing has happened |
+| **3. The body** | Strength A/B/C, ~30 min *including the dead third* | **Sustain, don't escalate.** Keep them oriented — always know where you are in the shape | The plateau: three visually identical blocks are experienced as one long block |
+| **4. The peak** | Finisher, 2 rounds | One moment of chosen effort, *marked as such* — announced at the gate before it, framed while it runs, acknowledged when it ends | A climax that arrives with the same "Block done! 🎉" as everything else |
+| **5. The landing** | cool-down (2–5 items) → complete | Write the memory. End **quieter than the peak, warmer than the start**; the last thing said is about the person, not the numbers; the threshold's promise gets paid | Five silent holds and then a receipt |
+
+**Act 4 resolves the tension Part 4 left open.** There *is* a legitimate place for
+"one more" — the gate before the Finisher. Hands are free, both people are
+listening, it precedes the effort rather than interrupting it, and it is
+addressed to the household rather than to one body. Principles 3 and 7 forbid
+the ask *inside a set*; they have no objection to it here. An ask that happens
+once a session is also an ask that still means something.
+
+### Two rules that hold the arc together
+
+**The volume curve.** The app is present at the edges and quiet in the middle of
+effort. Attention gets spent at four gates and the landing; everything else is
+ambient. This is the constraint R2a should be built against — a coach that talks
+during sets is a coach you mute.
+
+**Ritual carries the shape; content carries the variety.** The arc is *identical*
+every session. Only what happens inside it changes. That is what makes "zero
+decisions before the start" possible, and it is why week thirty is cheap.
+
+### Measured, and one problem it found **[measured]**
+
+| Setting | Shape |
+|---|---|
+| 55 min | warm-up(7) → A/B/C, 4 rounds each → **Finisher** → cool-down(5) |
+| 35 min | warm-up(4) → A/B/C, 3 rounds → **Finisher** → cool-down(3) |
+| 20 min | warm-up(3) → A/B/C, 2 rounds → cool-down(2) |
+
+**At 20 minutes the Finisher is dropped, so the short session is the only one
+with no peak** — it ends Strength C → cool-down. Peak–end then predicts the
+flattest memory comes from the session you do on your *worst* day, which is
+exactly the day the memory decides whether there is a tomorrow. Principle 5 says
+a light day is a feature; a light day that ends on a shrug is not.
+
+Recorded as an open product question for PLAN.md — it is a generator/budget
+decision, not something a mock can fix.
+
+### Scope
+
+Strength sessions. A mobility session is all-timed, has no gates and no peak; it
+has its own shorter shape (mobilise → open → activate) and this arc does not
+describe it.
+
+## Part 6 — What we will not build
 
 Each of these is plausible, cheap, and wrong. Decline by citation.
 
@@ -348,7 +425,7 @@ Each of these is plausible, cheap, and wrong. Decline by citation.
 
 ---
 
-## Part 6 — Goals, and what would falsify this
+## Part 7 — Goals, and what would falsify this
 
 **Working, at month six:** they still train without the streak being the reason;
 sessions end with someone saying a sentence about the session rather than about
