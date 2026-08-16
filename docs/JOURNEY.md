@@ -175,7 +175,11 @@ example profiles, 30 sets, 4 blocks):
 | `block_transition` | ~0 min | 1% |
 
 **A third of the session — 17 minutes — is `rest` + `changeover` + transition.**
-At the 30-minute setting it is 9 of 32 minutes, the same 29%. Today that time
+It holds across every duration the picker actually offers
+(`STRENGTH_DURATIONS = [20, 35, 55]`, [planner.ts:143](../src/app/lib/planner.ts:143)):
+**20 min → 28%** (5.6 of 20.1), **35 min → 34%** (12.1 of 36.0), **55 min → 33%**
+(16.6 of 50.4). The shorter the session, the *less* of it is dead — which is its
+own small argument for the short mode. Today that time
 renders as a coloured ring, a thumbnail and a `+15s` button. It is simultaneously
 **the largest uncommitted surface in the product and the only place where a
 motivational idea does not compete with a rep** (principle 3). Everything the
@@ -280,17 +284,24 @@ the PLAN item that already owns it, or is tagged `not scheduled`. A design doc
 that lists interventions per row is a second backlog, and this repo has been
 bitten by unframed additions before (DECISIONS, 2026-08-15).
 
+**`not scheduled` is the honest default, and R2a is not a dumping ground.** Its
+scope is: speak both people's targets, the cues, what is coming, and the gate
+prompt. That is already a full milestone. The first draft of this table quietly
+assigned it warm-up framing, rest-screen facts, mid-set asks *and* spoken
+corrections — which is exactly how v1 grows a coach that watches, and this app
+cannot watch.
+
 | Moment | Thinking | Needs | Gets today | Failure mode | Principle | Owner |
 |---|---|---|---|---|---|---|
 | **Today (cold)** | "Do I have it in me?" | A pull, and no decisions | Duration picker, exercise names, `~50 min`, streak/level cards | Reads as an invoice: a cost, a list, and a time quote | 4, 5 | `not scheduled` |
 | **Start** | Committed | Immediate motion | Straight into warm-up | — (works) | 7 | — |
-| **Warm-up** (7 × 40s, 4.7 min) | "Get on with it" | To be told what today is *for* | Images, ring, cues | The one moment framing is free, and nothing is framed. Note the real budget: 40 seconds an item, not the 10 minutes the measured table shows for warm-up **plus** cool-down | 4 | R2a |
+| **Warm-up** (7 × 40s, 4.7 min) | "Get on with it" | To be told what today is *for* | Images, ring, cues | The one moment framing is free, and nothing is framed. Note the real budget: 40 seconds an item, not the 10 minutes the measured table shows for warm-up **plus** cool-down | 4 | `not scheduled`. The *day type* is already stated honestly on Today; a movement's **purpose** is R2c, not R2a |
 | **Changeover** (15s) | "Which bells?" | The instruction | "Grab 7.5 kg", next movement, ring captioned *to start* | — (works; was a real bug, fixed) | 7 | — |
-| **`work`** (~48s × 30) | rep 5: "how many left?" rep 9: "one more?" | Pace, a witness, an ask | Countdown of *seconds*, Done ✓, ±reps, +15s | Nobody counts; the reps are recorded whether done or not; effort with no witness decays | 1, 3 | R2a (voice); witness question open |
+| **`work`** (~48s × 30) | rep 5: "how many left?" rep 9: "one more?" | Pace, a witness, an ask | Countdown of *seconds*, Done ✓, ±reps, +15s | Nobody counts; the reps are recorded whether done or not; effort with no witness decays | 1, 3 | **`not scheduled`, and note the tension:** principle 3 says nothing motivational belongs *inside* the set, and principle 7 says a count true for one person is a lie for the other. R2a's scope here is reading the targets and cues, not coaching mid-rep. The witness question stays open |
 | **Done ✓ early** | "Finished" | Acknowledgement | Silent advance | The most positive action in the session produces nothing | 1 | `not scheduled` |
 | **`SKIP`** | "Not this one" — it hurts, *or* the space is wrong, *or* they hate it | To be asked which, and answered | Silent advance, nothing logged | Highest-signal action a user takes, thrown away — and it leaves guilt with no absolution | 1 | R5 owns **only** the "it hurts" branch; the other two are `not scheduled`. A skip is not a pain flag — treating it as one would write the pain list from "no room for lunges" |
-| **`ADJUST`** | "That was too heavy" | To see it change something | Panel rings; feeds progression next session | Heard, never spoken back. Correct plumbing, invisible response | 1 | R2a |
-| **`rest`** (12 min/session) | "Breathe… how much more?" | Recovery, anticipation, one earned fact | Green ring, thumbnail, +15s | A quarter of the session on its own — **a third once changeover and transition are counted with it**, and that combined surface is the only place where nothing competes with a rep | 3, 6 | R2a |
+| **`ADJUST`** | "That was too heavy" | To see it change something | Panel rings; feeds progression next session | Heard, never spoken back. Correct plumbing, invisible response | 1 | `not scheduled` — speaking a correction back is not in R2a's scope |
+| **`rest`** (12 min/session) | "Breathe… how much more?" | Recovery, anticipation, one earned fact | Green ring, thumbnail, +15s | A quarter of the session on its own — **a third once changeover and transition are counted with it**, and that combined surface is the only place where nothing competes with a rep | 3, 6 | `not scheduled`. The one earned fact with real backing — "last time 7.5 → try 10" — is a **panel that was in the v1 product spec and never built**, not a spoken line |
 | **`block_gate`** (×4) | "Block done. How was it?" | A coach's sentence | Rating chips, Continue, Finish here | The only human moment in an hour, spent on a form | 1, 6 | R2a |
 | **Finish here** | "That's enough today" | Permission, not penalty | Completes honestly, no penalty | — (works, and quietly important) | 5 | — |
 | **Cool-down** (5 × 60s, 5 min) | "Done — finishing up" | The peak–end *end*: the last five minutes are the ones that get remembered | Five silent 60-second holds, same `timed` view as the warm-up | **The row this doc nearly omitted, which would have been the whole argument failing on itself.** Principle 6 says design the ending; the ending is *here*, five minutes before the receipt, and it is the least designed screen in the session | 6 | `not scheduled` |
