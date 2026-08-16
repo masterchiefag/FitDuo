@@ -109,6 +109,111 @@ A trainer asks how you're feeling and works around your bad shoulder. Two couple
   - After ~2 weeks of a continuously renewed flag, the app suggests seeing a professional **once**, without nagging, and never offers a diagnosis or rehab protocol. FitDuo adjusts load and gets out of the way; it does not treat injuries.
 - **Permanent per-person blocklist** ("never show me this again") in Settings — deferred to post-launch per Grok; the in-session swap covers the real cases first.
 
+### R6 — The session says what it knows (the journey work; do before R2a)
+
+Added 2026-08-16 from [JOURNEY.md](JOURNEY.md), which argued the problem and has
+no backlog of its own. **The player requires nothing and therefore notices
+nothing**; every motivational mechanism we have sits on screens visited outside
+the session, while 95% of user-time is the 55 minutes inside it. This item is the
+visual half of the fix — no voice, no new engines, only signals the code already
+computes.
+
+**Why before R2a, not after:** deciding what the *screen* says is deciding what
+the *coach* will say. R2a then speaks lines that have already been read, argued
+about and revised in a form you can edit. Building the voice first means
+iterating on speech to settle content, which is the expensive order.
+
+Three surfaces, from JOURNEY Part 5. **Ship them as separate slices, each one a
+real session the household can train with** — three surfaces changing at once
+makes the feedback undifferentiated.
+
+- **R6a — the dead third** (rest + changeover, ~33% of every session at every
+  duration; the only surface where nothing competes with a rep). Position ("block
+  2 of 4 · 12 sets to go"), what to grab per person, and one earned fact:
+  *last time 7.5 kg × 10* beside today's target, **shown only when it differs**.
+  **That fact is baked into `WorkItem` at generate time**, beside the targets
+  already frozen there — never read from `deriveProgression` in the player, which
+  keys to the exercise's most recent *session*: the first `LOG_SET` makes today
+  that session, so last would equal today and the fact would vanish for the rest
+  of the block. A plan-borne value also survives a killed tab, which a
+  Start-time snapshot does not (persist-on-Start is still M4). For bodyweight
+  movements `weight` is 0 on both sides, so the comparison is **reps**, or those
+  exercises silently never have news. Includes marking the Finisher as the peak — distinct
+  treatment, the preceding gate announcing it as *framing only, never a control
+  competing with the ratings*, and its own gate acknowledging it ended.
+- **R6b — the landing** (cool-down → complete). Peak–end says these five minutes
+  and the last screen *are* the memory. Cool-down framed as the ending rather
+  than admin; the completion screen says something about the body — volume moved
+  this session — not only the scoreboard.
+- **R6c — the entry** (Today → Start). Deferred until R6a/b have been trained
+  with: the card reads as an invoice today, but that is the least-evidenced of
+  the three claims.
+
+**Constraints, from JOURNEY Parts 2 and 6** — these are why the item is cheap and
+must stay cheap: nothing motivational *inside* a set (a form cue is instruction,
+which reduces load; motivation spends attention); no copy that can only be true
+for one of two people on one screen; **no rep counter derived from planned
+tempo** (`workSeconds` carries `setupSeconds`, doubles for unilateral, and is
+maxed across two different rep targets, so it would lie); no "heaviest ever"
+(see the witness decision below); no new achievements; no XP anywhere inside the
+session.
+
+### Three decisions this plan now makes (2026-08-16)
+
+**1. Personal records stay dormant, and the rest-screen fact is the whole
+celebration.** R1's follow-along contract logs uncorrected sets `assumed: true`
+and `bestE1rm` ignores them, so PRs, the +15 XP bonus and `first_pr`/`pr_10` are
+unreachable. **Do not "fix" this by trusting assumed sets** — the exclusion is
+correct, and a gate tap means "we are here", not "I did ten". PRs revive the day
+a witness exists (R2b's "I did eight", or an upward adjust); PR-keyed
+achievements stay locked and are not renamed to fake it.
+
+A first draft added a separate *moved up* moment for the weight rising. **Cut** —
+R6a's rest screen is already showing last time beside today, which *is* the prize
+for good work being better work (principle 2). A second celebration of the same
+comparison is reward inflation, which Part 6 refuses.
+
+**2. The 20-minute session stays peakless in v1.** `fitToBudget` drops the
+`Finisher` at 20 minutes on all 20 measured dates, so the shortest session ends
+Strength C → cool-down — and that is the session done on the worst day, whose
+memory peak–end says matters most. The case for fixing it is real. It is still
+declined, for three reasons found by checking rather than reasoning:
+
+- **A 1-round Finisher is not a peak.** `estimatePlanSeconds` bills rest as
+  `(rounds − 1) × restSeconds`, so a 1-round block has **no rest at all** — and
+  JOURNEY measured the 60s-vs-75s rest gap as the Finisher's only dependable
+  signal, the label being already on the pill, the gate and Preview. The fix
+  would have shipped a name, not a climax.
+- **The levers do not exist.** `MIN_ROUNDS = 2` floors every work block and
+  trimming runs back-to-front, which is *why* the Finisher goes first. Getting to
+  one round needs a new floor plus a drop-order change, or a `targetSeconds`
+  branch — the duration special case §A0 exists to forbid. "Small generator
+  work" was asserted, not measured.
+- **Nobody has trained a 20-minute session.** JOURNEY's own default was to leave
+  it, precisely because this is generator surgery; flipping that from zero
+  sessions of evidence, in the same revision that defers the endgame *because*
+  deciding from zero sessions repeats designing-before-training, is incoherent.
+
+**Revisit when a real 20-minute session has been done and reported flat.** R6a
+and R6b are trained at 35/55, which already have a peak, so nothing is blocked.
+
+**3. Act 3 sustains the effort; whether it escalates the *information* waits for
+one real session.** Intensity stays flat — the peak is the Finisher, and arriving
+spent means there is no peak. That half is decided.
+
+The other half — rest screens carrying progressively more as the session goes on —
+is **deliberately not in R6a**. Two reasons: it is a second idea inside a slice
+whose job is position, grab, last-time and the Finisher mark, and the obvious
+content for it (*what the household has done today*) is per-person volume on one
+shared screen, which principle 7 forbids in the same breath. Ship the plain
+version, train with it, and let "did the middle sag?" be answered by someone who
+was in it.
+
+**Deferred with a trigger, not decided: the endgame.** JOURNEY notes the level
+curve flattens near week ten and nothing takes over. Deciding that now, from zero
+sessions of real use, would be the same mistake this plan already made once by
+designing before anyone trained. Revisit after eight weeks of real sessions.
+
 ### Data-model amendments — apply to `supabase/migrations/0001_init.sql` **before R1 lands**, not during M4
 R5 ships before M4, so the schema must already carry what R1/R4/R5 produce or the first sync silently drops it (losing `assumed` flags means fake PRs and ratchets return).
 - `set_logs.assumed boolean not null default false`.
@@ -123,13 +228,16 @@ R5 ships before M4, so the schema must already carry what R1/R4/R5 produce or th
 6. **Cut from v1:** activity feed + emoji cheers, web push notifications, per-person schedules. M4 = auth + sync + derived partner card + onboarding. M5 loses push; keeps offline/install/polish/Lighthouse.
 
 ### Revised sequencing (one change at a time, each verified before the next starts)
-1. **R1** — follow-along player, incl. the short strength session. **One PR** — splitting was tried twice and rejected: every seam ships an app worse than both sides of it. Invariants and the done-drive are in the R1 section.
+1. ~~**R1**~~ — ✅ follow-along player shipped 2026-08-16 (PR #9), incl. the short strength session and the estimate fix (PR #10).
 2. ~~R4 mobility~~ — ✅ shipped early 2026-08-14, ahead of R1, because it needed no player rewrite (all-timed blocks)
-3. **R2a** — coach speaks, including the feedback prompt that keeps progression alive
-4. **R5** — readiness check + pain-aware generation + blocklist
-5. **R3a** — "Watch form ▶" video links
-6. **R2b** — voice commands (hands-free control)
-7. **M4** — accounts/sync/partner card/onboarding (slimmed) → **M5** PWA polish (no push) → **M6** launch
+3. **R6a** — the dead third: a rest screen worth reading, and the Finisher marked as the peak. *The first thing the household actually trains with after R1.*
+4. **R6b** — the landing: cool-down as an ending, completion as more than a receipt.
+5. **R2a** — coach speaks *the lines R6 already wrote*, including the feedback prompt that keeps progression alive
+6. **R5** — readiness check + pain-aware generation + blocklist
+7. **R6c** — the entry (Today → Start), once R6a/b have been trained with
+8. **R3a** — "Watch form ▶" video links
+9. **R2b** — voice commands (hands-free control) — and the first real witness, which is what revives personal records (decision 1 above)
+10. **M4** — accounts/sync/partner card/onboarding (slimmed) → **M5** PWA polish (no push) → **M6** launch
 
 Post-launch: R2c conversational coach, R2d authored TTS, R3b self-recorded clips, activity feed, push.
 
