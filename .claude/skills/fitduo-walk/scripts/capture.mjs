@@ -31,6 +31,10 @@ const ADVANCE = [
   /^Continue →$/,
   /^Finish here$/,
 ]
+// A whole 55-minute session at K=30 is ~110s of real time and well under 1000
+// steps (one click at 150ms, or one 400ms wait while a timer burns). Both
+// numbers are runaway guards, not budgets: hitting either means the driver is
+// stuck on a screen, not that the session is long.
 const MAX_STEPS = 1500
 const DRIVE_TIMEOUT_MS = 300_000
 

@@ -1,6 +1,6 @@
 ---
 name: fitduo-walk
-description: Capture FitDuo browser-walk screenshots and attach them to a PR. Use whenever a PR touches UI, generator, content or copy — CLAUDE.md step 5 requires a walk (desktop then 375, light and dark) with frames attached. Covers driving the player with an accelerated clock, and publishing frames via an orphan branch because `gh` cannot upload images.
+description: Captures FitDuo walk screenshots and attaches them to a PR. Use when a PR touches UI, generator, content or copy and CLAUDE.md step 5 needs a browser walk with frames attached; when screenshots are needed at desktop 1280x800 and mobile 375x812 in light and dark; when driving the player past warm-ups, rest timers or block gates would otherwise take a real 55 minutes; or when frames must reach a PR body and `gh` cannot upload images. Enforces walk mode so real names and loads are never published.
 ---
 
 # Walking FitDuo and attaching the frames
@@ -22,11 +22,11 @@ If port 5173 is already held, check what is on it before doing anything else: a
 ## 1. Capture
 
 ```
-node .claude/skills/fitduo-walk/capture.mjs --out /tmp/fitduo-frames/today.png
-node .claude/skills/fitduo-walk/capture.mjs --until "to go" --viewport mobile --theme dark --out /tmp/fitduo-frames/rest-mobile-dark.png
+node .claude/skills/fitduo-walk/scripts/capture.mjs --out /tmp/fitduo-frames/today.png
+node .claude/skills/fitduo-walk/scripts/capture.mjs --until "to go" --viewport mobile --theme dark --out /tmp/fitduo-frames/rest-mobile-dark.png
 ```
 
-**Write frames outside the repo.** `publish.sh` is what puts them on GitHub, via
+**Write frames outside the repo.** `scripts/publish.sh` is what puts them on GitHub, via
 a branch that never merges; frames sitting in the working tree just wait for the
 next `git add` to commit binaries onto the PR branch — the exact thing the
 orphan branch exists to avoid. (`frames/` is gitignored as a backstop.)
@@ -53,7 +53,7 @@ ran in walk mode: it carries the red "Example profiles" banner.
 ## 2. Publish
 
 ```
-.claude/skills/fitduo-walk/publish.sh /tmp/fitduo-frames/ pr-<number>
+.claude/skills/fitduo-walk/scripts/publish.sh /tmp/fitduo-frames/ pr-<number>
 ```
 
 **Use the PR number as the suffix.** The push is a force-push, so two walks that
@@ -72,7 +72,7 @@ publishes the household's real names and loads — *gitignored is not the same a
 unpublished* (2026-08-16). A Grok prompt can be told to anonymise; a screenshot
 cannot.
 
-`capture.mjs` therefore checks the rendered page, not the flag you believe you
+`scripts/capture.mjs` therefore checks the rendered page, not the flag you believe you
 passed: it loads Today and **exits 2 unless the "Example profiles — not your
 data" banner is there**. A dev server already sitting on 5173 fails this. Do not
 add an override.
@@ -82,7 +82,7 @@ Port 5173 or nothing — `localStorage` is keyed per origin, so a fallback to
 
 ## Why the clock is an accumulator
 
-A 55-minute session has to walk in minutes. `capture.mjs` overrides the page
+A 55-minute session has to walk in minutes. `scripts/capture.mjs` overrides the page
 clock with `virt += (real() - last) * K` — an **accumulator**, not a multiplier
 of elapsed time, so the rate can change mid-run without the clock jumping. It
 goes in via `context.addInitScript` so it survives reloads.
@@ -95,7 +95,7 @@ past a deadline, and the jump is one 250ms tick × K.
 ## Gotchas that cost time on every rebuild
 
 - **`@playwright/test` resolves from the main repo's `node_modules`, never from a
-  worktree** — a worktree has none. `capture.mjs` finds it via
+  worktree** — a worktree has none. `scripts/capture.mjs` finds it via
   `git rev-parse --git-common-dir`; don't hardcode a path.
 - **`fullPage: true` is useless** — the app scrolls an inner `<main>`, not the
   document, so full-page equals viewport. To shoot what is below the fold, set
@@ -107,6 +107,18 @@ past a deadline, and the jump is one 250ms tick × K.
   yields a **warm-store** frame (same seed, same movements, but `lastTime`
   populated) next to the cold ones.
 
+## What this skill does not do
+
+- **It does not start the server.** Bring up `fitduo-walk` first; `scripts/capture.mjs`
+  only drives a server that is already listening on 5173.
+- **It does not seed history.** A frame that needs streaks, XP or a warm store
+  needs that written first (see the gotchas below); the script always starts
+  from a cold, fresh browser context.
+- **It does not run the 33% check or write the PR body.** It produces PNGs and
+  prints markdown lines; downscaling, choosing which frames tell the story, and
+  writing the walk paragraph stay judgement calls.
+- **It does not capture below the fold.** One viewport frame per invocation.
+
 ## The one-third-scale check
 
 The legibility criterion (SESSIONS.md finding 2, 2026-08-25) is checked by
@@ -117,3 +129,10 @@ sips -Z 427 in.png --out in-33.png
 ```
 
 Post **both** sizes, so the criterion is visible in the PR rather than asserted.
+
+## Iterating on this skill
+
+`evals/trigger-evals.json` holds the prompts this skill should and should not fire
+on. When it triggers on the wrong thing, fix the `description` and move the line
+to the list it belongs in — the description is the only part always in context,
+so it is the whole of the triggering behaviour.
