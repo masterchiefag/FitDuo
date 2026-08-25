@@ -324,7 +324,9 @@ line so a printed rep target never reads as pass/fail.
    next item at ~40/20/10 s; never announce across a gate what the gate hasn't
    shown. Data: `endsAt` + current block.
 2. **Per-set effort intent, before the set** — "leave two in reserve" / "last
-   set — empty the tank" — keyed to round index.
+   set — empty the tank" — keyed to round index; the fiercest phrasing is
+   reserved for the Finisher, the scheduled peak. The owner's nudge lives
+   here, pre-set, where it is true for both people — never mid-set.
 3. **Warm permission to rest** when a set closes, keyed for duo to both sides
    done.
 4. **Last time, spoken** — history *used*, not displayed. Data:
@@ -454,8 +456,9 @@ evidence in the brief:
   sentiment; TTS stating true specifics is liked). Authority from knowing the
   household's history, not from command.
 - **Unnamed until R2b** — the name arrives the day the coach can hear it,
-  and becomes the wake word. No gender; voice picker + verbosity dial in
-  Settings (the Down Dog pattern — R2a's settings line gains the dial).
+  and becomes the wake word. No gender; v1 settings stay voice / rate / mute
+  (a verbosity dial — the Down Dog pattern — is deferred with end-user
+  customization).
 - **First names + "you two"; "champs" earned-only** (rare milestones, never
   wallpaper).
 - **Intent-led effort with the edge only at scheduled peaks** (strength);
@@ -467,7 +470,10 @@ evidence in the brief:
   ranking the couple, no performed emotion.
 - **Mechanism per §A0:** the persona compiles to a typed data object the
   templates render — one authored persona in v1; end-user customization later
-  is content plus a settings screen.
+  is content plus a settings screen. **The corpus's five R2a line types bound
+  what the coach says; the brief is register and ritual within them, never
+  additional line types** — and the peak nudge is pre-set intent, never
+  mid-set speech.
 
 ### Data-model amendments — apply to `supabase/migrations/0001_init.sql` **before R1 lands**, not during M4
 R5 ships before M4, so the schema must already carry what R1/R4/R5 produce or the first sync silently drops it (losing `assumed` flags means fake PRs and ratchets return).
@@ -489,7 +495,7 @@ R5 ships before M4, so the schema must already carry what R1/R4/R5 produce or th
 4. ~~**R6b**~~ — ✅ merged 2026-08-25 (PR #23): cool-down as an ending, completion as more than a receipt.
 5. **F0** — the first-session gate (§F0): trust pass + one real generated-strength session, 14-day clock running since 2026-08-25. **No feature work starts until its exit test passes** — the next slice is a session, not a PR.
 6. **R7** — the exercise intro: two kinds of changeover (§R7), screen-first.
-7. **R2a** — coach speaks the five v1 line types (§trainer corpus), in character per [docs/PERSONA.md](PERSONA.md) (persona workshopped ✅ 2026-08-25) — the gate rating stays, per the borrowing rule; Settings gains voice picker, rate, mute, and a verbosity dial.
+7. **R2a** — coach speaks the five v1 line types (§trainer corpus), in character per [docs/PERSONA.md](PERSONA.md) (persona workshopped ✅ 2026-08-25) — the gate rating stays, per the borrowing rule; Settings: voice picker, rate, mute (verbosity dial deferred with customization).
 8. **R5** — readiness check + pain-aware generation + the three-door hurt-day offer (§corpus decision 1) — kept adjacent to R2a deliberately (§11-star takeaways #4).
 9. **R8** — progression as a question (§R8), its own slice with a mock.
 10. **R6c** — the entry (Today → Start), once R6a/b have been trained with

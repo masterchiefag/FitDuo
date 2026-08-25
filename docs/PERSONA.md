@@ -10,7 +10,11 @@ don't sound like this persona are wrong even when factually correct.
 forms, ritual lines, philosophy strings, register settings — that templates
 render. v1 ships this one authored persona; end-user customization later
 (a proven, beloved pattern — Down Dog) is a content edit and a settings
-screen, never generator or player surgery.
+screen, never generator or player surgery. A verbosity dial (Down Dog's
+most-praised control) is deferred *with* that customization — v1 settings
+stay voice / rate / mute. **Scope guard: the corpus's five R2a line types
+bound what the coach says; this brief is register and ritual *within* them,
+never additional line types and never a persona engine.**
 
 ## Identity
 
@@ -49,12 +53,16 @@ lightly philosophical), not the drill sergeant, not the comedian.
 
 ## Effort philosophy
 
-- **Strength: intent-led, with the edge at scheduled peaks.** Every set is
-  told what it's for before it starts — conservative sets are prescribed as
-  conservative ("leave two in reserve"), so effort is chosen, never
-  accidental. Only where intensity was scheduled does the edge appear: "your
-  mind quits a little early — find three more." Fierce where fierceness was
-  planned; never maximal by accident.
+- **Strength: intent-led, with the edge at scheduled peaks — spoken before
+  the set, never during it.** Every set is told what it's for before it
+  starts — conservative sets are prescribed as conservative ("leave two in
+  reserve"), so effort is chosen, never accidental. The nudge the owner asked
+  for lives here too: on the scheduled peak, the pre-set intent carries the
+  edge — "empty the tank; your mind quits a little early, there's more
+  there" — which is true for both people *before* the set, and false for at
+  least one of them mid-set whenever their rep targets differ (the normal
+  duo case). The fiercest phrasing is reserved for the Finisher, the one
+  block already marked as the peak.
 - **Mobility: sensation over range.** "Wherever you reach today is the
   stretch." No load talk, no pushing, denser reassurance. One persona, two
   registers — the same partner, shifting gears.
@@ -71,9 +79,10 @@ being *known* — spend lines on knowledge, not enthusiasm.
 
 - **Rest, changeovers, and gates are the coaching moments.** Approach ladder,
   effort intent, permission to rest, last-time, teaching intros (R7).
-- **During work: count-ins, the cue, nothing else** — with one exception: a
-  short nudge on the *scheduled* peak set only. Even adored human instructors
-  get roasted for chattering during the hardest parts.
+- **During work: count-ins and the cue, nothing else.** No exceptions — the
+  peak nudge is pre-set (above). Even adored human instructors get roasted
+  for chattering during the hardest parts, and any mid-set claim about
+  someone's effort is unwitnessed by definition (never-list #1).
 - **Silence is a selected variant, not a failure.** Many moments should
   sometimes say nothing.
 
@@ -82,15 +91,19 @@ being *known* — spend lines on knowledge, not enthusiasm.
 Two listeners hear every line, and couples quote lines at each other — the
 staleness budget is half a normal app's (and the upside is real: one good
 line becomes a household catchphrase). Every template slot has multiple
-surface variants plus silence; per-line cooldowns live in state. Rituals are
-the exception: the closing shape is *supposed* to be the same every day —
-fixed rituals, varied prose.
+surface variants plus silence, chosen by seeded pick — the generator's own
+determinism pattern, no new session state, no cooldown machinery in v1.
+Rituals are the exception: the closing shape is *supposed* to be the same
+every day — fixed rituals, varied prose.
 
 ## Rituals
 
 - **Opening:** name the day and its shape, then start. No pep talk.
 - **Countdown:** always resolves into what's next — "three, two, one — and
-  rest", never bare (spoken form lands after the beeps; beeps always win).
+  rest", never bare. *Spoken* form stays on the corpus backlog until the
+  cue-priority queue exists and has been driven in a real session — beeps
+  always win and speech is cancelled at exactly that boundary; until then
+  this ritual lives on screen.
 - **Closing:** the welfare beat, numbers demoted: done for the day, one true
   fact about the work, "how are you feeling?" — the same shape every session,
   on purpose.
@@ -113,15 +126,24 @@ fixed rituals, varied prose.
 
 ## Example lines (authoring reference — `{name}` from profiles)
 
-- Approach: "Rows in twenty seconds. {name}, ten kilos." → "Starting in five."
-- Intent: "First set — leave two in reserve." / "Last set. Empty the tank."
-- Peak nudge (scheduled only): "Your mind quits early. Find three more."
+Any line carrying a load names both people or neither — one speaker, two
+targets, nobody's weight goes unsaid.
+
+- Approach: "Rows in twenty seconds. {nameA} ten, {nameB} five." →
+  "Starting in five."
+- Intent: "First set — leave two in reserve." / Peak (pre-set): "Last set —
+  empty the tank. Your mind quits a little early; there's more there."
 - Permission: "Both done — weights down, have water."
-- Last-time: "{name} — last time this was ten kilos for ten, and you called
-  it easy."
+- Last-time: "{name} — last time: ten kilos, ten reps." (Quoting the rating
+  back — "you called it easy" — is R8's move, after R5; `WorkItem.lastTime`
+  carries weight and reps only.)
+- Praise (data-grounded): "{name} — that's two and a half up from last time."
+  (computable from `WorkItem.lastTime` against today's target, at generate
+  time)
 - Welfare close: "That's the day. Four blocks, thirty-three sets. How are you
   feeling?"
-- Earned champs (rare): "Three weeks, zero misses. Nice work, champs."
+- Earned champs (rare, real triggers only — 7/30/100 streaks exist today):
+  "Seven days straight, both of you. Nice work, champs."
 - Silence: (selected deliberately, often)
 
 ## Expectations, stated once
