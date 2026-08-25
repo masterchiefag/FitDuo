@@ -148,9 +148,11 @@ makes the feedback undifferentiated.
 - **R6c — the entry** (Today → Start). Deferred until R6a/b have been trained
   with: the card read as an invoice, but that was the least-evidenced of the
   three claims — **until 2026-08-25, when session 1's first finding was the
-  cold, unwelcoming start.** The session-opening half (today's shape, targets,
-  one warm line — the persona's opening ritual) is promoted into the session-1
-  fix batch; the Today-card half still waits for training evidence.
+  cold, unwelcoming start.** R6c now has its evidence and its shape — the
+  persona's opening ritual: *name the day and its shape, then start, no pep
+  talk* — and it is built as **its own slice after the session-1 fix batch**
+  (once type is readable), not smuggled into it; the Today-card half still
+  waits for training evidence.
 
 **Constraints, from JOURNEY Parts 2 and 6** — these are why the item is cheap and
 must stay cheap: nothing motivational *inside* a set (a form cue is instruction,
@@ -259,26 +261,24 @@ prep — as `docs/TRAINER.local.md`, gitignored, because a household's training
 notes on a public remote is the 2026-08-16 leak class again.)*
 
 **Exit test for the whole gate: F0.1 passed *and* one real generated-strength
-duo session completed, observations recorded in DECISIONS.md.** *Progress
-2026-08-25: session 1 done — solo — six findings in DECISIONS.md. The owner's
-ruling: solo iterations continue until the findings list is fixed ("acceptable"
-is that finite list, not a feeling); the duo session remains the exit, and the
-partner's first contact is deliberately saved for a product the easier judge
-no longer finds rough.* **The clock
+duo session completed, observations recorded in [SESSIONS.md](SESSIONS.md).**
+*Progress 2026-08-25: session 1 done — solo — six findings in SESSIONS.md.
+The owner's ruling: solo iterations continue until session 1's six findings
+are fixed — a **closed list**, not a feeling; later findings feed later
+batches without growing this bar unless the owner adds to it. The duo session
+remains the exit, saved for the harder judge. **F0.1 has not yet run**;
+finding 6 is its first input — a cool-down rule keyed to `mobility.regions`,
+not `primaryMuscles`.* **The clock
 started 2026-08-25; the report — pass or the honest reason why not (schedule,
 trust, or the product itself) — is due in DECISIONS.md by 2026-09-08**,
 because a "not there yet" that survives a *finished* checklist is a different
 and more important problem than any item on it.
 
-**The first session runs on current state — deliberately.** First contact is a
-one-time, unrepeatable measurement (DECISIONS 2026-08-16: a first-time user
-sees holistically what no builder can), and it is already fully loaded:
-generated programming, the first-ever duo flow, R6a's rest screen, R6b's
-landing — none has met a real user. **No new *surface* merges ahead of it —
-but F0.1's own findings do**: trust-pass content and rule edits are the
-foundation the session stands on, not an experiment, and a session run on a
-week the household already rejected would be first contact with a known-bad
-state.
+**Session 1 ran 2026-08-25 on current state, as designed** — solo; first
+contact was the one-time holistic measurement, and it delivered (six findings
+in [SESSIONS.md](SESSIONS.md)). The standing rule from it: new *surfaces*
+merge one-per-session; F0.1 content and rule edits are foundation and land
+whenever ready.
 
 ### The session cadence (2026-08-25): sessions are the clock, merges are the gate
 
@@ -306,12 +306,18 @@ feedback differentiation and the sessions actually happening. Therefore:
   surfaces), the same foundation-vs-experiment carve as F0.1's content edits.
 - Invisible work (refactors, tests, tooling, docs) is untouched by the gate,
   as ever.
-- Planned pulls: session 1 = current state (above) → session 2 = **R7**
-  (merges only after F0.1 has passed — teaching-time on programming the
-  household doesn't trust is the nine-day failure mode renamed) → session 3 =
-  **R2a as specified, the five v1 line types as one slice** (keeping R5
-  adjacent per takeaway #4) → onward per the sequencing list, one slice per
-  session, reordered freely as observations dictate.
+- **This section is the single authority on what merges next** (the
+  sequencing list points here). Queue as of 2026-08-25: **next — the
+  session-1 fix batch** (findings 2, 3, 4, 5: training-distance type with the
+  one-third-scale walk criterion; cold-start rest content; the gate's
+  `block.label` heading — a label fix, the next-up preview already lists the
+  movements; an authored tempo-cue catalog field, displayed) → **F0.1 trust
+  pass** (its cool-down rule = finding 6) → solo sessions iterate → **R6c's
+  opening** (finding 1, once type is readable) → duo session = **F0 exit** →
+  **R7** (only after F0.1 passed — teaching-time on untrusted programming is
+  the nine-day failure mode renamed) → **R2a as specified, five line types,
+  one slice** (R5 kept adjacent per takeaway #4) → onward, reordered as
+  observations dictate.
 
 ### 11-star takeaways (2026-08-25) — what the exercise actually changes
 
@@ -544,7 +550,7 @@ R5 ships before M4, so the schema must already carry what R1/R4/R5 produce or th
 2. ~~R4 mobility~~ — ✅ shipped early 2026-08-14, ahead of R1, because it needed no player rewrite (all-timed blocks)
 3. ~~**R6a**~~ — ✅ shipped 2026-08-16 (PR #22): a rest screen worth reading, and the Finisher marked as the peak.
 4. ~~**R6b**~~ — ✅ merged 2026-08-25 (PR #23): cool-down as an ending, completion as more than a receipt.
-5. **F0** — the first-session gate (§F0): trust pass + one real generated-strength session on current state, report due 2026-09-08. Thereafter the **session cadence** (§F0) governs: build-ahead freely, merge one user-visible slice per session.
+5. **F0** — in progress: session 1 done (solo) 2026-08-25, report clock runs to 2026-09-08. §F0's cadence queue is **the single authority on what merges next** — currently: session-1 fix batch → F0.1 → R6c opening → duo (exit) → R7.
 6. **R7** — the exercise intro: two kinds of changeover (§R7), screen-first.
 7. **R2a** — coach speaks the five v1 line types (§trainer corpus), in character per [docs/PERSONA.md](PERSONA.md) (persona workshopped ✅ 2026-08-25) — the gate rating stays, per the borrowing rule; Settings: voice picker, rate, mute (verbosity dial deferred with customization).
 8. **R5** — readiness check + pain-aware generation + the three-door hurt-day offer (§corpus decision 1) — kept adjacent to R2a deliberately (§11-star takeaways #4).

@@ -43,65 +43,33 @@ imagined one is paid for by every future PR and buys a feeling of safety.
 
 ---
 
-## 2026-08-25 — Session 1 (solo): six findings from twenty minutes of real use
+## 2026-08-25 — Session 1 happened; the findings live in SESSIONS.md, the lessons here
 
-The owner did the first real generated-strength session, alone, and reported
-six things. Verbatim in spirit, with what each one teaches:
+The first real session (solo) produced six findings — now the first entry in
+[SESSIONS.md](SESSIONS.md), a new append-only log created the same day on the
+owner's call: session feedback is recurring product evidence, and recording it
+here would slowly turn the decisions file into a session log. This file keeps
+what generalises:
 
-1. **"It kicks off without any context of what today's targets are, what
-   we're doing — not a very welcoming start."** R6c — the entry — was
-   deferred as "the least-evidenced of the three claims." It now has its
-   date. The session needs an opening: today's shape, the targets, one warm
-   line (the persona's opening ritual, which existed on paper before the
-   screen it belongs on).
-2. **"Text too small on all screens — I have to come very close to see what
-   any exercise says."** New class: *verified at desk distance, used at
-   training distance.* Every browser walk happened at arm's length; a person
-   mid-set stands meters from the laptop. Type on work/rest/changeover
-   screens must read from across a room.
-3. **"Rest screens are dead."** The humbling one — R6a shipped a rest screen
-   "worth reading" nine days ago, and first contact still called it dead.
-   Two causes. *Cold start:* the screen's one earned fact (`lastTime`) does
-   not exist in a first session — the sessions where the app most needs to
-   impress are exactly the sessions where history-dependent content is
-   empty. *Builder-as-witness, recursing:* the author verified R6a against a
-   warm store and a head full of intent (same class as 2026-08-16, on the
-   fix for the same class). A first session needs first-session content —
-   e.g. "First time on this one — we'll remember today for next time."
-4. **"Bent-over rows — nothing anywhere about speed of movement. First time,
-   I don't know how to do it right."** The corpus flagged tempo as coached
-   constantly (§4.3) and Grok correctly blocked speaking `secondsPerRep`
-   (it's the estimator, not coaching). The gap is now user-evidenced: an
-   authored per-exercise tempo cue, promoted from the [catalog] queue to the
-   fix batch.
-5. **"'Strength B done! Up next: Strength C' — I honestly didn't get what B
-   and C are."** The 2026-08-16 finding one level up: the gate was fixed to
-   lead with instruction, but block *names* are still internal identifiers
-   leaking to the screen. Blocks need human labels derived from their
-   content ("Rows & presses"), position ("2 of 4"), or both.
-6. **"The stretches seem unrelated to the muscles used in the workout."**
-   The cool-down generator ignores the session's muscles. The corpus already
-   held the answer shape (§2): the trainer's cool-down is a *fixed,
-   recognisable core chain* plus a *targeted prelude* for what the day
-   worked (leg day prepends hamstrings/glutes). Selection rule, not new
-   content.
-
-**The ruling that came with the report:** solo sessions continue until the
-product is at least acceptable; the duo session — still the gate's exit —
-happens then. Accepted, with the trap named and defused: "acceptable" is
-**this finite list**, not a feeling — the six findings fixed, plus whatever
-the next session adds. The partner's first contact is a one-shot measurement
-against the hardest incumbent in the household (her trainer, live, daily —
-the corpus's own split-verdict warning), and spending it on a product the
-easier judge already found rough would waste it.
-
-**Cadence clarification, from applying it the first time:** fixes that
-answer a session's findings are that session's *output* and merge as one
-batch; the one-merge-per-session gate is for *experiments* — new surfaces
-like R7 and R2a. (Same carve Grok drew for F0.1 content edits: foundation
-vs. experiment.) R7 stays parked behind the fix batch; teaching-time on
-screens the owner can't read from across the room would be polish on top of
-friction.
+- **Verified at desk distance, used at training distance.** Every browser walk
+  happened at arm's length; a person mid-set stands meters from the laptop.
+  Encoded as a walk criterion: session-screen frames must read at one-third
+  scale.
+- **Cold start is when the app most needs to impress and has the least to
+  say.** R6a's rest screen shipped "worth reading" nine days earlier; first
+  contact called it dead, because its one earned fact (`lastTime`) cannot
+  exist in a first session. And builder-as-witness recursed on the fix for
+  its own class: the author verified R6a against a warm store with a head
+  full of intent.
+- **Internal identifiers leak one level above the last fix.** 2026-08-16
+  fixed the gate's exercise line; the block *names* ("Strength B/C") still
+  meant nothing to a real user.
+- **The ruling:** solo iterations until session 1's six findings are fixed —
+  a closed list, not a feeling (the unbounded-foundation trap does not get a
+  third life); the duo session stays F0's exit, saved for the harder judge.
+- **Cadence carve, from its first application:** fixes answering a session's
+  findings are that session's output and merge as one batch; the one-merge
+  gate is for experiments (new surfaces).
 
 ## 2026-08-25 — The corpus is input, not gospel: the rating stays
 
