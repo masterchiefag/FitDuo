@@ -32,7 +32,11 @@ if [ -z "$PIDS" ]; then
 fi
 
 for pid in $PIDS; do
-  CMD=$(ps -o command= -p "$pid" 2>/dev/null || true)
+  # -ww, or `ps` truncates to the terminal width when stdout is a tty: the
+  # `vite` marker sits past column 45 in the real command line, so from a narrow
+  # terminal this would refuse to kill a genuine dev server. Fail-safe, but it
+  # defeats the script exactly when someone reaches for it.
+  CMD=$(ps -ww -o command= -p "$pid" 2>/dev/null || true)
   case "$CMD" in
     *vite*)
       echo "killing vite on $PORT (pid $pid)"
