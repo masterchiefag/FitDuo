@@ -1,0 +1,26 @@
+{
+  "_comment": "Hand-checked trigger set, same shape as sherlock's. No runner: read the description, decide whether it fires for each line, and fix the description when a line lands on the wrong side. The should_not_fire list matters more than the should_fire one — a walk skill that fires on every FitDuo question is worse than one that fires on none.",
+  "should_fire": [
+    "open a PR for the cool-down change",
+    "the generator picks better warm-ups now — get this reviewed and merged",
+    "I need screenshots of the new block gate for the PR",
+    "walk the player and show me what round 2 looks like on mobile",
+    "does the rest screen still read at 375 in dark mode?",
+    "attach the frames to PR 41",
+    "grab a Today shot with the example profiles banner",
+    "show me the finisher screen without sitting through the whole session",
+    "the PR body has no images — gh won't let me upload them",
+    "capture desktop and mobile, light and dark, for this copy change"
+  ],
+  "should_not_fire": [
+    "run the unit tests",
+    "why does the generator repeat Bent-Over Row two days running?",
+    "add a cool-down block to the plan",
+    "start the dev server so I can use the app",
+    "what did I lift last Tuesday?",
+    "review this diff for bugs",
+    "fix the horizontal overflow on the work screen at 375",
+    "write a test for the no-repeat window",
+    "delete the old walk-frames branches"
+  ]
+}
