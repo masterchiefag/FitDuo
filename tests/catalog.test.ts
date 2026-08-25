@@ -70,6 +70,51 @@ describe('exercise catalog', () => {
     }
   })
 
+  /**
+   * A main exercise is something a person is asked to load and repeat, and the
+   * first real session found the app silent on how to move: *"nothing about
+   * speed of movement, here or anywhere"* (docs/SESSIONS.md, finding 4). The
+   * cue is authored, so nothing but this test can notice a new main arriving
+   * without one — and a derived stand-in is exactly what must not happen, since
+   * `secondsPerRep` is the estimator's budget number, not coaching.
+   */
+  it('every main exercise carries an authored tempo cue', () => {
+    for (const ex of catalog.exercises.filter((e) => e.role === 'main')) {
+      expect(ex.tempoCue, `${ex.id} has no tempoCue`).toBeTruthy()
+      // Read mid-set, from meters away: a paragraph here is not a cue.
+      expect(ex.tempoCue!.length, `${ex.id}: tempoCue is too long to read mid-set`).toBeLessThanOrEqual(90)
+    }
+  })
+
+  /**
+   * The cue and the clock are two statements about the same set, and only one
+   * of them was ever checked.
+   *
+   * `workSeconds` is `setupSeconds + reps × secondsPerRep`, and when it expires
+   * the player logs the set as done, `assumed: true`, and moves on. So a cue
+   * prescribing 5 seconds a rep against a 3-second budget tells someone to lift
+   * in a way that makes the app record a set they did not finish — and
+   * `deriveProgression` then steps their next prescription off it. Caught in
+   * review of this batch's first draft (Grok, PR #30), where every "lower over
+   * 3" cue overran its own timer by ~25%.
+   *
+   * Named seconds only: an unnumbered beat ("pause at the bottom") is paid for
+   * by `setupSeconds`, which is billed to the set but actually spent during the
+   * changeover before it. The fix for a cue that fails this is to re-author the
+   * cue or raise `secondsPerRep` — never to parse the sentence at runtime.
+   */
+  it('no tempo cue asks for more seconds than the set clock allows', () => {
+    for (const ex of catalog.exercises) {
+      // A hold's `secondsPerRep` is the hold itself, not a per-rep budget.
+      if (!ex.tempoCue || ex.repRange[1] === 1) continue
+      const named = [...ex.tempoCue.matchAll(/\d+/g)].reduce((a, m) => a + Number(m[0]), 0)
+      expect(
+        named,
+        `${ex.id}: cue names ${named}s per rep, budget is ${ex.secondsPerRep}s`,
+      ).toBeLessThanOrEqual(ex.secondsPerRep)
+    }
+  })
+
   it.each(Object.entries(KITS))('pools are deep enough on the %s kit', (kitName, kit) => {
     const performable = catalog.exercises.filter((e) => canPerform(e, kit))
     const warmups = performable.filter((e) => e.role === 'warmup')

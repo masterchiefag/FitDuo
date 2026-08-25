@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { lastTimeNews, movedUp } from './lastTime'
+import { lastTimeNews, movedUp, targetNote } from './lastTime'
 
 const target = (targetReps: number, weight: number) => ({ targetReps, weight })
 
@@ -48,5 +48,49 @@ describe('movedUp', () => {
   it('is the extra rep when the bell is unchanged', () => {
     expect(movedUp(target(11, 7.5), { weight: 7.5, reps: 10 })).toBe(true)
     expect(movedUp(target(12, 0), { weight: 0, reps: 10 })).toBe(true)
+  })
+})
+
+describe('targetNote', () => {
+  /** The whole point: a cold store is a fact, not a blank. */
+  it('says first time when nothing has been logged for this movement', () => {
+    expect(targetNote(target(10, 7.5), undefined, false, true)).toEqual({ kind: 'first_time' })
+  })
+
+  it('says first time for a hold too — never having held it is still true', () => {
+    expect(targetNote(target(1, 0), undefined, true, true)).toEqual({ kind: 'first_time' })
+  })
+
+  /**
+   * The plan's `lastTime` cannot see the session it is in, so it still reports
+   * "nothing logged" for a movement finished five minutes ago. Saying it again
+   * is the wallpaper the persona brief budgets against.
+   */
+  it('says first time only once — not on later rounds of the same movement', () => {
+    expect(targetNote(target(10, 7.5), undefined, false, false)).toBeNull()
+    expect(targetNote(target(1, 0), undefined, true, false)).toBeNull()
+  })
+
+  /** The silence that was always deliberate stays silent. */
+  it('says nothing when today asks for exactly what was done last time', () => {
+    expect(targetNote(target(10, 7.5), { weight: 7.5, reps: 10 }, false, true)).toBeNull()
+  })
+
+  it('says nothing for a hold that has history — "last time 1 rep" is not a fact', () => {
+    expect(targetNote(target(1, 0), { weight: 0, reps: 1 }, true, true)).toBeNull()
+  })
+
+  /** A real fact is worth repeating: it is news every round, first or fifth. */
+  it('carries last time and whether today is the harder day, on any round', () => {
+    expect(targetNote(target(8, 10), { weight: 7.5, reps: 10 }, false, false)).toEqual({
+      kind: 'last_time',
+      last: { weight: 7.5, reps: 10 },
+      up: true,
+    })
+    expect(targetNote(target(8, 7.5), { weight: 10, reps: 8 }, false, true)).toEqual({
+      kind: 'last_time',
+      last: { weight: 10, reps: 8 },
+      up: false,
+    })
   })
 })

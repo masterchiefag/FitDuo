@@ -104,6 +104,23 @@ export const exerciseSchema = z.object({
   tier: z.union([z.literal(1), z.literal(2), z.literal(3)]),
   unilateral: z.boolean(),
   repRange: z.tuple([z.number().int().positive(), z.number().int().positive()]),
+  /**
+   * How to move, in words — authored, and NOT derived from `secondsPerRep`.
+   *
+   * The two are different facts that both mention seconds. `secondsPerRep` is
+   * the time-budget estimator's number: it exists so the generator can fit a
+   * session into 45 minutes, it carries 1 for a warm-up, and reading it aloud
+   * would be the app telling someone to rush a movement in order to make its
+   * own arithmetic true. This is the coaching line — the tempo the movement
+   * actually wants, in a sentence a person can act on mid-set.
+   *
+   * Optional on the type because warm-ups, cool-downs and mobility work are
+   * cued by their own `focusCue` and hold times; `tests/catalog.test.ts`
+   * requires it on every `main`, which is where the finding came from: first
+   * real session, on bent-over rows — *"nothing about speed of movement, here
+   * or anywhere"* (docs/SESSIONS.md, finding 4).
+   */
+  tempoCue: z.string().min(1).optional(),
   secondsPerRep: z.number().positive(),
   setupSeconds: z.number().nonnegative(),
   media: z.object({

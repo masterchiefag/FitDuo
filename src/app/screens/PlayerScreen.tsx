@@ -8,7 +8,8 @@ import { loadSnapshot, clearSnapshot } from '../../infra/localstore'
 import { playCue } from '../../infra/audio'
 import { BLOCK_TRANSITION_SECONDS, CHANGEOVER_SECONDS } from '../../core/player/reducer'
 import { sessionPosition } from '../../core/player/position'
-import { lastTimeNews, movedUp } from '../../core/player/lastTime'
+import { targetNote } from '../../core/player/lastTime'
+import { blockNames } from '../lib/blockName'
 import type {
   Block,
   LastPerformance,
@@ -111,32 +112,73 @@ function sessionProgress(plan: WorkoutPlan, state: PlayerState): number {
   }
 }
 
+// ─── the training-distance type scale ────────────────────────────────────────
+
+/**
+ * Every session screen is read from meters away, mid-set — not at the desk
+ * where it was built. First real session: *"text too small on all screens — I
+ * have to come close to see what any exercise says"* (docs/SESSIONS.md,
+ * finding 2), which is the same builder-as-witness failure as the rest screens:
+ * verified at arm's length, used across a room (docs/DECISIONS.md 2026-08-25).
+ *
+ * Named here rather than inlined per screen so the four session surfaces stay
+ * one scale — the finding was "all screens", so a fix on three of them is a
+ * screen that still sends someone walking over. Mobile-first pairs: the base
+ * size is 375 px, the `sm:` size is the laptop that is actually across the room.
+ *
+ * The bar these are sized against, and the one every walk frame has to clear:
+ * **legible at one-third scale.**
+ */
+const T = {
+  /** Phase eyebrow — REST, GET READY, WARM-UP. */
+  eyebrow: 'text-lg font-bold tracking-widest uppercase sm:text-2xl',
+  /** The movement itself: the biggest words the app ever says. */
+  exercise: 'text-4xl font-extrabold tracking-tight sm:text-6xl',
+  /** Second rank — "Up next: Block 3 of 4 — chest & triceps". */
+  heading: 'text-2xl font-extrabold tracking-tight sm:text-4xl',
+  /** Where you are, what is left, what is coming. */
+  status: 'text-lg font-semibold sm:text-2xl',
+  /** Form cues and the tempo line: sentences, read while moving. */
+  cue: 'text-lg sm:text-xl',
+  /** A person's name over their own numbers. */
+  person: 'text-base font-bold tracking-wide uppercase sm:text-xl',
+  /** The instruction that starts a set: "Grab 12.5 kg". */
+  grab: 'text-3xl font-extrabold sm:text-4xl',
+  /** Reps and weight on the work screen. */
+  target: 'text-4xl font-extrabold sm:text-5xl',
+  /** Notes under a target — last time, first time. */
+  note: 'text-base font-semibold sm:text-lg',
+} as const
+
 // ─── shared pieces ───────────────────────────────────────────────────────────
 
-function ExerciseMedia({ ex, size = 'large' }: { ex: Exercise; size?: 'large' | 'small' }) {
+const MEDIA_SIZE = {
+  large: 'mx-auto max-h-64 w-full rounded-2xl bg-white object-contain sm:max-h-80',
+  /** The work screen, where the numbers outrank the photo for the same pixels. */
+  medium: 'mx-auto max-h-40 w-full rounded-2xl bg-white object-contain sm:max-h-48',
+  small: 'h-16 w-20 rounded-lg bg-white object-contain',
+} as const
+
+function ExerciseMedia({
+  ex,
+  size = 'large',
+}: {
+  ex: Exercise
+  size?: keyof typeof MEDIA_SIZE
+}) {
   const [frame, setFrame] = useState(0)
   useEffect(() => {
     const t = setInterval(() => setFrame((f) => (f === 0 ? 1 : 0)), 1100)
     return () => clearInterval(t)
   }, [])
-  const img = (
-    <img
-      src={ex.media.images[frame]}
-      alt={ex.name}
-      className={
-        size === 'large'
-          ? 'mx-auto max-h-64 w-full rounded-2xl bg-white object-contain sm:max-h-80'
-          : 'h-16 w-20 rounded-lg bg-white object-contain'
-      }
-    />
-  )
+  const img = <img src={ex.media.images[frame]} alt={ex.name} className={MEDIA_SIZE[size]} />
   // The demo frames come from a gym dataset, so the picture can show a bench we
   // do not ask for. Say so right under it, or the photo quietly overrides the cues.
   if (size === 'small' || !ex.setupNote) return img
   return (
     <>
       {img}
-      <p className="mx-auto mt-2 max-w-md text-xs text-slate-500 italic dark:text-slate-400">
+      <p className={`mx-auto mt-2 max-w-md text-slate-500 italic dark:text-slate-400 ${T.cue}`}>
         {ex.setupNote}
       </p>
     </>
@@ -175,7 +217,9 @@ function RingTimer({
   const c = 2 * Math.PI * r
   const frac = Math.max(0, Math.min(1, remaining / Math.max(1, total)))
   return (
-    <div className={`relative mx-auto ${size === 'xl' ? 'h-52 w-52' : 'h-40 w-40'}`}>
+    <div
+      className={`relative mx-auto ${size === 'xl' ? 'h-48 w-48 sm:h-60 sm:w-60' : 'h-40 w-40 sm:h-52 sm:w-52'}`}
+    >
       <svg viewBox="0 0 160 160" className="h-full w-full -rotate-90">
         <circle
           cx="80"
@@ -197,12 +241,12 @@ function RingTimer({
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <span
-          className={`font-extrabold tabular-nums ${size === 'xl' ? 'text-6xl' : 'text-4xl'}`}
+          className={`font-extrabold tabular-nums ${size === 'xl' ? 'text-6xl sm:text-7xl' : 'text-5xl sm:text-6xl'}`}
         >
           {Math.ceil(remaining)}
         </span>
         {caption && (
-          <span className="mt-0.5 text-[11px] font-bold tracking-wider text-slate-400 uppercase">
+          <span className="mt-0.5 text-sm font-bold tracking-wider text-slate-400 uppercase">
             {caption}
           </span>
         )}
@@ -211,13 +255,36 @@ function RingTimer({
   )
 }
 
+/**
+ * How to move, and what to watch — the tempo line first.
+ *
+ * The tempo cue is authored per exercise (`tempoCue`) and never computed from
+ * `secondsPerRep`, which exists so the generator can fit a session into the
+ * time budget and carries 1 for a warm-up. First real session, on bent-over
+ * rows: *"nothing about speed of movement, here or anywhere. If it's my first
+ * time I don't know how to do it right"* (docs/SESSIONS.md, finding 4). It sits
+ * above the form cues because it is the one that changes what the next rep
+ * looks like.
+ */
 function Cues({ ex }: { ex: Exercise }) {
   return (
-    <ul className="mx-auto mt-3 max-w-md space-y-1 text-sm text-slate-500 dark:text-slate-400">
-      {ex.media.instructions.map((c) => (
-        <li key={c}>• {c}</li>
-      ))}
-    </ul>
+    <div className="mx-auto mt-4 max-w-2xl">
+      {ex.tempoCue && (
+        <p
+          className={`rounded-2xl border-2 border-slate-200 bg-white px-4 py-3 font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 ${T.cue}`}
+        >
+          <span className="mr-2 text-sm font-bold tracking-widest text-slate-400 uppercase">
+            Tempo
+          </span>
+          {ex.tempoCue}
+        </p>
+      )}
+      <ul className={`mt-3 space-y-1 text-slate-500 dark:text-slate-400 ${T.cue}`}>
+        {ex.media.instructions.map((c) => (
+          <li key={c}>• {c}</li>
+        ))}
+      </ul>
+    </div>
   )
 }
 
@@ -250,13 +317,11 @@ function TimedView({
 }) {
   return (
     <div className="mx-auto max-w-2xl p-4 text-center">
-      <p
-        className={`text-sm font-bold tracking-widest uppercase ${ending ? 'text-slate-400' : 'text-indigo-500'}`}
-      >
-        {title}
-      </p>
-      {ending && <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{ending.line}</p>}
-      <h2 className="mt-1 text-3xl font-extrabold tracking-tight">{exercise?.name ?? '—'}</h2>
+      <p className={`${T.eyebrow} ${ending ? 'text-slate-400' : 'text-indigo-500'}`}>{title}</p>
+      {ending && (
+        <p className={`mt-1 text-slate-500 dark:text-slate-400 ${T.status}`}>{ending.line}</p>
+      )}
+      <h2 className={`mt-1 ${T.exercise}`}>{exercise?.name ?? '—'}</h2>
       {exercise && (
         <div className="mt-4">
           <ExerciseMedia ex={exercise} />
@@ -266,25 +331,27 @@ function TimedView({
         <RingTimer remaining={remaining} total={total} tone={ending ? 'wind_down' : 'work'} />
       </div>
       {focusCue && (
-        <p className="mx-auto mt-3 max-w-md rounded-xl bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200">
+        <p
+          className={`mx-auto mt-3 max-w-2xl rounded-2xl bg-emerald-50 px-4 py-3 font-semibold text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200 ${T.cue}`}
+        >
           {focusCue}
         </p>
       )}
       {exercise && <Cues ex={exercise} />}
       {ending?.lastOne ? (
-        <p className="mt-4 text-sm font-semibold text-slate-500 dark:text-slate-400">
+        <p className={`mt-4 text-slate-500 dark:text-slate-400 ${T.status}`}>
           Last one — take it slow.
         </p>
       ) : (
         nextLabel && (
-          <p className="mt-4 text-sm text-slate-500">
-            Next up: <span className="font-semibold">{nextLabel}</span>
+          <p className={`mt-4 text-slate-500 ${T.status}`}>
+            Next up: <span className="font-bold">{nextLabel}</span>
           </p>
         )
       )}
       <button
         onClick={onSkip}
-        className="mt-4 rounded-xl px-4 py-2 text-sm font-semibold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+        className="mt-4 rounded-xl px-5 py-3 text-lg font-semibold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
       >
         Skip →
       </button>
@@ -315,12 +382,12 @@ function NextUpPreview({ block }: { block: Block | undefined }) {
             className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-2 py-1.5 dark:border-slate-800 dark:bg-slate-900"
           >
             {ex && <ExerciseMedia ex={ex} size="small" />}
-            <span className="pr-1 text-sm font-semibold">{ex?.name ?? item.exerciseId}</span>
+            <span className={`pr-1 font-bold ${T.status}`}>{ex?.name ?? item.exerciseId}</span>
           </div>
         )
       })}
       {rounds !== null && (
-        <span className="text-xs font-semibold text-slate-400">
+        <span className="text-base font-semibold text-slate-400">
           × {rounds} round{rounds === 1 ? '' : 's'}
         </span>
       )}
@@ -344,6 +411,7 @@ function NextTargetCard({
   last,
   hold,
   tone,
+  firstAppearance,
 }: {
   userId: string
   target: PersonTarget
@@ -351,31 +419,40 @@ function NextTargetCard({
   /** Timed holds have no reps to compare — "last time 1 rep" is not a fact. */
   hold: number | null
   tone: 'ready' | 'rest'
+  /** Whether this is the movement's first set of the session — see `targetNote`. */
+  firstAppearance: boolean
 }) {
   const profile = profileById(userId) ?? PROFILES[0]!
-  const news = hold ? null : lastTimeNews(target, last)
-  const up = news ? movedUp(target, news) : false
+  const note = targetNote(target, last, hold !== null, firstAppearance)
   return (
     <div
       className={
         tone === 'ready'
-          ? 'rounded-2xl border-2 border-amber-300 bg-amber-50 px-4 py-2 dark:border-amber-800 dark:bg-amber-950'
-          : 'rounded-xl border border-slate-200 bg-slate-50 p-2.5 dark:border-slate-800 dark:bg-slate-950'
+          ? 'rounded-2xl border-2 border-amber-300 bg-amber-50 px-4 py-3 dark:border-amber-800 dark:bg-amber-950'
+          : 'rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950'
       }
     >
-      <p className={`text-xs font-bold uppercase ${profile.accent.text}`}>{profile.name}</p>
-      <p className="mt-0.5 text-lg font-extrabold">{grabLabel(target)}</p>
-      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+      <p className={`${T.person} ${profile.accent.text}`}>{profile.name}</p>
+      <p className={`mt-0.5 ${T.grab}`}>{grabLabel(target)}</p>
+      <p className={`font-semibold text-slate-500 dark:text-slate-400 ${T.status}`}>
         {hold ? `${hold}s hold` : `${target.targetReps} reps`}
       </p>
       {/* The prize for good work is better work: today's number beside the one
           it beat. A lighter day still says it — that is the app answering a
-          "too hard" tap — but without the colour that would celebrate it. */}
-      {news && (
+          "too hard" tap — but without the colour that would celebrate it. And
+          the day there is no number yet, the screen says THAT, rather than
+          leaving its best row blank on the one session nobody has any history
+          for (docs/SESSIONS.md, finding 3). */}
+      {note?.kind === 'last_time' && (
         <p
-          className={`mt-1 text-xs font-semibold ${up ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-500 dark:text-slate-400'}`}
+          className={`mt-1 ${T.note} ${note.up ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-500 dark:text-slate-400'}`}
         >
-          Last time {lastTimeLabel(news)}
+          Last time {lastTimeLabel(note.last)}
+        </p>
+      )}
+      {note?.kind === 'first_time' && (
+        <p className={`mt-1 text-slate-500 dark:text-slate-400 ${T.note}`}>
+          First time on this one — we&rsquo;ll remember today for next time.
         </p>
       )}
     </div>
@@ -409,49 +486,51 @@ function TargetPanel({
             key={userId}
             className={`rounded-2xl border-2 bg-white p-3 dark:bg-slate-900 ${adjusted ? profile.accent.ring + ' border-current' : 'border-slate-200 dark:border-slate-800'}`}
           >
-            <p className={`text-xs font-bold tracking-wide uppercase ${profile.accent.text}`}>
-              {profile.name}
-            </p>
+            <p className={`${T.person} ${profile.accent.text}`}>{profile.name}</p>
             {hold ? (
-              <p className="mt-1 text-2xl font-extrabold">
-                {hold}s <span className="text-base font-semibold text-slate-400">hold</span>
+              <p className={`mt-1 ${T.target}`}>
+                {hold}s <span className="text-xl font-semibold text-slate-400">hold</span>
               </p>
             ) : (
               <>
-                <div className="mt-1 flex items-baseline justify-between">
-                  <p className="text-2xl font-extrabold tabular-nums">
-                    {reps} <span className="text-sm font-semibold text-slate-400">reps</span>
+                {/* The number never breaks across lines — "2.5" over "kg" is
+                    unreadable at the distance this type exists for. The ± pair
+                    drops below it instead when the card is too narrow to hold
+                    both, which is the duo card at 375. */}
+                <div className="mt-1 flex flex-wrap items-baseline justify-between gap-x-2 gap-y-1">
+                  <p className={`tabular-nums whitespace-nowrap ${T.target}`}>
+                    {reps} <span className="text-xl font-semibold text-slate-400">reps</span>
                   </p>
-                  <div className={`flex gap-1 ${onAdjust ? '' : 'hidden'}`}>
+                  <div className={`flex shrink-0 gap-1 ${onAdjust ? '' : 'hidden'}`}>
                     <button
                       onClick={() => onAdjust?.(userId, 'targetReps', -1)}
-                      className="h-7 w-7 rounded-lg bg-slate-100 text-sm font-bold dark:bg-slate-800"
+                      className="h-9 w-9 rounded-lg bg-slate-100 text-lg font-bold dark:bg-slate-800"
                     >
                       −
                     </button>
                     <button
                       onClick={() => onAdjust?.(userId, 'targetReps', 1)}
-                      className="h-7 w-7 rounded-lg bg-slate-100 text-sm font-bold dark:bg-slate-800"
+                      className="h-9 w-9 rounded-lg bg-slate-100 text-lg font-bold dark:bg-slate-800"
                     >
                       +
                     </button>
                   </div>
                 </div>
-                <div className="mt-1 flex items-baseline justify-between">
-                  <p className="text-lg font-bold text-slate-600 dark:text-slate-300">
+                <div className="mt-1 flex flex-wrap items-baseline justify-between gap-x-2 gap-y-1">
+                  <p className="text-2xl font-bold whitespace-nowrap text-slate-600 sm:text-3xl dark:text-slate-300">
                     {fmtWeight(weight)}
                   </p>
                   {target.weight > 0 && onAdjust && (
-                    <div className="flex gap-1">
+                    <div className="flex shrink-0 gap-1">
                       <button
                         onClick={() => onAdjust(userId, 'weight', -2.5)}
-                        className="h-7 w-7 rounded-lg bg-slate-100 text-sm font-bold dark:bg-slate-800"
+                        className="h-9 w-9 rounded-lg bg-slate-100 text-lg font-bold dark:bg-slate-800"
                       >
                         −
                       </button>
                       <button
                         onClick={() => onAdjust(userId, 'weight', 2.5)}
-                        className="h-7 w-7 rounded-lg bg-slate-100 text-sm font-bold dark:bg-slate-800"
+                        className="h-9 w-9 rounded-lg bg-slate-100 text-lg font-bold dark:bg-slate-800"
                       >
                         +
                       </button>
@@ -503,27 +582,34 @@ function WorkView({
   // player rendered it in the same indigo pill as block one. Marked by KIND,
   // never by its round count — that varies day to day (JOURNEY Part 5).
   const isFinisher = block.kind === 'circuit'
+  // Where this block sits and what it works, never `Strength B` (finding 5).
+  // The pill takes the position alone: the movement's own name is directly
+  // underneath it in the largest type on the screen, so naming the muscles here
+  // too would spend a mid-set line on something already answered.
+  const names = blockNames(plan, state.blockIndex)
 
   return (
-    <div className="mx-auto max-w-2xl p-4 text-center">
+    // Wider than the other surfaces: this one carries the ring, both people's
+    // numbers and the cues at once, and at this type scale 2xl made every one
+    // of them wrap.
+    <div className="mx-auto max-w-4xl p-4 text-center">
       <div
-        className={`inline-flex items-center gap-2 rounded-full px-4 py-1.5 ${isFinisher ? 'bg-rose-600' : 'bg-indigo-600'}`}
+        className={`inline-flex items-center gap-2 rounded-full px-5 py-2 ${isFinisher ? 'bg-rose-600' : 'bg-indigo-600'}`}
       >
-        <span className="text-sm font-extrabold tracking-widest text-white uppercase">
+        <span className={`text-white ${T.eyebrow}`}>
           {isFinisher ? '🔥 ' : 'Go — '}
-          {block.label} · Round {state.round + 1}/{block.rounds}
+          {names?.position ?? 'Block'} · Round {state.round + 1}/{block.rounds}
         </span>
       </div>
       {/* Orientation, not encouragement: nothing motivational belongs inside a
           set (JOURNEY principle 3). Where you are is instruction. */}
       {isFinisher && (
-        <p className="mt-1 text-xs font-bold tracking-widest text-rose-500 uppercase">
+        <p className="mt-1 text-base font-bold tracking-widest text-rose-500 uppercase">
           Last block of the session
         </p>
       )}
-      <h2 className="mt-2 text-3xl font-extrabold tracking-tight">{ex?.name ?? item.exerciseId}</h2>
-      <div className="mt-3 grid items-center gap-3 sm:grid-cols-[1fr_auto]">
-        <div>{ex && <ExerciseMedia ex={ex} />}</div>
+      <h2 className={`mt-2 ${T.exercise}`}>{ex?.name ?? item.exerciseId}</h2>
+      <div className="mt-3 grid items-center gap-4 sm:grid-cols-[auto_1fr]">
         <RingTimer
           remaining={remaining}
           total={item.workSeconds}
@@ -531,24 +617,32 @@ function WorkView({
           caption="left in set"
           size="xl"
         />
-      </div>
-      <div className="mt-4">
         <TargetPanel item={item} overrides={overrides} onAdjust={adjust} />
       </div>
-      {ex && <Cues ex={ex} />}
+      {ex && (
+        <div className="mt-4 grid items-center gap-4 sm:grid-cols-[auto_1fr]">
+          {/* The photo is demoted, not dropped: mid-set the numbers and the
+              tempo are what a person is actually reading from across the room,
+              and they were losing the page to a 320 px stock frame. */}
+          <ExerciseMedia ex={ex} size="medium" />
+          <div className="text-left">
+            <Cues ex={ex} />
+          </div>
+        </div>
+      )}
       <motion.button
         whileTap={{ scale: 0.96 }}
         onClick={() => dispatch({ type: 'SET_DONE', now: Date.now() })}
-        className="mt-5 w-full max-w-xl rounded-2xl bg-indigo-600 py-4 text-xl font-extrabold text-white shadow-lg shadow-indigo-600/30 hover:bg-indigo-500"
+        className="mt-5 w-full max-w-2xl rounded-2xl bg-indigo-600 py-5 text-3xl font-extrabold text-white shadow-lg shadow-indigo-600/30 hover:bg-indigo-500"
       >
         Done ✓
       </motion.button>
-      <div className="mt-3 flex items-center justify-center gap-4 text-sm text-slate-500">
+      <div className="mt-3 flex items-center justify-center gap-4 text-lg text-slate-500">
         {/* The set ends on its own, so "we need longer" has to be one tap and
             not Pause — which nobody reaches for mid-rep. */}
         <button
           onClick={() => dispatch({ type: 'EXTEND', now: Date.now(), seconds: 15 })}
-          className="rounded-lg px-2 py-1 font-semibold hover:bg-slate-100 dark:hover:bg-slate-800"
+          className="rounded-lg px-3 py-1.5 font-semibold hover:bg-slate-100 dark:hover:bg-slate-800"
         >
           +15s
         </button>
@@ -559,7 +653,7 @@ function WorkView({
         )}
         <button
           onClick={() => dispatch({ type: 'SKIP', now: Date.now() })}
-          className="rounded-lg px-2 py-1 font-semibold hover:bg-slate-100 dark:hover:bg-slate-800"
+          className="rounded-lg px-3 py-1.5 font-semibold hover:bg-slate-100 dark:hover:bg-slate-800"
         >
           Skip
         </button>
@@ -592,18 +686,20 @@ function ChangeoverView({
   const hold = nextEx ? holdSeconds(nextEx) : null
   return (
     <div className="mx-auto max-w-2xl p-4 text-center">
-      <div className="inline-flex items-center gap-2 rounded-full bg-amber-100 px-4 py-1.5 dark:bg-amber-950">
-        <span className="text-lg">🔄</span>
-        <span className="text-sm font-extrabold tracking-widest text-amber-700 uppercase dark:text-amber-300">
-          Get ready
-        </span>
+      <div className="inline-flex items-center gap-2 rounded-full bg-amber-100 px-5 py-2 dark:bg-amber-950">
+        <span className="text-xl">🔄</span>
+        <span className={`text-amber-700 dark:text-amber-300 ${T.eyebrow}`}>Get ready</span>
       </div>
-      <p className="mt-4 text-sm font-semibold text-slate-500">Coming up</p>
-      <h2 className="text-3xl font-extrabold tracking-tight">{nextEx?.name ?? 'Next up'}</h2>
+      <p className={`mt-4 text-slate-500 ${T.status}`}>Coming up</p>
+      <h2 className={T.exercise}>{nextEx?.name ?? 'Next up'}</h2>
 
-      {/* The one thing to DO right now: pick up the right weight. */}
+      {/* The one thing to DO right now: pick up the right weight. Two columns
+          rather than a wrapping row: a first-time card is three lines tall, and
+          stacked they pushed the countdown itself off the bottom of a laptop. */}
       {next && (
-        <div className="mx-auto mt-3 flex flex-wrap items-center justify-center gap-2 text-left">
+        <div
+          className={`mx-auto mt-3 grid gap-3 text-left ${Object.keys(next.perPerson).length > 1 ? 'grid-cols-2' : 'max-w-sm grid-cols-1'}`}
+        >
           {Object.entries(next.perPerson).map(([userId, target]) => (
             <NextTargetCard
               key={userId}
@@ -612,6 +708,9 @@ function ChangeoverView({
               last={next.lastTime?.[userId]}
               hold={hold}
               tone="ready"
+              // Round 0 is the only time this movement has not been done yet
+              // today — the changeover into it is where "first time" is true.
+              firstAppearance={state.round === 0}
             />
           ))}
         </div>
@@ -625,17 +724,20 @@ function ChangeoverView({
           caption="to start"
         />
       </div>
-      {nextEx && (
-        <div className="mt-3">
-          <ExerciseMedia ex={nextEx} />
-        </div>
-      )}
       <button
         onClick={() => dispatch({ type: 'SKIP', now: Date.now() })}
-        className="mt-4 rounded-xl bg-amber-500 px-5 py-2 text-sm font-extrabold text-white hover:bg-amber-400"
+        className="mt-4 rounded-xl bg-amber-500 px-6 py-3 text-xl font-extrabold text-white hover:bg-amber-400"
       >
         I&rsquo;m ready →
       </button>
+      {/* Below the fold on purpose now: the instruction and the clock have to
+          clear the top of the screen at training distance, and the picture is
+          for whoever walks over to check the setup. */}
+      {nextEx && (
+        <div className="mt-4">
+          <ExerciseMedia ex={nextEx} size="medium" />
+        </div>
+      )}
     </div>
   )
 }
@@ -667,9 +769,9 @@ function RestView({
   const position = sessionPosition(plan, state)
   return (
     <div className="mx-auto max-w-2xl p-4 text-center">
-      <p className="text-sm font-bold tracking-widest text-emerald-500 uppercase">Rest</p>
+      <p className={`text-emerald-500 ${T.eyebrow}`}>Rest</p>
       {position && (
-        <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">
+        <p className={`mt-1 text-slate-500 dark:text-slate-400 ${T.status}`}>
           Block {position.blockNumber} of {position.blockCount} · {position.setsToGo} set
           {position.setsToGo === 1 ? '' : 's'} to go
         </p>
@@ -687,14 +789,14 @@ function RestView({
           <div className="flex items-center gap-3">
             <ExerciseMedia ex={nextEx} size="small" />
             <div>
-              <p className="text-xs text-slate-400">
+              <p className="text-base text-slate-400">
                 Next · Round {state.round + 1}/{block.rounds}
               </p>
-              <p className="font-bold">{nextEx.name}</p>
+              <p className={T.heading}>{nextEx.name}</p>
               {/* Rest is exactly when you get set up, so the note has to be here
                   too — the thumbnail beside it is the misleading gym frame. */}
               {nextEx.setupNote && (
-                <p className="mt-0.5 text-xs text-slate-500 italic dark:text-slate-400">
+                <p className={`mt-0.5 text-slate-500 italic dark:text-slate-400 ${T.note}`}>
                   {nextEx.setupNote}
                 </p>
               )}
@@ -711,6 +813,9 @@ function RestView({
                 last={next.lastTime?.[userId]}
                 hold={hold}
                 tone="rest"
+                // Never: rest previews item 0 of the NEXT round, which is
+                // always the movement this round opened with.
+                firstAppearance={false}
               />
             ))}
           </div>
@@ -719,13 +824,13 @@ function RestView({
       <div className="mt-5 flex justify-center gap-3">
         <button
           onClick={() => dispatch({ type: 'EXTEND', now: Date.now(), seconds: 15 })}
-          className="rounded-xl bg-slate-100 px-4 py-2 text-sm font-bold dark:bg-slate-800"
+          className="rounded-xl bg-slate-100 px-5 py-3 text-lg font-bold dark:bg-slate-800"
         >
           +15s
         </button>
         <button
           onClick={() => dispatch({ type: 'SKIP', now: Date.now() })}
-          className="rounded-xl bg-slate-100 px-4 py-2 text-sm font-bold dark:bg-slate-800"
+          className="rounded-xl bg-slate-100 px-5 py-3 text-lg font-bold dark:bg-slate-800"
         >
           Skip →
         </button>
@@ -751,18 +856,12 @@ function BlockTransitionView({
 }) {
   const dispatch = usePlayerStore((s) => s.dispatch)
   const nextBlock = plan.blocks[state.nextBlockIndex]
-  const nextLabel = !nextBlock
-    ? 'Finish'
-    : nextBlock.kind === 'cooldown'
-      ? 'Cool-down stretch'
-      : nextBlock.kind === 'warmup'
-        ? 'Warm-up'
-        : nextBlock.label
+  const nextName = blockNames(plan, state.nextBlockIndex)?.full ?? 'Finish'
 
   return (
     <div className="mx-auto max-w-2xl p-4 text-center">
-      <p className="text-sm font-bold tracking-widest text-indigo-500 uppercase">Get ready</p>
-      <h2 className="mt-1 text-2xl font-extrabold">Up next: {nextLabel}</h2>
+      <p className={`text-indigo-500 ${T.eyebrow}`}>Get ready</p>
+      <h2 className={`mt-1 ${T.heading}`}>Up next: {nextName}</h2>
       <NextUpPreview block={nextBlock} />
       <div className="mt-4">
         <RingTimer
@@ -774,7 +873,7 @@ function BlockTransitionView({
       </div>
       <button
         onClick={() => dispatch({ type: 'SKIP', now: Date.now() })}
-        className="mt-4 rounded-xl bg-slate-100 px-4 py-2 text-sm font-bold dark:bg-slate-800"
+        className="mt-4 rounded-xl bg-slate-100 px-5 py-3 text-lg font-bold dark:bg-slate-800"
       >
         Start now →
       </button>
@@ -801,40 +900,42 @@ function BlockGateView({
   const block = plan.blocks[state.blockIndex]
   const done = block && (block.kind === 'superset' || block.kind === 'circuit') ? block : null
   const nextBlock = plan.blocks[state.nextBlockIndex]
-  const nextLabel = !nextBlock
-    ? 'Finish'
-    : nextBlock.kind === 'cooldown'
-      ? 'Cool-down stretch'
-      : nextBlock.kind === 'warmup'
-        ? 'Warm-up'
-        : nextBlock.label
+  // Both halves of this screen used to print the plan's own identifier —
+  // "Strength B done! Up next: Strength C" — and the first real session read it
+  // exactly as written: *"I didn't get what B and C are"* (docs/SESSIONS.md,
+  // finding 5). Position plus the movements' own words, both ways.
+  const doneNames = blockNames(plan, state.blockIndex)
+  const doneWords = doneNames?.words ? ` — ${doneNames.words}` : ''
+  const nextName = blockNames(plan, state.nextBlockIndex)?.full ?? 'Finish'
   // Act 4 has two beats and they sit on different gates: this screen announces
   // the peak that is coming, and the peak's own gate says it happened.
   const finisherNext = nextBlock?.kind === 'circuit'
   const finisherDone = done?.kind === 'circuit'
 
   return (
-    <div className="mx-auto max-w-2xl p-4 text-center">
-      <p
-        className={`text-sm font-bold tracking-widest uppercase ${finisherDone ? 'text-rose-500' : 'text-emerald-500'}`}
-      >
-        {finisherDone ? '🔥 Finisher done' : `${done?.label ?? 'Block'} done! 🎉`}
+    <div className="mx-auto max-w-3xl p-4 text-center">
+      <p className={`${T.eyebrow} ${finisherDone ? 'text-rose-500' : 'text-emerald-500'}`}>
+        {finisherDone
+          ? `🔥 Finisher done${doneWords}`
+          : `${doneNames?.position ?? 'Block'} done${doneWords} 🎉`}
       </p>
-      <h2 className="mt-1 text-2xl font-extrabold">Up next: {nextLabel}</h2>
+      <h2 className={`mt-1 ${T.heading}`}>Up next: {nextName}</h2>
       {/* Framing, never a control — the ratings below are what keep progression
           alive and are the only required tap in the hour (JOURNEY Part 5). */}
       {finisherNext && (
-        <p className="mt-1 text-sm font-bold text-rose-500">🔥 Last block — the Finisher.</p>
+        <p className={`mt-1 font-bold text-rose-500 ${T.status}`}>
+          🔥 Last block — the Finisher.
+        </p>
       )}
       {finisherDone && (
-        <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">
+        <p className={`mt-1 text-slate-500 dark:text-slate-400 ${T.status}`}>
           That was the peak. The hard work is done.
         </p>
       )}
       <NextUpPreview block={nextBlock} />
       {done && (
-        <div className="mx-auto mt-5 max-w-xl space-y-3 text-left">
-          <p className="text-center text-sm font-semibold text-slate-500">
+        <div className="mx-auto mt-5 max-w-2xl space-y-3 text-left">
+          <p className={`text-center text-slate-500 ${T.status}`}>
             How was that? (optional — Continue means “just right”)
           </p>
           {done.items.map((item) => {
@@ -844,16 +945,14 @@ function BlockGateView({
                 key={item.exerciseId}
                 className="rounded-2xl border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900"
               >
-                <p className="font-bold">{ex?.name ?? item.exerciseId}</p>
+                <p className={T.status}>{ex?.name ?? item.exerciseId}</p>
                 <div className="mt-2 grid gap-2 sm:grid-cols-2">
                   {Object.keys(item.perPerson).map((userId) => {
                     const profile = profileById(userId) ?? PROFILES[0]!
                     const chosen = state.ratings[`${userId}:${item.exerciseId}`]
                     return (
                       <div key={userId} className="flex items-center justify-between gap-2">
-                        <span className={`text-xs font-bold uppercase ${profile.accent.text}`}>
-                          {profile.name}
-                        </span>
+                        <span className={`${T.person} ${profile.accent.text}`}>{profile.name}</span>
                         <div className="flex gap-1">
                           {RATINGS.map((r) => (
                             <button
@@ -868,7 +967,7 @@ function BlockGateView({
                                   rating: r.rating,
                                 })
                               }
-                              className={`rounded-lg px-2 py-1 text-lg transition-transform ${chosen === r.rating ? 'scale-110 bg-indigo-100 dark:bg-indigo-950' : 'opacity-60 hover:opacity-100'}`}
+                              className={`rounded-lg px-2.5 py-1.5 text-2xl transition-transform ${chosen === r.rating ? 'scale-110 bg-indigo-100 dark:bg-indigo-950' : 'opacity-60 hover:opacity-100'}`}
                             >
                               {r.emoji}
                             </button>
@@ -886,7 +985,7 @@ function BlockGateView({
       <motion.button
         whileTap={{ scale: 0.96 }}
         onClick={() => dispatch({ type: 'CONTINUE', now: Date.now() })}
-        className="mt-5 w-full max-w-xl rounded-2xl bg-indigo-600 py-4 text-xl font-extrabold text-white shadow-lg shadow-indigo-600/30 hover:bg-indigo-500"
+        className="mt-5 w-full max-w-2xl rounded-2xl bg-indigo-600 py-5 text-3xl font-extrabold text-white shadow-lg shadow-indigo-600/30 hover:bg-indigo-500"
       >
         Continue →
       </motion.button>
@@ -894,7 +993,7 @@ function BlockGateView({
           programmed, so it does not count against them. */}
       <button
         onClick={() => dispatch({ type: 'FINISH_EARLY', now: Date.now() })}
-        className="mt-3 rounded-xl px-4 py-2 text-sm font-semibold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+        className="mt-3 rounded-xl px-5 py-3 text-lg font-semibold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
       >
         Finish here
       </button>
@@ -1028,6 +1127,16 @@ export default function PlayerScreen() {
 
   const snapshot = useMemo(() => loadSnapshot(), [])
 
+  // One scroll container for the whole session, so a screen that was scrolled
+  // hands its offset to the next one — and the next one opens with its heading
+  // above the fold, which is the same as not being readable at all. Only
+  // reachable at 375, where these screens are taller than the viewport.
+  const scroller = useRef<HTMLDivElement>(null)
+  const phaseKey = `${state.phase}-${'itemIndex' in state ? state.itemIndex : ''}-${'round' in state ? state.round : ''}-${'blockIndex' in state ? state.blockIndex : ''}`
+  useEffect(() => {
+    scroller.current?.scrollTo({ top: 0 })
+  }, [phaseKey])
+
   // Tick: render time, fire due timers, 3-2-1 countdown beeps.
   useEffect(() => {
     const t = setInterval(() => {
@@ -1140,9 +1249,9 @@ export default function PlayerScreen() {
         </div>
       )}
 
-      <div className="min-h-0 flex-1 overflow-y-auto">
+      <div ref={scroller} className="min-h-0 flex-1 overflow-y-auto">
         <motion.div
-          key={`${state.phase}-${'itemIndex' in state ? state.itemIndex : ''}-${'round' in state ? state.round : ''}-${'blockIndex' in state ? state.blockIndex : ''}`}
+          key={phaseKey}
           initial={{ opacity: 0, x: 24 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.18 }}
@@ -1165,14 +1274,7 @@ export default function PlayerScreen() {
               const next = b.items[state.itemIndex + 1] as { exerciseId: string } | undefined
               const winding = b.kind === 'cooldown'
               const heading = b.kind === 'warmup' ? 'Warm-up' : winding ? 'Winding down' : b.label
-              const nextBlock = plan.blocks[state.blockIndex + 1]
-              const afterLabel = !nextBlock
-                ? 'Done! 🎉'
-                : nextBlock.kind === 'cooldown'
-                  ? 'Cool-down'
-                  : nextBlock.kind === 'mobility'
-                    ? nextBlock.label
-                    : 'Strength blocks'
+              const afterLabel = blockNames(plan, state.blockIndex + 1)?.full ?? 'Done! 🎉'
               return (
                 <TimedView
                   title={`${heading} · ${state.itemIndex + 1} of ${b.items.length}`}
