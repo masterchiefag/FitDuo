@@ -1,7 +1,7 @@
 # The coach — persona brief
 
 Workshopped with the owner 2026-08-25 (decisions) + outside-in research pass
-(evidence). This is the character spec every spoken or written coach line is
+(evidence — sources and confidence levels in [RESEARCH.md](RESEARCH.md)). This is the character spec every spoken or written coach line is
 authored against: R2a's templates are written *in character*, R2d picks a paid
 voice *for this character*, R2c's system prompt *is* this character. Lines that
 don't sound like this persona are wrong even when factually correct.

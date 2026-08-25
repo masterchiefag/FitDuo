@@ -80,7 +80,7 @@ Staged from one-way speech to genuine conversation. Each stage is independently 
 - **R2a (v1): the coach talks — `speechSynthesis`, template-driven.** Free, offline with local voices. Speaks lines composed from data the app already has: exercise intro with both people's targets ("Next up: Goblet Squat — Atul 10 kilos, [partner] 5"), the existing form cues read aloud during the set, rest announcements with what's coming, completion encouragement, and **the feedback prompt** ("How was that block? Easy, good, or hard?") which is what keeps progression moving. **A cue-priority queue arbitrates audio: 3-2-1 beeps always win; speech is cancelled, never queued behind a transition.** Settings: voice picker, rate, mute. No per-exercise editorial copy at this stage — templates only.
 - **R2b: the coach listens — voice commands (`SpeechRecognition`, Chrome).** This is the one that matters for follow-along, because *your hands are holding dumbbells and you cannot reach the laptop mid-set.* A small, fixed vocabulary recognized during a session: "pause", "resume", "skip", "more time", "easy / good / hard" (logs feedback for whoever spoke — with two people, a "who said that?" tap-free ambiguity we resolve by asking each person in turn during the feedback prompt), "how many left". Fixed vocabulary is far more reliable than open dictation over music and breathing. Push-to-talk fallback via spacebar. **Privacy note: Chrome's speech recognition sends audio to Google's servers — it is opt-in in Settings, off by default, and only listens during an active session.**
 - **R2c (post-launch): actual conversation — LLM-backed coach.** Mic → transcript → Claude API (with the session state, both profiles, and today's plan as context) → spoken reply *and structured actions*: "my shoulder's hurting today" ⇒ sets the pain flag and substitutes the pressing slot (R5); "swap this exercise" ⇒ regenerates that slot; "why am I doing this one?" ⇒ explains the movement's purpose. Needs network and an API key; costs a few cents a month for two users. Must degrade cleanly to R2b commands when offline. This is the version that actually feels like a trainer in the room.
-- **R2d (optional polish): pre-generated natural TTS** — authored per-exercise coaching copy rendered through a paid TTS voice at build time, replacing the robotic local voice.
+- **R2d: pre-generated natural TTS** — authored per-exercise coaching copy rendered through a paid TTS voice at build time, replacing the robotic local voice. No longer "optional polish": the outside-in research ([docs/RESEARCH.md](RESEARCH.md)) found no beloved fitness product built on synthetic TTS — browser TTS is the likely ceiling on attachment. **Trigger: if the coach voice is still on after ~4 weeks of real R2a sessions, R2d is the highest-value polish available; if it gets muted, R2d dies and the research says why.**
 
 ### R3 — Better form media (the 2-frame images are the dataset's limit)
 free-exercise-db ships exactly two still photos per exercise — that's all it has. Layered fix:
@@ -445,8 +445,9 @@ changeover card, so it is UI work, not copy.
 
 A trainer that talks needs to be *someone*; template lines written without a
 persona produce a notification system that talks. The workshop ran 2026-08-25
-(owner + an outside-in research pass over the category: Peloton, Freeletics,
-Down Dog, Nike Run Club, Whoop, Zombies Run, CARROT). Decisions, binding for
+(owner + an outside-in research pass over the category — evidence, sources
+and confidence levels durable in [docs/RESEARCH.md](RESEARCH.md)). Decisions,
+binding for
 R2a's lines, R2d's voice choice, and R2c's system prompt — full character and
 evidence in the brief:
 
