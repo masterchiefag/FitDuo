@@ -72,8 +72,10 @@ const everyDay = () =>
   )
 
 describe('workedRegions', () => {
-  it('ranks by sets, counting a movement into every region it loads', () => {
-    const squat = catalog.find((e) => e.primaryMuscles.includes('quads'))!
+  it('ranks by sets, one region per muscle worked', () => {
+    const squat = catalog.find(
+      (e) => e.primaryMuscles.length === 1 && e.primaryMuscles[0] === 'quads',
+    )!
     const blocks: Block[] = [
       {
         kind: 'superset',
@@ -83,12 +85,33 @@ describe('workedRegions', () => {
         items: [{ exerciseId: squat.id, perPerson: {}, workSeconds: 40 }],
       },
     ]
-    expect(workedRegions(blocks, byId)).toEqual(
-      // quads → quads + hips, three rounds each; ties break on region name.
-      expect.arrayContaining([
-        { region: 'hips', sets: 3 },
-        { region: 'quads', sets: 3 },
-      ]),
+    expect(workedRegions(blocks, byId)).toEqual([{ region: 'quads', sets: 3 }])
+  })
+
+  /**
+   * The first draft mapped quads *and* glutes to `hips` as well as themselves,
+   * so `hips` collected both and topped the ranking on every leg day — and with
+   * two prelude slots that pushed hamstrings off the end (Grok, PR #31). A
+   * region no muscle claims outright must not be a ranking key.
+   */
+  it('never ranks a joint region above the muscles that fed it', () => {
+    const blocks: Block[] = [
+      {
+        kind: 'superset',
+        label: 'Strength A',
+        rounds: 3,
+        restSeconds: 75,
+        items: [
+          { exerciseId: 'db-romanian-deadlift', perPerson: {}, workSeconds: 40 },
+          { exerciseId: 'db-squat', perPerson: {}, workSeconds: 40 },
+          { exerciseId: 'glute-bridge', perPerson: {}, workSeconds: 40 },
+        ],
+      },
+    ]
+    const ranked = workedRegions(blocks, byId)
+    expect(ranked.map((r) => r.region)).not.toContain('hips')
+    expect(new Set(ranked.map((r) => r.region))).toEqual(
+      new Set(['hamstrings', 'quads', 'glutes']),
     )
   })
 
@@ -100,9 +123,12 @@ describe('workedRegions', () => {
     expect(workedRegions(blocks, byId)).toEqual([])
   })
 
-  it('maps every muscle group to at least one region', () => {
-    for (const [muscle, regions] of Object.entries(MUSCLE_REGIONS)) {
-      expect(regions.length, muscle).toBeGreaterThanOrEqual(1)
+  it('maps every muscle group to a region a stretch can actually be found for', () => {
+    for (const [muscle, region] of Object.entries(MUSCLE_REGIONS)) {
+      expect(
+        cooldownPool.some((e) => e.mobility!.regions.includes(region)),
+        `${muscle} → ${region}: no cool-down stretch declares this region`,
+      ).toBe(true)
     }
   })
 })
@@ -158,6 +184,58 @@ describe('selectCooldown', () => {
     expect(ids).toHaveLength(5)
     expect(new Set(ids).size).toBe(5)
     expect(ids.slice(-3)).toEqual([...COOLDOWN_CORE_CHAIN])
+  })
+
+  /**
+   * The skip-then-shuffle path: when a worked region has no stretch outside
+   * the chain, the slot used to be filled from the whole pool — which put a
+   * calf stretch after a push day (Grok, PR #31). A leftover slot goes to the
+   * next most relevant stretch instead.
+   */
+  it('spends a leftover slot on the day, not on a shuffle', () => {
+    // Chest, shoulders and core: `core → lower_back` is chain-only, and one
+    // stretch covers chest and shoulders together, so a slot is always left.
+    const pushDay: Block[] = [
+      {
+        kind: 'superset',
+        label: 'Strength A',
+        rounds: 3,
+        restSeconds: 75,
+        items: [
+          { exerciseId: 'db-chest-press', perPerson: {}, workSeconds: 40 },
+          { exerciseId: 'db-shoulder-press', perPerson: {}, workSeconds: 40 },
+          { exerciseId: 'dead-bug', perPerson: {}, workSeconds: 40 },
+        ],
+      },
+    ]
+    const worked = new Set(workedRegions(pushDay, byId).map((r) => r.region))
+    const prelude = select(pushDay, 5).slice(0, 2)
+    expect(prelude).toHaveLength(2)
+    for (const id of prelude) {
+      expect(byId.get(id)!.mobility!.regions.some((r) => worked.has(r)), id).toBe(true)
+    }
+  })
+
+  it('gives a hamstring-heavy day a hamstring stretch', () => {
+    const hingeDay: Block[] = [
+      {
+        kind: 'superset',
+        label: 'Strength A',
+        rounds: 4,
+        restSeconds: 75,
+        items: [{ exerciseId: 'db-romanian-deadlift', perPerson: {}, workSeconds: 40 }],
+      },
+      {
+        kind: 'circuit',
+        label: 'Finisher',
+        rounds: 2,
+        restSeconds: 60,
+        items: [{ exerciseId: 'db-squat', perPerson: {}, workSeconds: 40 }],
+      },
+    ]
+    const ids = select(hingeDay, 5)
+    const regions = ids.flatMap((id) => byId.get(id)!.mobility!.regions)
+    expect(regions).toContain('hamstrings')
   })
 
   it('never repeats a stretch', () => {

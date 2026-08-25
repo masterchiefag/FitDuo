@@ -36,25 +36,34 @@ export const COOLDOWN_CORE_CHAIN = ['knees-to-chest', 'spinal-twist', 'childs-po
 export const PRELUDE_MAX = 3
 
 /**
- * Muscle worked → the region whose stretch answers it.
+ * Muscle worked → the region whose stretch answers it. Exactly one region each.
  *
  * The two vocabularies are different on purpose (see `MOBILITY_REGIONS`), so
  * the mapping is stated once, here, rather than inferred at three call sites.
  * Arms route to `shoulders` because that is where the catalog's arm stretches
  * live (overhead triceps, cross-body); an `arms` region with two entries in it
  * would be a bigger vocabulary buying nothing.
+ *
+ * One region and not a list, because the list version shipped a bug (caught in
+ * review of this PR, Grok on #31): quads and glutes both also mapped to `hips`,
+ * so `hips` accumulated both and outranked every real region on every leg day.
+ * With two prelude slots that pushed hamstrings off the end — a day with a
+ * Romanian deadlift in it got a glute and a quad stretch and nothing for the
+ * hamstrings, which is finding 6 again in a smaller font. A joint region that
+ * no muscle claims outright is not a ranking key; it survives where it belongs,
+ * as a region a *stretch* can declare, and it scores as coverage below.
  */
-export const MUSCLE_REGIONS: Record<MuscleGroup, MobilityRegion[]> = {
-  chest: ['chest'],
-  back: ['thoracic'],
-  shoulders: ['shoulders'],
-  biceps: ['shoulders'],
-  triceps: ['shoulders'],
-  quads: ['quads', 'hips'],
-  hamstrings: ['hamstrings'],
-  glutes: ['glutes', 'hips'],
-  calves: ['calves'],
-  core: ['lower_back'],
+export const MUSCLE_REGIONS: Record<MuscleGroup, MobilityRegion> = {
+  chest: 'chest',
+  back: 'thoracic',
+  shoulders: 'shoulders',
+  biceps: 'shoulders',
+  triceps: 'shoulders',
+  quads: 'quads',
+  hamstrings: 'hamstrings',
+  glutes: 'glutes',
+  calves: 'calves',
+  core: 'lower_back',
 }
 
 type WorkBlock = Extract<Block, { kind: 'superset' | 'circuit' }>
@@ -68,11 +77,11 @@ export interface WorkedRegion {
 /**
  * What today actually worked, ranked.
  *
- * Weight is sets, counted per region rather than shared out between them: a
- * goblet squat is quads *and* glutes *and* hips for its full three rounds, and
- * dividing that would rank a day's biggest movement below its accessories.
- * Integers, so the sort has nothing to be nearly-equal about; ties break on
- * region name, which keeps this total and byte-deterministic.
+ * Weight is sets, counted once per muscle: a goblet squat is quads *and*
+ * glutes for its full three rounds, and dividing that would rank a day's
+ * biggest movement below its accessories. Integers, so the sort has nothing to
+ * be nearly-equal about; ties break on region name, which keeps this total and
+ * byte-deterministic.
  *
  * Secondary muscles are deliberately out: everything is secondary to something,
  * and including them flattens the ranking until every day works everything.
@@ -85,9 +94,8 @@ export function workedRegions(blocks: Block[], byId: Map<string, Exercise>): Wor
       const ex = byId.get(item.exerciseId)
       if (!ex) continue
       for (const muscle of ex.primaryMuscles) {
-        for (const region of MUSCLE_REGIONS[muscle]) {
-          sets.set(region, (sets.get(region) ?? 0) + block.rounds)
-        }
+        const region = MUSCLE_REGIONS[muscle]
+        sets.set(region, (sets.get(region) ?? 0) + block.rounds)
       }
     }
   }
@@ -137,13 +145,22 @@ export function selectCooldown(input: CooldownInput): TimedItem[] {
     .filter((e) => e.mobility && !endingIds.has(e.id))
     .sort((a, b) => (a.id < b.id ? -1 : 1)) // total order before any PRNG use
 
-  // One stretch per worked region, most-worked region first, so the prelude
-  // reads as the day it follows. A region with nothing to offer is skipped
-  // rather than filled with something else's stretch.
+  /** How much of today this stretch answers. 0 = it answers none of it. */
+  const relevance = (ex: Exercise) =>
+    ex.mobility!.regions.reduce((acc, r) => acc + (worked.get(r) ?? 0), 0)
+
+  const slots = count - ending.length
   const prelude: string[] = []
   const used = new Set<string>(endingIds)
+  const covered = new Set<MobilityRegion>()
+
+  // One stretch per worked region, most-worked region first, so the prelude
+  // reads as the day it follows. A region already covered by a stretch that is
+  // in — Figure-4 answers glutes and hips at once — does not get a second slot;
+  // the prelude is for breadth across the day, not for stacking one area.
   for (const { region } of ranked) {
-    if (prelude.length >= count - ending.length) break
+    if (prelude.length >= slots) break
+    if (covered.has(region)) continue
     const forRegion = candidates.filter(
       (e) => !used.has(e.id) && e.mobility!.regions.includes(region),
     )
@@ -153,12 +170,7 @@ export function selectCooldown(input: CooldownInput): TimedItem[] {
     // the seeded pick chooses among the top two — same rule as `selectForSlot`,
     // so the cool-down varies day to day without ever drifting off the day.
     const scored = forRegion
-      .map((e) => ({
-        e,
-        score:
-          e.mobility!.regions.reduce((acc, r) => acc + (worked.get(r) ?? 0), 0) +
-          (e.mobility!.priority ?? 1),
-      }))
+      .map((e) => ({ e, score: relevance(e) + (e.mobility!.priority ?? 1) }))
       .sort((a, b) => b.score - a.score || (a.e.id < b.e.id ? -1 : 1))
     const chosen = pick(
       rng,
@@ -166,10 +178,29 @@ export function selectCooldown(input: CooldownInput): TimedItem[] {
     )
     prelude.push(chosen.id)
     used.add(chosen.id)
+    for (const r of chosen.mobility!.regions) covered.add(r)
   }
 
-  // Thin content (or a day whose regions have no stretches) must not shorten
-  // the session: top up from the rest of the pool, as the old shuffle did.
+  // Slots the per-region pass could not spend, because a worked region had no
+  // stretch outside the chain: `back` maps to `thoracic`, and every thoracic
+  // entry in the catalog is a chain member. Those slots go to the next most
+  // relevant stretch, NOT to a shuffle of the pool — filling blind is the
+  // behaviour finding 6 was about, and it put a calf stretch after a push day
+  // (caught in review of this PR, Grok on #31).
+  if (prelude.length < slots) {
+    const rest = candidates
+      .filter((e) => !used.has(e.id) && relevance(e) > 0)
+      .sort((a, b) => relevance(b) - relevance(a) || (a.id < b.id ? -1 : 1))
+    for (const ex of rest) {
+      if (prelude.length >= slots) break
+      prelude.push(ex.id)
+      used.add(ex.id)
+    }
+  }
+
+  // Last resort: nothing left that answers any of today. Only a catalog with
+  // no stretch for the day's work reaches this, and the count still has to
+  // hold or the session gets shorter than the plan says it is.
   const ids = [...prelude, ...ending]
   if (ids.length < count) {
     for (const ex of shuffle(
