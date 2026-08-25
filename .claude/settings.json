@@ -2,7 +2,7 @@
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "mcp__ccd_session__spawn_task",
+        "matcher": "spawn_task",
         "hooks": [
           {
             "type": "command",
