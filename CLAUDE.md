@@ -15,7 +15,7 @@ Duolingo-style guided dumbbell workout PWA for exactly two users (a couple shari
 
 ## Commands
 
-- `npm run dev` — Vite dev server, **port 5173 or nothing** (`--strictPort`). History lives in `localStorage`, which is keyed per origin, so a silent fallback to :5174 is an app with no streak, no XP and an empty History — and sessions logged there are invisible from :5173. If it refuses to start, free the port (another project on this machine takes it); never work around it by changing port.
+- `npm run dev` — Vite dev server, **port 5173 or nothing** (`--strictPort`). History lives in `localStorage`, which is keyed per origin, so a silent fallback to :5174 is an app with no streak, no XP and an empty History — and sessions logged there are invisible from :5173. If it refuses to start, run `scripts/dev/free-dev-port.sh` — usually a walk server outliving a finished session in another worktree. It kills a vite process on 5173 and refuses anything else. Never work around a taken port by changing port.
 - `npm run test` — vitest; `npm run test -- --run` for one-shot
 - `npm run typecheck` — `tsc -b` (strict, noUncheckedIndexedAccess)
 - `npm run lint` — oxlint

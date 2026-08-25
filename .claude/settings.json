@@ -24,7 +24,8 @@
       "Bash(npx vitest:*)",
       "Bash(npx tsc:*)",
       "Bash(npx playwright test:*)",
-      "Bash(scripts/dev/grok-review.sh:*)"
+      "Bash(scripts/dev/grok-review.sh:*)",
+      "Bash(scripts/dev/free-dev-port.sh:*)"
     ]
   }
 }
