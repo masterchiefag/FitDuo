@@ -137,17 +137,34 @@ export function selectWarmup(input: WarmupInput): TimedItem[] {
   const items: TimedItem[] = []
   for (const phase of PHASE_ORDER) {
     const remaining = [...byPhase[phase]]
+    const taken: Exercise[] = []
     for (let n = 0; n < quotas[phase] && remaining.length > 0; n++) {
       const scored = remaining
         .map((ex) => ({ ex, score: relevance(ex) }))
         .sort((a, b) => b.score - a.score || (a.ex.id < b.ex.id ? -1 : 1))
+      // Never take a movement that answers none of today while one that does is
+      // still on the table. The top-two window is `selectForSlot`'s idiom, but
+      // there the pool is already filtered to one pattern; the mobilise pool is
+      // mixed, so an unfloored window pairs the day's movement with the
+      // alphabetically-first zero and lets a coin flip pick the zero. That
+      // shipped: a 20-minute lower day generated
+      // `star-jumps → ankle-circles → sit-squats` with `leg-swings` scoring 4
+      // and `ankle-circles` scoring 0 — finding 6's complaint, reappearing
+      // inside the rule meant to answer it (Grok, this PR).
+      const relevant = scored.filter((s) => s.score > 0)
+      const window = relevant.length > 0 ? relevant : scored
       const chosen = pick(
         rng,
-        scored.slice(0, 2).map((s) => s.ex),
+        window.slice(0, 2).map((s) => s.ex),
       )
-      items.push({ exerciseId: chosen.id, seconds })
+      taken.push(chosen)
       remaining.splice(remaining.indexOf(chosen), 1)
     }
+    // General before specific, inside the phase too: whatever answers least of
+    // today goes first, and the movement closest to the work is the one that
+    // most resembles it. Ties break on id, so this stays a total order.
+    taken.sort((a, b) => relevance(a) - relevance(b) || (a.id < b.id ? -1 : 1))
+    for (const ex of taken) items.push({ exerciseId: ex.id, seconds })
   }
   return items
 }

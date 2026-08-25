@@ -8,6 +8,7 @@ import {
   type WarmupPhase,
 } from '../src/core/catalog/types'
 import { generateWorkout } from '../src/core/generator/generate'
+import { MUSCLE_REGIONS, workedRegions } from '../src/core/generator/cooldown'
 import { phaseQuotas, selectWarmup } from '../src/core/generator/warmup'
 import { mulberry32 } from '../src/core/generator/prng'
 import type { Block, GeneratorInput, ParticipantInput } from '../src/core/generator/types'
@@ -246,6 +247,64 @@ describe('the generated warm-up', () => {
         worked.some((e) => e.primaryMuscles.some((m) => LOWER.has(m))),
         `${plan.dayType} rehearsed ${rehearsals.map((e) => e.id).join(', ')} without training legs`,
       ).toBe(true)
+    }
+  })
+
+  /**
+   * The picker's top-two window is `selectForSlot`'s idiom, but there the pool
+   * is already filtered to one pattern. The mobilise pool is mixed, so an
+   * unfloored window pairs the day's movement with the alphabetically-first
+   * zero and a coin flip decides. It shipped once: a 20-minute lower day
+   * generated `star-jumps → ankle-circles → sit-squats` while `leg-swings`
+   * scored 4 and `ankle-circles` scored 0 (Grok, PR #35). Stated as the class,
+   * over every generated day and every phase.
+   */
+  it('never warms up something today ignores while something it uses goes unpicked', () => {
+    for (const plan of everyDay()) {
+      const worked = new Map(workedRegions(plan.blocks, byId).map((r) => [r.region, r.sets]))
+      const relevance = (ex: Exercise) => {
+        let score = 0
+        for (const region of new Set(ex.primaryMuscles.map((m) => MUSCLE_REGIONS[m]))) {
+          score += worked.get(region) ?? 0
+        }
+        return score
+      }
+      const chosen = warmupOf(plan).items.map((i) => byId.get(i.exerciseId)!)
+      const chosenIds = new Set(chosen.map((e) => e.id))
+      for (const phase of ['raise', 'mobilise', 'rehearse'] as const) {
+        const idle = warmupPool.filter(
+          (e) => e.warmupPhase === phase && !chosenIds.has(e.id) && relevance(e) > 0,
+        )
+        const deadWeight = chosen.filter((e) => e.warmupPhase === phase && relevance(e) === 0)
+        if (idle.length === 0 || deadWeight.length === 0) continue
+        expect.fail(
+          `${plan.dayType}: warmed up ${deadWeight.map((e) => e.id).join(', ')} ` +
+            `(answers nothing today) while ${idle.map((e) => e.id).join(', ')} went unused`,
+        )
+      }
+    }
+  })
+
+  /** General before specific, inside a phase as well as across them: the
+   *  movement closest to the work is the one that most resembles it. */
+  it('funnels from general to day-specific within each phase', () => {
+    for (const plan of everyDay()) {
+      const worked = new Map(workedRegions(plan.blocks, byId).map((r) => [r.region, r.sets]))
+      const relevance = (ex: Exercise) => {
+        let score = 0
+        for (const region of new Set(ex.primaryMuscles.map((m) => MUSCLE_REGIONS[m]))) {
+          score += worked.get(region) ?? 0
+        }
+        return score
+      }
+      const items = warmupOf(plan).items.map((i) => byId.get(i.exerciseId)!)
+      for (const phase of ['raise', 'mobilise', 'rehearse'] as const) {
+        const scores = items.filter((e) => e.warmupPhase === phase).map(relevance)
+        expect(
+          [...scores].sort((a, b) => a - b),
+          `${plan.dayType} ${phase}: ${scores.join(',')}`,
+        ).toEqual(scores)
+      }
     }
   })
 
