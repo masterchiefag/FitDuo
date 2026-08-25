@@ -43,3 +43,6 @@ content/.cache
 # Personal data — never checked in (real profiles live here pre-M4, in Supabase after)
 profiles.local.json
 docs/TRAINER.local.md
+
+# Hook firing counter — local telemetry, not shared state
+.claude/hooks/chip-rigor.log
