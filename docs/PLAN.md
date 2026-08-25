@@ -266,7 +266,11 @@ and more important problem than any item on it.
 one-time, unrepeatable measurement (DECISIONS 2026-08-16: a first-time user
 sees holistically what no builder can), and it is already fully loaded:
 generated programming, the first-ever duo flow, R6a's rest screen, R6b's
-landing — none has met a real user. Nothing new merges ahead of it.
+landing — none has met a real user. **No new *surface* merges ahead of it —
+but F0.1's own findings do**: trust-pass content and rule edits are the
+foundation the session stands on, not an experiment, and a session run on a
+week the household already rejected would be first contact with a known-bad
+state.
 
 ### The session cadence (2026-08-25): sessions are the clock, merges are the gate
 
@@ -275,9 +279,13 @@ gate passes": with agentic building, a slice costs hours, not weeks — so
 withholding *building* protects nothing. What still needs protecting is
 feedback differentiation and the sessions actually happening. Therefore:
 
-- **Build-ahead is unlimited.** Slices are built, walked, reviewed and parked
-  on branches at any time. The queue should stay full so a session is never
-  waiting on a build.
+- **Build-ahead is free — but the parked queue is capped at the next pull.**
+  Slices cost hours; walks, reviews and merge decisions still spend the
+  owner's attention, which is the scarce resource the gate protects. One
+  slice (the next session's experiment) may be built, walked, reviewed and
+  parked; the one after it waits for the current session's observations. A
+  deep queue of later slices is speculative inventory, not a service to the
+  session.
 - **Merging a user-visible slice is what's gated: one per session.** Each real
   session pulls exactly one new merged experiment, and the *next* user-visible
   merge waits for the previous session's observations in DECISIONS.md. A
@@ -287,9 +295,12 @@ feedback differentiation and the sessions actually happening. Therefore:
   unit).
 - Invisible work (refactors, tests, tooling, docs) is untouched by the gate,
   as ever.
-- Planned pulls: session 1 = current state (above) → session 2 = **R7** →
-  session 3 = **R2a's first lines** → onward per the sequencing list, one
-  slice per session, reordered freely as observations dictate.
+- Planned pulls: session 1 = current state (above) → session 2 = **R7**
+  (merges only after F0.1 has passed — teaching-time on programming the
+  household doesn't trust is the nine-day failure mode renamed) → session 3 =
+  **R2a as specified, the five v1 line types as one slice** (keeping R5
+  adjacent per takeaway #4) → onward per the sequencing list, one slice per
+  session, reordered freely as observations dictate.
 
 ### 11-star takeaways (2026-08-25) — what the exercise actually changes
 
