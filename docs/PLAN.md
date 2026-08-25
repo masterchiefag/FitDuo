@@ -269,11 +269,14 @@ The premium-to-mass framing (YC's Dalton & Michael, Chesky's 11-star exercise)
 was run against this plan; most of it the plan already does. Four things it
 adds, each deliberately small:
 
-1. **`docs/TRAINER.local.md` (gitignored) is written the evening R2a starts,
-   as its prep step** — the specific things your trainer says and does, studied
-   directly. It is a *crib sheet for which facts the templates speak and in
-   what tone* — R2a stays template-driven over data the app already has, as
-   §R2a specifies; authored per-exercise copy remains R2d.
+1. **`docs/TRAINER.local.md` (gitignored) — done 2026-08-25**, and better than
+   planned: instead of an evening of recollection, five recorded sessions
+   (~4 h) were transcribed locally and distilled with timestamped evidence.
+   It is a *crib sheet for which facts the templates speak and in what tone* —
+   R2a stays template-driven over data the app already has, as §R2a specifies;
+   authored per-exercise copy remains R2d. Everything load-bearing from it is
+   lifted, sanitized, into §"The trainer corpus" below — the local file holds
+   the receipts and must never be committed (real names throughout).
 2. **Post-R5 acceptance test (not R2a's):** once readiness and pain context
    exist, the coach should say at least one thing per session that isn't on
    the screen. R2a is judged by its own spec — targets, cues, transitions, the
@@ -286,6 +289,100 @@ adds, each deliberately small:
 4. **Keep R2a and R5 adjacent in the sequence.** Voice becomes a *person* on
    the day it reacts to how you are today; resist inserting anything between
    them.
+
+### The trainer corpus (2026-08-25): R2a's line spec, and the borrowing rule
+
+`docs/TRAINER.local.md` is evidence, not plan — it is gitignored, so nothing in
+it can be load-bearing for the repo. This section carries everything the plan
+needs from it, sanitized (no names, no quotes); the local file has the
+timestamped receipts, section numbers cited below.
+
+**The borrowing rule.** The trainer coaches a dozen people over live video,
+knowing nobody's equipment. Before copying any practice, ask: **is this craft,
+or a workaround for her constraints?** Craft ports; workarounds don't — we know
+both people's kit, history, and ratings, which she structurally cannot.
+
+Worked example, ruled by the owner 2026-08-25: **the block-gate rating stays.**
+The corpus shows she never asks for difficulty ratings (local §3.7) — but she
+never needs to: she *watches* a dozen bodies, and her difficulty signal is
+visual and continuous. The app is blind (local §8 — every form correction in
+the corpus was a judgement made by eye), so the rating is the app's replacement
+for her eyes, and it is load-bearing for per-person progression. What the
+corpus adds is the missing *first half*: effort intent spoken **before** the
+set ("leave two in reserve" / "last set — empty the tank"), which is her actual
+craft; the retrospective rating is our instrument. They compose — intent before
+is what makes the rating after meaningful. The same rule declines RPE numbers
+in the UI and time-window sets (her scaling workarounds for unknown kit, local
+§12.2), while keeping what sits under them: the pre-set intent line, speaking a
+person's own rating back to them, and an explicit permission-for-a-short-set
+line so a printed rep target never reads as pass/fail.
+
+**R2a's line types — every one speakable from data the app already holds**
+(evidence and ranking: local §10):
+
+1. **Approach ladder** through rest/changeover — name the next movement at
+   ~40/20/10 s, not once. Data: `endsAt` + next block.
+2. **Countdown that resolves into a name** — "three, two, one — and <exercise
+   / rest / last set>", never bare. Data: current phase.
+3. **One primary cue repeated** during the set (~every 25 s), not three read
+   once. Data: first instruction line (95/95 populated).
+4. **Warm permission to rest** when a set closes; for duo, keyed to both sides
+   done. Data: set completion.
+5. **Load self-audit at rest** — name the movements just done, ask per movement
+   whether it could be heavier. Data: exercise names + loads.
+6. **Finish-time diagnostic** — a set closed far under its window means too
+   light or too fast, said aloud. Data: `endsAt` vs actual; the one derived
+   coaching insight already in our logs.
+7. **Week-over-week progression, spoken** — last time vs today, as history
+   *used*, not displayed. Data: `WorkItem.lastTime`, already computed.
+8. **Per-set effort intent, before the set** — keyed to round index.
+9. **Tempo spoken** — the catalog carries `secondsPerRep` on all 95 entries and
+   the player never says it.
+10. **Equipment staging before a load switch** — what to place within reach.
+    Data: next block's per-person loads.
+11. **Completion leads with the welfare beat** — an actual "how are you
+    feeling?", numbers demoted below it. Data: none; a reordering.
+
+**Three decisions carried out of the corpus** (full reasoning: local §12):
+
+1. **No streak-freeze or walk mechanic for hurt days.** The release valve
+   exists: streaks ask "any completed session today" and `mode: mobility`
+   already qualifies. At R5, a live pain flag or bad readiness makes the app
+   *offer the mobility session in place of strength* — one suggestion, one
+   tap, streak preserved by machinery already shipped. A walk button is
+   self-reported streak credit and stays unbuilt until a real skip costs a
+   real streak.
+2. **No RPE, no time-windows; yes to what's underneath them** — the three
+   keeps named in the borrowing rule above.
+3. **Progression as a question, not an announcement** — evidence first ("last
+   time 10 kg × 10 — and you called it easy"), then an offer with two *equal*
+   answers (try 12.5 / stay at 10), firing only when evidence exists, per
+   person. **Owner call before build**: this changes the changeover card's UI,
+   not just copy — it lands as its own slice with a mock, not smuggled into
+   R2a.
+
+**Queues fed by the corpus** — data and rules, per §A0, built when their slice
+comes up, never before:
+
+- **[catalog]** `primaryCue` (the one line worth repeating), `feelItHere`
+  (where you should feel it), `loadCharacter` (heavy / light / bodyweight-fine
+  — "go heavy" is directional per movement, not global); widen `setupNote`
+  past 24/95.
+- **[generator]** size blocks to fit rather than appending optional tails; a
+  randomized-call finisher (teach a small vocabulary, then call a live
+  sequence — the one place in the corpus where software can be *more*
+  engaging than the human, and a natural fit for the Finisher R6a already
+  marks as the peak); terminal-rep hold as an intensity variant.
+- **[R5]** pain variants offered *before* the block, two options keyed to the
+  flag (local §6 is the R5 source material).
+
+**Two facts that sharpen F0** (local §11): the two users face different
+incumbents — one leaves a live class that names her and fixes her form, the
+other leaves recordings that know nothing — so the F0 trust verdict may split,
+and the gate plans for the harder verdict, as its exit already requires. And
+the household currently never trains together at all: the duo session is not
+an optimization of their routine, it is the first shared workout they would
+ever do. That is §11-star takeaway #3 stated as fact.
 
 ### Data-model amendments — apply to `supabase/migrations/0001_init.sql` **before R1 lands**, not during M4
 R5 ships before M4, so the schema must already carry what R1/R4/R5 produce or the first sync silently drops it (losing `assumed` flags means fake PRs and ratchets return).
@@ -306,7 +403,7 @@ R5 ships before M4, so the schema must already carry what R1/R4/R5 produce or th
 3. ~~**R6a**~~ — ✅ shipped 2026-08-16 (PR #22): a rest screen worth reading, and the Finisher marked as the peak.
 4. **R6b** — the landing: cool-down as an ending, completion as more than a receipt. *PR #23 open, walked and reviewed — awaiting the owner's merge call.*
 5. **F0** — the first-session gate (§F0): trust pass + one real generated-strength session, 14-day clock. **No feature work starts until its exit test passes** — the next slice after R6b is a session, not a PR.
-6. **R2a** — coach speaks — template-driven per §R2a, with `TRAINER.local.md` written first as the crib sheet (§11-star takeaways #1), including the feedback prompt that keeps progression alive
+6. **R2a** — coach speaks — template-driven per §R2a, line types from §"The trainer corpus" (crib sheet done 2026-08-25), including the feedback prompt that keeps progression alive — the gate rating stays, per the borrowing rule
 7. **R5** — readiness check + pain-aware generation + blocklist — kept adjacent to R2a deliberately (§11-star takeaways)
 8. **R6c** — the entry (Today → Start), once R6a/b have been trained with
 9. **R3a** — "Watch form ▶" video links
