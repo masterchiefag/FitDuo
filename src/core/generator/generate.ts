@@ -2,6 +2,7 @@ import { allCanPerform } from '../catalog/equipment'
 import type { Exercise, Pattern } from '../catalog/types'
 import { daysBetween, weekdayIndex } from '../dates'
 import { BLOCK_TRANSITION_SECONDS, CHANGEOVER_SECONDS } from '../player/reducer'
+import { selectCooldown } from './cooldown'
 import { fnv1a32, mulberry32, pick, shuffle } from './prng'
 import { nextTarget } from './progression'
 import type {
@@ -443,19 +444,39 @@ export function generateWorkout(input: GeneratorInput): WorkoutPlan {
   const warmup: TimedItem[] = shuffle(rng, warmupPool)
     .slice(0, scale(WARMUP_ITEMS, 3))
     .map((e) => ({ exerciseId: e.id, seconds: WARMUP_SECONDS }))
-  const cooldown: TimedItem[] = shuffle(rng, cooldownPool)
-    .slice(0, scale(COOLDOWN_ITEMS, 2))
-    .map((e) => ({ exerciseId: e.id, seconds: COOLDOWN_SECONDS }))
+  const cooldownCount = scale(COOLDOWN_ITEMS, 2)
+  const cooldownBlock: Extract<Block, { kind: 'cooldown' }> = {
+    kind: 'cooldown',
+    // Placeholder holds the shape the fitter budgets against; the movements are
+    // chosen below, once it is settled which work blocks actually survive.
+    items: Array.from({ length: cooldownCount }, () => ({
+      exerciseId: '',
+      seconds: COOLDOWN_SECONDS,
+    })),
+  }
 
   const blocks: Block[] = fitToBudget(
-    [
-      { kind: 'warmup', items: warmup },
-      ...supersetBlocks,
-      circuitBlock,
-      { kind: 'cooldown', items: cooldown },
-    ],
+    [{ kind: 'warmup', items: warmup }, ...supersetBlocks, circuitBlock, cooldownBlock],
     durationBand(targetSeconds),
   )
+
+  // The cool-down is chosen from the fitted plan, not the draft: `fitToBudget`
+  // can drop the finisher outright, and a prelude stretching a block nobody
+  // ran is the same "unrelated" complaint by another route. Item count and
+  // seconds are fixed above, so nothing here can move the estimate.
+  //
+  // Its own PRNG stream, seeded off the plan seed: the cool-down is now the
+  // last thing decided, and sharing `rng` would make every warm-up and every
+  // main selection sensitive to a change in stretch selection.
+  const byId = new Map(catalog.map((e) => [e.id, e]))
+  cooldownBlock.items = selectCooldown({
+    blocks,
+    pool: cooldownPool,
+    byId,
+    count: cooldownCount,
+    seconds: COOLDOWN_SECONDS,
+    rng: mulberry32(fnv1a32(`${seed}|cooldown`)),
+  })
 
   return {
     planVersion: 1,

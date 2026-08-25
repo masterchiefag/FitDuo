@@ -2740,7 +2740,16 @@
           "Relax the neck, keep breathing"
         ]
       },
-      "loads": []
+      "loads": [],
+      "mobility": {
+        "phase": "open",
+        "regions": [
+          "hamstrings",
+          "calves"
+        ],
+        "seconds": 45,
+        "priority": 2
+      }
     },
     {
       "id": "kneeling-hip-flexor-stretch",
@@ -2779,7 +2788,8 @@
       "mobility": {
         "phase": "open",
         "regions": [
-          "hips"
+          "hips",
+          "quads"
         ],
         "seconds": 45
       }
@@ -2817,7 +2827,15 @@
           "Keep knees together, hips forward"
         ]
       },
-      "loads": []
+      "loads": [],
+      "mobility": {
+        "phase": "open",
+        "regions": [
+          "quads"
+        ],
+        "seconds": 45,
+        "priority": 2
+      }
     },
     {
       "id": "spinal-twist",
@@ -2901,6 +2919,7 @@
       "mobility": {
         "phase": "open",
         "regions": [
+          "glutes",
           "hips"
         ],
         "seconds": 45
@@ -3118,7 +3137,14 @@
           "Switch legs halfway"
         ]
       },
-      "loads": []
+      "loads": [],
+      "mobility": {
+        "phase": "open",
+        "regions": [
+          "calves"
+        ],
+        "seconds": 40
+      }
     },
     {
       "id": "knees-to-chest",

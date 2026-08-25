@@ -61,7 +61,17 @@ export const BODY_AREAS = [
 ] as const
 export type BodyArea = (typeof BODY_AREAS)[number]
 
-/** Regions a mobility movement addresses. */
+/**
+ * Regions a mobility movement addresses.
+ *
+ * This is the vocabulary a *stretch* speaks, and it is deliberately not
+ * `MuscleGroup`: Child's Pose is filed under `primaryMuscles: ['core']`, so a
+ * cool-down keyed to muscles would answer a leg day with it and read as
+ * unrelated — which is exactly what the first real session reported
+ * (docs/SESSIONS.md, finding 6). The lower-body four were added with that
+ * rule: the catalog's hamstring, quad and calf stretches had no region tag at
+ * all, so nothing could target them.
+ */
 export const MOBILITY_REGIONS = [
   'thoracic',
   'shoulders',
@@ -69,6 +79,10 @@ export const MOBILITY_REGIONS = [
   'chest',
   'lower_back',
   'hips',
+  'glutes',
+  'hamstrings',
+  'quads',
+  'calves',
 ] as const
 export type MobilityRegion = (typeof MOBILITY_REGIONS)[number]
 
