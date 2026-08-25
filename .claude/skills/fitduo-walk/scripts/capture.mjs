@@ -1,8 +1,12 @@
 #!/usr/bin/env node
 // Capture a FitDuo walk frame from the running `fitduo-walk` server.
 //
-//   node capture.mjs --out frames/today.png
-//   node capture.mjs --until "rest" --viewport mobile --theme dark --out frames/rest.png
+//   node scripts/capture.mjs --out /tmp/fitduo-frames/today.png
+//   node scripts/capture.mjs --until "to go" --viewport mobile --theme dark --out /tmp/fitduo-frames/rest.png
+//
+// --until matches the whole page, so pick copy unique to the screen: "rest" also
+// appears in form cues and lands on the work screen. Frames go outside the repo;
+// scripts/publish.sh is what puts them on GitHub. See SKILL.md.
 //
 // Refuses to run against anything but a walk-mode server: the remote is public
 // and dev mode injects profiles.local.json, so a frame from `npm run dev`

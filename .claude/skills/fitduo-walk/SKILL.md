@@ -7,17 +7,26 @@ description: Captures FitDuo walk screenshots and attaches them to a PR. Use whe
 
 Two commands. Both drive an **already-running** walk server on port 5173.
 
-Start it from the `fitduo-walk` config in `.claude/launch.json`, through the
-preview tooling — dev servers are never launched from a shell here. That config
-runs:
+Start it from the `fitduo-walk` config in `.claude/launch.json` — under Claude
+Code that means the preview tooling rather than a shell. The config runs the
+command CLAUDE.md documents, which is also what `scripts/capture.mjs` prints
+when nothing is listening:
 
 ```
 npm run dev -- --mode walk
 ```
 
-If port 5173 is already held, check what is on it before doing anything else: a
-`fitduo-walk` server is what you want and can be reused as-is, but a plain
-`fitduo` dev server must be stopped, never worked around by changing port.
+**If 5173 is already held, find out whose tree it serves before reusing it.**
+Work here happens in worktrees, and a walk server started from a different one
+is still bound to 5173 — reuse it and the frames show that branch's code, not
+yours. The banner check proves walk *mode*, never which checkout:
+
+```
+lsof -a -p "$(lsof -ti :5173 | head -1)" -d cwd -Fn | sed -n 's/^n//p'
+```
+
+Reuse it only if that path is this checkout. Otherwise stop it and start
+`fitduo-walk` here — never work around a held port by changing port.
 
 ## 1. Capture
 
@@ -115,8 +124,9 @@ past a deadline, and the jump is one 250ms tick × K.
   needs that written first (see the gotchas below); the script always starts
   from a cold, fresh browser context.
 - **It does not run the 33% check or write the PR body.** It produces PNGs and
-  prints markdown lines; downscaling, choosing which frames tell the story, and
-  writing the walk paragraph stay judgement calls.
+  prints markdown lines. Downscaling is still **required** — see below; what
+  stays a judgement call is only which frames tell the story and how the walk
+  paragraph reads.
 - **It does not capture below the fold.** One viewport frame per invocation.
 
 ## The one-third-scale check
