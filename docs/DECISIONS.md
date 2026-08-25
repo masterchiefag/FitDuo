@@ -43,6 +43,34 @@ imagined one is paid for by every future PR and buys a feeling of safety.
 
 ---
 
+## 2026-08-25 — Session 1 happened; the findings live in SESSIONS.md, the lessons here
+
+The first real session (solo) produced six findings — now the first entry in
+[SESSIONS.md](SESSIONS.md), a new append-only log created the same day on the
+owner's call: session feedback is recurring product evidence, and recording it
+here would slowly turn the decisions file into a session log. This file keeps
+what generalises:
+
+- **Verified at desk distance, used at training distance.** Every browser walk
+  happened at arm's length; a person mid-set stands meters from the laptop.
+  Encoded as a walk criterion: session-screen frames must read at one-third
+  scale.
+- **Cold start is when the app most needs to impress and has the least to
+  say.** R6a's rest screen shipped "worth reading" nine days earlier; first
+  contact called it dead, because its one earned fact (`lastTime`) cannot
+  exist in a first session. And builder-as-witness recursed on the fix for
+  its own class: the author verified R6a against a warm store with a head
+  full of intent.
+- **Internal identifiers leak one level above the last fix.** 2026-08-16
+  fixed the gate's exercise line; the block *names* ("Strength B/C") still
+  meant nothing to a real user.
+- **The ruling:** solo iterations until session 1's six findings are fixed —
+  a closed list, not a feeling (the unbounded-foundation trap does not get a
+  third life); the duo session stays F0's exit, saved for the harder judge.
+- **Cadence carve, from its first application:** fixes answering a session's
+  findings are that session's output and merge as one batch; the one-merge
+  gate is for experiments (new surfaces).
+
 ## 2026-08-25 — The corpus is input, not gospel: the rating stays
 
 Five recorded trainer sessions were transcribed locally and distilled into
