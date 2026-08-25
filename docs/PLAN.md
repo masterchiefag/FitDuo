@@ -256,12 +256,51 @@ prep — as `docs/TRAINER.local.md`, gitignored, because a household's training
 notes on a public remote is the 2026-08-16 leak class again.)*
 
 **Exit test for the whole gate: F0.1 passed *and* one real generated-strength
-duo session completed, observations recorded in DECISIONS.md.** Then R2a
-starts. **The clock starts the day this revision merges; the report — pass or
-the honest reason why not (schedule, trust, or the product itself) — is due in
-DECISIONS.md within 14 days of that date**, because a "not there yet" that
-survives a *finished* checklist is a different and more important problem than
-any item on it.
+duo session completed, observations recorded in DECISIONS.md.** **The clock
+started 2026-08-25; the report — pass or the honest reason why not (schedule,
+trust, or the product itself) — is due in DECISIONS.md by 2026-09-08**,
+because a "not there yet" that survives a *finished* checklist is a different
+and more important problem than any item on it.
+
+**The first session runs on current state — deliberately.** First contact is a
+one-time, unrepeatable measurement (DECISIONS 2026-08-16: a first-time user
+sees holistically what no builder can), and it is already fully loaded:
+generated programming, the first-ever duo flow, R6a's rest screen, R6b's
+landing — none has met a real user. **No new *surface* merges ahead of it —
+but F0.1's own findings do**: trust-pass content and rule edits are the
+foundation the session stands on, not an experiment, and a session run on a
+week the household already rejected would be first contact with a known-bad
+state.
+
+### The session cadence (2026-08-25): sessions are the clock, merges are the gate
+
+Owner's insight, replacing this section's earlier "no feature work until the
+gate passes": with agentic building, a slice costs hours, not weeks — so
+withholding *building* protects nothing. What still needs protecting is
+feedback differentiation and the sessions actually happening. Therefore:
+
+- **Build-ahead is free — but the parked queue is capped at the next pull.**
+  Slices cost hours; walks, reviews and merge decisions still spend the
+  owner's attention, which is the scarce resource the gate protects. One
+  slice (the next session's experiment) may be built, walked, reviewed and
+  parked; the one after it waits for the current session's observations. A
+  deep queue of later slices is speculative inventory, not a service to the
+  session.
+- **Merging a user-visible slice is what's gated: one per session.** Each real
+  session pulls exactly one new merged experiment, and the *next* user-visible
+  merge waits for the previous session's observations in DECISIONS.md. A
+  session with nothing new is a chore; a session that answers "did our last
+  idea work?" is an experiment — and one change per session keeps the answer
+  attributable (the undifferentiated-feedback rule, now with sessions as the
+  unit).
+- Invisible work (refactors, tests, tooling, docs) is untouched by the gate,
+  as ever.
+- Planned pulls: session 1 = current state (above) → session 2 = **R7**
+  (merges only after F0.1 has passed — teaching-time on programming the
+  household doesn't trust is the nine-day failure mode renamed) → session 3 =
+  **R2a as specified, the five v1 line types as one slice** (keeping R5
+  adjacent per takeaway #4) → onward per the sequencing list, one slice per
+  session, reordered freely as observations dictate.
 
 ### 11-star takeaways (2026-08-25) — what the exercise actually changes
 
@@ -494,7 +533,7 @@ R5 ships before M4, so the schema must already carry what R1/R4/R5 produce or th
 2. ~~R4 mobility~~ — ✅ shipped early 2026-08-14, ahead of R1, because it needed no player rewrite (all-timed blocks)
 3. ~~**R6a**~~ — ✅ shipped 2026-08-16 (PR #22): a rest screen worth reading, and the Finisher marked as the peak.
 4. ~~**R6b**~~ — ✅ merged 2026-08-25 (PR #23): cool-down as an ending, completion as more than a receipt.
-5. **F0** — the first-session gate (§F0): trust pass + one real generated-strength session, 14-day clock running since 2026-08-25. **No feature work starts until its exit test passes** — the next slice is a session, not a PR.
+5. **F0** — the first-session gate (§F0): trust pass + one real generated-strength session on current state, report due 2026-09-08. Thereafter the **session cadence** (§F0) governs: build-ahead freely, merge one user-visible slice per session.
 6. **R7** — the exercise intro: two kinds of changeover (§R7), screen-first.
 7. **R2a** — coach speaks the five v1 line types (§trainer corpus), in character per [docs/PERSONA.md](PERSONA.md) (persona workshopped ✅ 2026-08-25) — the gate rating stays, per the borrowing rule; Settings: voice picker, rate, mute (verbosity dial deferred with customization).
 8. **R5** — readiness check + pain-aware generation + the three-door hurt-day offer (§corpus decision 1) — kept adjacent to R2a deliberately (§11-star takeaways #4).
