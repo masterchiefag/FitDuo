@@ -439,25 +439,35 @@ the first honest revival path for personal records since R1's follow-along
 contract switched them off. Lands as its own slice with a mock; changes the
 changeover card, so it is UI work, not copy.
 
-### The persona (workshop with the owner, before any R2a line is written)
+### The persona — workshopped 2026-08-25; the brief is [docs/PERSONA.md](PERSONA.md)
 
-A trainer that talks needs to be *someone* — the corpus's trainer is one
-(fixed address form, signature praise, a stated effort philosophy, an
-unvarying closing ritual), and the corpus itself warns that collapsing its two
-coaches' opposed philosophies would produce "a voice that is neither."
-Template lines written without a persona get exactly that: a notification
-system that talks. Decision 2026-08-25: **before the first template line, a
-one-page persona brief** — effort philosophy per mode, address form for two
-known people, opening/closing/countdown rituals, warmth register, and a
-never-list — **workshopped with the owner**, not drafted unilaterally.
-Working hypotheses going into that workshop: one persona with two registers
-(strength / mobility), not two characters; and *not* a copy of the household's
-real trainer — her idiolect is her professional identity, and her persona is
-calibrated for a class of twelve strangers, where ours speaks to two people it
-knows completely. Persona scales with capability: at R2a it is tone, ritual
-and consistency; fuller personhood waits for R2c, when the coach can actually
-listen ("Her" worked because Samantha could converse). The brief is fictional,
-so it lives in the repo and goes through review like everything else.
+A trainer that talks needs to be *someone*; template lines written without a
+persona produce a notification system that talks. The workshop ran 2026-08-25
+(owner + an outside-in research pass over the category: Peloton, Freeletics,
+Down Dog, Nike Run Club, Whoop, Zombies Run, CARROT). Decisions, binding for
+R2a's lines, R2d's voice choice, and R2c's system prompt — full character and
+evidence in the brief:
+
+- **Honestly synthetic, knowing training partner** — warm, dry, factual;
+  never performs emotion a synthetic voice can't carry (the research's
+  sharpest finding: no beloved fitness product is built on TTS performing
+  sentiment; TTS stating true specifics is liked). Authority from knowing the
+  household's history, not from command.
+- **Unnamed until R2b** — the name arrives the day the coach can hear it,
+  and becomes the wake word. No gender; voice picker + verbosity dial in
+  Settings (the Down Dog pattern — R2a's settings line gains the dial).
+- **First names + "you two"; "champs" earned-only** (rare milestones, never
+  wallpaper).
+- **Intent-led effort with the edge only at scheduled peaks** (strength);
+  sensation-over-range (mobility). One persona, two registers.
+- **Sparse, named, data-grounded praise; silence is a selected variant;
+  repetition budget halved** (two listeners) — variant pools and per-line
+  cooldowns are R2a template architecture, not polish.
+- **Never-list:** no unwitnessed claims, no guilt, no medical claims, no
+  ranking the couple, no performed emotion.
+- **Mechanism per §A0:** the persona compiles to a typed data object the
+  templates render — one authored persona in v1; end-user customization later
+  is content plus a settings screen.
 
 ### Data-model amendments — apply to `supabase/migrations/0001_init.sql` **before R1 lands**, not during M4
 R5 ships before M4, so the schema must already carry what R1/R4/R5 produce or the first sync silently drops it (losing `assumed` flags means fake PRs and ratchets return).
@@ -479,7 +489,7 @@ R5 ships before M4, so the schema must already carry what R1/R4/R5 produce or th
 4. ~~**R6b**~~ — ✅ merged 2026-08-25 (PR #23): cool-down as an ending, completion as more than a receipt.
 5. **F0** — the first-session gate (§F0): trust pass + one real generated-strength session, 14-day clock running since 2026-08-25. **No feature work starts until its exit test passes** — the next slice is a session, not a PR.
 6. **R7** — the exercise intro: two kinds of changeover (§R7), screen-first.
-7. **R2a** — the persona workshop and brief first (§persona), then the coach speaks the five v1 line types (§trainer corpus) — the gate rating stays, per the borrowing rule.
+7. **R2a** — coach speaks the five v1 line types (§trainer corpus), in character per [docs/PERSONA.md](PERSONA.md) (persona workshopped ✅ 2026-08-25) — the gate rating stays, per the borrowing rule; Settings gains voice picker, rate, mute, and a verbosity dial.
 8. **R5** — readiness check + pain-aware generation + the three-door hurt-day offer (§corpus decision 1) — kept adjacent to R2a deliberately (§11-star takeaways #4).
 9. **R8** — progression as a question (§R8), its own slice with a mock.
 10. **R6c** — the entry (Today → Start), once R6a/b have been trained with
