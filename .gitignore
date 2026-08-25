@@ -46,3 +46,6 @@ docs/TRAINER.local.md
 
 # Hook firing counter — local telemetry, not shared state
 .claude/hooks/chip-rigor.log
+
+# Walk frames — publish.sh puts these on an orphan branch, never on a PR branch
+frames/
