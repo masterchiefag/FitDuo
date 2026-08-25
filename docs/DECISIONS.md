@@ -43,6 +43,42 @@ imagined one is paid for by every future PR and buys a feeling of safety.
 
 ---
 
+## 2026-08-25 — Nine merged PRs, zero sessions: "not there yet", named
+
+Asked why the household hadn't trained with the app since R1 shipped, the owner
+said **the app is not there yet** — and, pressed on what "there" means, named
+*trust in the generated workouts* and *the switching cost of a routine that
+works*. Not the rest screens, not the missing voice. Meanwhile PLAN §R6 was
+calling R6a "the first thing the household actually trains with after R1":
+the plan believed usage had started; the owner knew it hadn't. Nine days of
+merges, and the two measures of progress — PRs landed vs. would-you-hand-it-
+your-bodies — diverged without anyone noticing, because nothing in the workflow
+asks the second question.
+
+→ *Class: the repo can only measure what it contains. Merges, tests and walks
+all live inside it; adoption doesn't, so a plan that reads only its own repo
+will mistake shipping for progress indefinitely.* The same structural lesson as
+first contact (2026-08-16) one level up: there, verification confirmed the
+spec; here, the *roadmap* confirmed itself.
+
+A second finding from the same conversation: the owner's instinct "the
+foundation should be better before we build voice" is correct **only as a
+finite list** — his own two named gaps — with an exit test. Unbounded, it is
+the mechanism by which the bar rises with effort invested and the app stays
+unused while accumulating polish.
+
+Encoded at rung 3 (on-demand doc): **PLAN §F0**, a first-session gate — trust
+pass over 14 generated days, then one real generated-strength session —
+inserted before R2a, with a 14-day clock from merge that reports its own
+failure. Plus §11-star takeaways: four one-line implications from the
+premium-to-mass exercise, the largest being a trainer-reference crib sheet
+(`docs/TRAINER.local.md`, gitignored) written as R2a's prep step. The gate's
+first draft had that doc *inside* the gate and named it `docs/TRAINER.md`;
+Grok's round moved it out (a writing task is not trust or switching) and
+caught that the un-ignored name would have published household training notes
+to the public remote — the 2026-08-16 leak class, found before it happened
+this time.
+
 ## 2026-08-16 — The reviewer posts its own review
 
 `post` was a separate manual command, justified at length on 2026-08-14: the
