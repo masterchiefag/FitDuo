@@ -43,3 +43,6 @@ content/.cache
 # Personal data — never checked in (real profiles live here pre-M4, in Supabase after)
 profiles.local.json
 docs/TRAINER.local.md
+
+# Walk frames — publish.sh puts these on an orphan branch, never on a PR branch
+frames/

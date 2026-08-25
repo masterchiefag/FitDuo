@@ -14,14 +14,28 @@ npm run dev -- --mode walk
 ## 1. Capture
 
 ```
-node .claude/skills/fitduo-walk/capture.mjs --out frames/today.png
-node .claude/skills/fitduo-walk/capture.mjs --until "rest" --viewport mobile --theme dark --out frames/rest-mobile-dark.png
+node .claude/skills/fitduo-walk/capture.mjs --out /tmp/fitduo-frames/today.png
+node .claude/skills/fitduo-walk/capture.mjs --until "to go" --viewport mobile --theme dark --out /tmp/fitduo-frames/rest-mobile-dark.png
 ```
+
+**Write frames outside the repo.** `publish.sh` is what puts them on GitHub, via
+a branch that never merges; frames sitting in the working tree just wait for the
+next `git add` to commit binaries onto the PR branch — the exact thing the
+orphan branch exists to avoid. (`frames/` is gitignored as a backstop.)
 
 - `--out` (required) — png path, directories created for you.
 - `--until "<on-screen text>"` — drive the app until the page contains this text
   (case-insensitive; `text-transform: uppercase` comes back uppercase, the script
   lower-cases both sides). Omit to shoot Today.
+
+  **It is a substring of the whole page, so pick copy unique to the screen you
+  want.** `--until "rest"` looks obvious and is wrong: two catalog cues contain
+  the word (`"Lower until your upper arms rest on the floor"` on Dumbbell Floor
+  Press, `"palms resting on the floor"` on Prone Chest Lift), so on any day those
+  come up you capture the *work* screen and file it as the rest frame. The rest
+  screen's own copy is `"… 3 sets to go"` — match `"to go"`, which appears
+  nowhere else in the app or the catalog. Other safe targets: `"Continue →"` for
+  a block gate, `"Done ✓"` for a work screen.
 - `--viewport desktop|mobile` — 1280×800 or 375×812. Both are required by CLAUDE.md.
 - `--theme light|dark` — both are required by CLAUDE.md.
 
@@ -31,8 +45,11 @@ ran in walk mode: it carries the red "Example profiles" banner.
 ## 2. Publish
 
 ```
-.claude/skills/fitduo-walk/publish.sh frames/ my-branch
+.claude/skills/fitduo-walk/publish.sh /tmp/fitduo-frames/ pr-33
 ```
+
+**Use the PR number as the suffix.** The push is a force-push, so two walks that
+pick the same suffix overwrite each other and 404 the older PR's images.
 
 Pushes `walk-frames/my-branch` and prints `![...](https://raw.githubusercontent.com/...)`
 lines to paste into the PR body. The branch never merges, so `main` stays free
