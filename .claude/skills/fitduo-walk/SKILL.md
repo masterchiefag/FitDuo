@@ -5,11 +5,19 @@ description: Capture FitDuo browser-walk screenshots and attach them to a PR. Us
 
 # Walking FitDuo and attaching the frames
 
-Two commands. Both assume the walk server is already up on **port 5173**:
+Two commands. Both drive an **already-running** walk server on port 5173.
+
+Start it from the `fitduo-walk` config in `.claude/launch.json`, through the
+preview tooling — dev servers are never launched from a shell here. That config
+runs:
 
 ```
 npm run dev -- --mode walk
 ```
+
+If port 5173 is already held, check what is on it before doing anything else: a
+`fitduo-walk` server is what you want and can be reused as-is, but a plain
+`fitduo` dev server must be stopped, never worked around by changing port.
 
 ## 1. Capture
 
@@ -45,13 +53,13 @@ ran in walk mode: it carries the red "Example profiles" banner.
 ## 2. Publish
 
 ```
-.claude/skills/fitduo-walk/publish.sh /tmp/fitduo-frames/ pr-33
+.claude/skills/fitduo-walk/publish.sh /tmp/fitduo-frames/ pr-<number>
 ```
 
 **Use the PR number as the suffix.** The push is a force-push, so two walks that
 pick the same suffix overwrite each other and 404 the older PR's images.
 
-Pushes `walk-frames/my-branch` and prints `![...](https://raw.githubusercontent.com/...)`
+Pushes `walk-frames/<suffix>` and prints `![...](https://raw.githubusercontent.com/...)`
 lines to paste into the PR body. The branch never merges, so `main` stays free
 of binaries; deleting it later only breaks the images. Accepted by the owner on
 2026-08-16 (PR #21) with "delete the branch whenever".
