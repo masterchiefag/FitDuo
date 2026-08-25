@@ -592,6 +592,7 @@
         6,
         15
       ],
+      "tempoCue": "Lower over 3, pause an inch off the floor, press up in 1.",
       "secondsPerRep": 3,
       "setupSeconds": 10,
       "media": {
@@ -645,6 +646,7 @@
         6,
         12
       ],
+      "tempoCue": "3 seconds down, brief pause at the bottom, drive up in 1.",
       "secondsPerRep": 3,
       "setupSeconds": 15,
       "setupNote": "Shown with the feet on a gym bench — a sturdy chair or the bottom stair is the same thing.",
@@ -694,6 +696,7 @@
         6,
         12
       ],
+      "tempoCue": "Press up in 1, rotate over 2, hold the top for a breath.",
       "secondsPerRep": 4,
       "setupSeconds": 10,
       "media": {
@@ -741,6 +744,7 @@
         8,
         15
       ],
+      "tempoCue": "Lower over 3 until the elbows touch down, pause, press in 1.",
       "secondsPerRep": 3,
       "setupSeconds": 15,
       "setupNote": "Shown on a gym bench — the floor works fine. Your upper arms stop at the floor, which is a safe depth for the shoulder.",
@@ -786,6 +790,7 @@
         10,
         15
       ],
+      "tempoCue": "Open over 3 with soft elbows, close in 2 — never bounce at the bottom.",
       "secondsPerRep": 3,
       "setupSeconds": 15,
       "setupNote": "Shown on a bench — do it on the floor; the floor stops you at a safe depth.",
@@ -831,6 +836,7 @@
         10,
         15
       ],
+      "tempoCue": "Lower over 3 behind the head, press up in 1 — elbows stay still.",
       "secondsPerRep": 3,
       "setupSeconds": 10,
       "media": {
@@ -875,6 +881,7 @@
         10,
         15
       ],
+      "tempoCue": "Extend in 1, hold straight for 1, return over 2 — the upper arm never moves.",
       "secondsPerRep": 3,
       "setupSeconds": 10,
       "setupNote": "Shown with a knee and hand on a bench — hinge forward from standing instead, free hand on your thigh.",
@@ -923,6 +930,7 @@
         8,
         15
       ],
+      "tempoCue": "Lower over 3 towards the forehead, pause, press up in 1.",
       "secondsPerRep": 3,
       "setupSeconds": 15,
       "setupNote": "Shown on a bench — the floor works just as well.",
@@ -977,6 +985,7 @@
         8,
         15
       ],
+      "tempoCue": "Lower over 3, pause at the bottom, press up in 1 — shoulders down.",
       "secondsPerRep": 3,
       "setupSeconds": 15,
       "setupNote": "Shown on two gym benches — one sturdy chair with your feet on the floor is plenty.",
@@ -1020,6 +1029,7 @@
         8,
         15
       ],
+      "tempoCue": "Press up in 1, lower over 3 — no leaning back.",
       "secondsPerRep": 3,
       "setupSeconds": 10,
       "media": {
@@ -1062,6 +1072,7 @@
         8,
         12
       ],
+      "tempoCue": "Rotate and press in 2, reverse it over 3 — one smooth path.",
       "secondsPerRep": 4,
       "setupSeconds": 10,
       "setupNote": "Shown seated on a bench — standing works, and asks more of your core.",
@@ -1103,6 +1114,7 @@
         10,
         18
       ],
+      "tempoCue": "Up in 1, pause at shoulder height, lower over 3 — the lowering is the set.",
       "secondsPerRep": 3,
       "setupSeconds": 10,
       "media": {
@@ -1143,6 +1155,7 @@
         10,
         15
       ],
+      "tempoCue": "Up in 1, pause at eye level, lower over 3 — no swinging.",
       "secondsPerRep": 3,
       "setupSeconds": 10,
       "media": {
@@ -1186,6 +1199,7 @@
         8,
         15
       ],
+      "tempoCue": "Pull in 1, squeeze the shoulder blades for 1, lower over 3.",
       "secondsPerRep": 3,
       "setupSeconds": 10,
       "media": {
@@ -1233,6 +1247,7 @@
         8,
         15
       ],
+      "tempoCue": "Pull in 1, squeeze at the top, lower over 3 — no twisting the torso.",
       "secondsPerRep": 3,
       "setupSeconds": 15,
       "setupNote": "Shown braced on a bench — a chair, a sofa arm, or your own thigh all support you just as well.",
@@ -1278,6 +1293,7 @@
         10,
         18
       ],
+      "tempoCue": "Open in 1, hold for 1, lower over 3 — elbows stay soft.",
       "secondsPerRep": 3,
       "setupSeconds": 10,
       "setupNote": "Shown face-down on an incline bench — hinge forward at the hips instead; same movement.",
@@ -1332,6 +1348,7 @@
         8,
         15
       ],
+      "tempoCue": "Curl in 1, squeeze at the top, lower over 3 — elbows pinned.",
       "secondsPerRep": 3,
       "setupSeconds": 5,
       "media": {
@@ -1376,6 +1393,7 @@
         8,
         15
       ],
+      "tempoCue": "Curl in 1, lower over 3 — no swinging from the shoulders.",
       "secondsPerRep": 3,
       "setupSeconds": 5,
       "media": {
@@ -1429,6 +1447,7 @@
         8,
         12
       ],
+      "tempoCue": "Curl in 1, pause at the top, lower over 3 — the slow half is the point.",
       "secondsPerRep": 3,
       "setupSeconds": 15,
       "setupNote": "Shown on a gym bench — any chair, stair or low box works.",
@@ -1478,6 +1497,7 @@
         8,
         12
       ],
+      "tempoCue": "Lower over 3 with the ribs down, pull back over in 2.",
       "secondsPerRep": 4,
       "setupSeconds": 15,
       "setupNote": "Shown across a bench — on the floor the range is shorter and the shoulder is safer.",
@@ -1522,6 +1542,7 @@
         10,
         15
       ],
+      "tempoCue": "Pull in 1, pause with the elbows high, lower over 2.",
       "secondsPerRep": 3,
       "setupSeconds": 5,
       "media": {
@@ -1562,6 +1583,7 @@
         10,
         18
       ],
+      "tempoCue": "Shrug up in 1, hold the top for 1, lower over 2 — no rolling.",
       "secondsPerRep": 2,
       "setupSeconds": 5,
       "media": {
@@ -1607,6 +1629,7 @@
         8,
         15
       ],
+      "tempoCue": "3 seconds down, pause at the bottom, drive up in 1.",
       "secondsPerRep": 3,
       "setupSeconds": 10,
       "media": {
@@ -1650,6 +1673,7 @@
         10,
         20
       ],
+      "tempoCue": "3 seconds down, pause at the bottom, stand up in 1.",
       "secondsPerRep": 3,
       "setupSeconds": 5,
       "media": {
@@ -1695,6 +1719,7 @@
         10,
         15
       ],
+      "tempoCue": "3 seconds down with the knees tracking out, drive up in 1.",
       "secondsPerRep": 3,
       "setupSeconds": 10,
       "media": {
@@ -1739,6 +1764,7 @@
         8,
         15
       ],
+      "tempoCue": "Down over 2, explode up, land soft and absorb into the next one.",
       "secondsPerRep": 3,
       "setupSeconds": 5,
       "media": {
@@ -1779,6 +1805,7 @@
         12,
         20
       ],
+      "tempoCue": "Up in 1, hold the top for 1, lower over 3 into a full stretch.",
       "secondsPerRep": 2,
       "setupSeconds": 5,
       "setupNote": "Shown standing on a board — flat floor is fine; a stair just adds range at the bottom.",
@@ -1823,6 +1850,7 @@
         8,
         15
       ],
+      "tempoCue": "3 seconds down, feel the hamstrings stretch, drive the hips through in 1.",
       "secondsPerRep": 3,
       "setupSeconds": 10,
       "media": {
@@ -1870,6 +1898,7 @@
         6,
         10
       ],
+      "tempoCue": "Explosive up, 2 seconds down — the power is on the way up only.",
       "secondsPerRep": 3,
       "setupSeconds": 10,
       "media": {
@@ -1912,6 +1941,7 @@
         10,
         20
       ],
+      "tempoCue": "Drive up in 1, squeeze the top for 1, lower over 2.",
       "secondsPerRep": 3,
       "setupSeconds": 10,
       "media": {
@@ -1964,6 +1994,7 @@
         8,
         15
       ],
+      "tempoCue": "Up in 1, hold the top for 1, lower over 3 — hips stay level.",
       "secondsPerRep": 3,
       "setupSeconds": 10,
       "media": {
@@ -2015,6 +2046,7 @@
         8,
         15
       ],
+      "tempoCue": "Lift and hold 2 seconds at the top, lower over 2 — no jerking.",
       "secondsPerRep": 3,
       "setupSeconds": 10,
       "media": {
@@ -2068,6 +2100,7 @@
         8,
         12
       ],
+      "tempoCue": "Step, lower over 2 until the back knee nearly touches, drive up in 1.",
       "secondsPerRep": 3,
       "setupSeconds": 10,
       "media": {
@@ -2112,6 +2145,7 @@
         8,
         12
       ],
+      "tempoCue": "Step back, lower over 2, drive up through the front heel in 1.",
       "secondsPerRep": 3,
       "setupSeconds": 10,
       "media": {
@@ -2155,6 +2189,7 @@
         8,
         12
       ],
+      "tempoCue": "3 seconds down, pause an inch off the floor, up in 1.",
       "secondsPerRep": 3,
       "setupSeconds": 15,
       "setupNote": "Shown with the rear foot up on a bench — both feet on the floor is the same movement, and easier to balance.",
@@ -2205,6 +2240,7 @@
         8,
         12
       ],
+      "tempoCue": "Up in 1 with no push off the back foot, lower over 3.",
       "secondsPerRep": 4,
       "setupSeconds": 15,
       "setupNote": "Shown on a gym platform — a sturdy step, low bench or the stairs works.",
@@ -2250,6 +2286,7 @@
         8,
         14
       ],
+      "tempoCue": "Land soft and absorb it, then jump again — quiet feet, no rushing.",
       "secondsPerRep": 2,
       "setupSeconds": 5,
       "media": {
@@ -2290,6 +2327,7 @@
         1,
         1
       ],
+      "tempoCue": "Nothing moves — slow, steady breathing the whole hold.",
       "secondsPerRep": 40,
       "setupSeconds": 10,
       "media": {
@@ -2336,6 +2374,7 @@
         1,
         1
       ],
+      "tempoCue": "Nothing moves — hips stacked and lifted, breathing steadily.",
       "secondsPerRep": 30,
       "setupSeconds": 10,
       "media": {
@@ -2376,6 +2415,7 @@
         8,
         14
       ],
+      "tempoCue": "3 seconds out, 3 seconds back — ribs stay down throughout.",
       "secondsPerRep": 4,
       "setupSeconds": 10,
       "media": {
@@ -2423,6 +2463,7 @@
         10,
         20
       ],
+      "tempoCue": "Controlled rotation, touch each side — no swinging through the middle.",
       "secondsPerRep": 2,
       "setupSeconds": 10,
       "media": {
@@ -2463,6 +2504,7 @@
         10,
         18
       ],
+      "tempoCue": "Curl up in 1, lower over 3 — no swinging the legs.",
       "secondsPerRep": 3,
       "setupSeconds": 10,
       "media": {
@@ -2503,6 +2545,7 @@
         10,
         18
       ],
+      "tempoCue": "Lift in 1, lower over 3 — the lowering half is the work.",
       "secondsPerRep": 3,
       "setupSeconds": 10,
       "media": {
@@ -2550,6 +2593,7 @@
         10,
         15
       ],
+      "tempoCue": "Lower over 3, pause at the bottom, up in 1 — no leaning forward.",
       "secondsPerRep": 3,
       "setupSeconds": 5,
       "media": {
@@ -2594,6 +2638,7 @@
         10,
         20
       ],
+      "tempoCue": "Quick feet, still hips — fast, but never bouncing.",
       "secondsPerRep": 2,
       "setupSeconds": 10,
       "media": {

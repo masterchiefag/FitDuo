@@ -36,3 +36,40 @@ export function movedUp(target: PersonTarget, last: LastPerformance): boolean {
   if (target.weight !== last.weight) return target.weight > last.weight
   return target.targetReps > last.reps
 }
+
+/**
+ * What one person's card says under the target — including on the day the app
+ * knows nothing.
+ */
+export type TargetNote =
+  | { kind: 'last_time'; last: LastPerformance; up: boolean }
+  | { kind: 'first_time' }
+
+/**
+ * The rest/changeover card's note, cold store included.
+ *
+ * `lastTimeNews` returns null for two different situations and the card treated
+ * them as one: *today equals last time* (deliberate silence — a fact that
+ * repeats today's number is noise) and *there is no last time at all*. The
+ * second is every card of a first-ever session, and it is why the first real
+ * session called the rest screens dead nine days after they shipped "worth
+ * reading": the one earned fact cannot exist yet, so the screen's best row was
+ * blank exactly when the app most needed to be worth reading (docs/SESSIONS.md,
+ * finding 3).
+ *
+ * A first time is a true thing to say, so it is said — and it says what the app
+ * will do with today, which is the only promise it can actually keep.
+ *
+ * Holds keep their existing silence *when there is history*: "last time 1 rep"
+ * is not a fact. Never having held it is still a fact.
+ */
+export function targetNote(
+  target: PersonTarget,
+  last: LastPerformance | undefined,
+  isHold: boolean,
+): TargetNote | null {
+  if (!last) return { kind: 'first_time' }
+  if (isHold) return null
+  const news = lastTimeNews(target, last)
+  return news ? { kind: 'last_time', last: news, up: movedUp(target, news) } : null
+}

@@ -70,6 +70,22 @@ describe('exercise catalog', () => {
     }
   })
 
+  /**
+   * A main exercise is something a person is asked to load and repeat, and the
+   * first real session found the app silent on how to move: *"nothing about
+   * speed of movement, here or anywhere"* (docs/SESSIONS.md, finding 4). The
+   * cue is authored, so nothing but this test can notice a new main arriving
+   * without one — and a derived stand-in is exactly what must not happen, since
+   * `secondsPerRep` is the estimator's budget number, not coaching.
+   */
+  it('every main exercise carries an authored tempo cue', () => {
+    for (const ex of catalog.exercises.filter((e) => e.role === 'main')) {
+      expect(ex.tempoCue, `${ex.id} has no tempoCue`).toBeTruthy()
+      // Read mid-set, from meters away: a paragraph here is not a cue.
+      expect(ex.tempoCue!.length, `${ex.id}: tempoCue is too long to read mid-set`).toBeLessThanOrEqual(90)
+    }
+  })
+
   it.each(Object.entries(KITS))('pools are deep enough on the %s kit', (kitName, kit) => {
     const performable = catalog.exercises.filter((e) => canPerform(e, kit))
     const warmups = performable.filter((e) => e.role === 'warmup')
