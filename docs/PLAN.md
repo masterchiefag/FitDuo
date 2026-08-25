@@ -146,8 +146,11 @@ makes the feedback undifferentiated.
   than admin; the completion screen says something about the body — volume moved
   this session — not only the scoreboard.
 - **R6c — the entry** (Today → Start). Deferred until R6a/b have been trained
-  with: the card reads as an invoice today, but that is the least-evidenced of
-  the three claims.
+  with: the card read as an invoice, but that was the least-evidenced of the
+  three claims — **until 2026-08-25, when session 1's first finding was the
+  cold, unwelcoming start.** The session-opening half (today's shape, targets,
+  one warm line — the persona's opening ritual) is promoted into the session-1
+  fix batch; the Today-card half still waits for training evidence.
 
 **Constraints, from JOURNEY Parts 2 and 6** — these are why the item is cheap and
 must stay cheap: nothing motivational *inside* a set (a form cue is instruction,
@@ -256,7 +259,12 @@ prep — as `docs/TRAINER.local.md`, gitignored, because a household's training
 notes on a public remote is the 2026-08-16 leak class again.)*
 
 **Exit test for the whole gate: F0.1 passed *and* one real generated-strength
-duo session completed, observations recorded in DECISIONS.md.** **The clock
+duo session completed, observations recorded in DECISIONS.md.** *Progress
+2026-08-25: session 1 done — solo — six findings in DECISIONS.md. The owner's
+ruling: solo iterations continue until the findings list is fixed ("acceptable"
+is that finite list, not a feeling); the duo session remains the exit, and the
+partner's first contact is deliberately saved for a product the easier judge
+no longer finds rough.* **The clock
 started 2026-08-25; the report — pass or the honest reason why not (schedule,
 trust, or the product itself) — is due in DECISIONS.md by 2026-09-08**,
 because a "not there yet" that survives a *finished* checklist is a different
@@ -293,6 +301,9 @@ feedback differentiation and the sessions actually happening. Therefore:
   idea work?" is an experiment — and one change per session keeps the answer
   attributable (the undifferentiated-feedback rule, now with sessions as the
   unit).
+- **Fixes that answer a session's findings are that session's output** and
+  merge as one batch — the one-merge gate is for *experiments* (new
+  surfaces), the same foundation-vs-experiment carve as F0.1's content edits.
 - Invisible work (refactors, tests, tooling, docs) is untouched by the gate,
   as ever.
 - Planned pulls: session 1 = current state (above) → session 2 = **R7**
