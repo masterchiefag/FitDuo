@@ -5,6 +5,7 @@
       "id": "arm-circles",
       "name": "Arm Circles",
       "role": "warmup",
+      "warmupPhase": "mobilise",
       "requires": [
         [
           "bodyweight"
@@ -49,6 +50,7 @@
       "id": "shoulder-circles",
       "name": "Shoulder Rolls",
       "role": "warmup",
+      "warmupPhase": "mobilise",
       "requires": [
         [
           "bodyweight"
@@ -93,6 +95,7 @@
       "id": "dynamic-chest-stretch",
       "name": "Dynamic Chest Opener",
       "role": "warmup",
+      "warmupPhase": "mobilise",
       "requires": [
         [
           "bodyweight"
@@ -138,6 +141,7 @@
       "id": "dynamic-back-stretch",
       "name": "Dynamic Back Reach",
       "role": "warmup",
+      "warmupPhase": "mobilise",
       "requires": [
         [
           "bodyweight"
@@ -180,6 +184,7 @@
       "id": "hip-circles",
       "name": "Hip Circles",
       "role": "warmup",
+      "warmupPhase": "mobilise",
       "requires": [
         [
           "bodyweight"
@@ -222,6 +227,7 @@
       "id": "ankle-circles",
       "name": "Ankle Circles",
       "role": "warmup",
+      "warmupPhase": "mobilise",
       "requires": [
         [
           "bodyweight"
@@ -257,6 +263,7 @@
       "id": "leg-swings",
       "name": "Leg Swings",
       "role": "warmup",
+      "warmupPhase": "mobilise",
       "requires": [
         [
           "bodyweight"
@@ -293,6 +300,7 @@
       "id": "inchworm",
       "name": "Inchworm Walkout",
       "role": "warmup",
+      "warmupPhase": "rehearse",
       "requires": [
         [
           "bodyweight"
@@ -328,6 +336,7 @@
       "id": "groiners",
       "name": "Hip Opener Lunges",
       "role": "warmup",
+      "warmupPhase": "rehearse",
       "requires": [
         [
           "bodyweight"
@@ -363,6 +372,7 @@
       "id": "worlds-greatest-stretch",
       "name": "World's Greatest Stretch",
       "role": "warmup",
+      "warmupPhase": "rehearse",
       "requires": [
         [
           "bodyweight"
@@ -410,6 +420,7 @@
       "id": "butt-kicks",
       "name": "Butt Kicks",
       "role": "warmup",
+      "warmupPhase": "raise",
       "requires": [
         [
           "bodyweight"
@@ -449,6 +460,7 @@
       "id": "star-jumps",
       "name": "Star Jumps",
       "role": "warmup",
+      "warmupPhase": "raise",
       "requires": [
         [
           "bodyweight"
@@ -489,6 +501,7 @@
       "id": "cat-cow",
       "name": "Cat-Cow",
       "role": "warmup",
+      "warmupPhase": "mobilise",
       "requires": [
         [
           "bodyweight"
@@ -535,6 +548,7 @@
       "id": "sit-squats",
       "name": "Air Squat Pulses",
       "role": "warmup",
+      "warmupPhase": "rehearse",
       "requires": [
         [
           "bodyweight"

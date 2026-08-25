@@ -3,15 +3,15 @@ import type { Exercise, Pattern } from '../catalog/types'
 import { daysBetween, weekdayIndex } from '../dates'
 import { BLOCK_TRANSITION_SECONDS, CHANGEOVER_SECONDS } from '../player/reducer'
 import { selectCooldown } from './cooldown'
-import { fnv1a32, mulberry32, pick, shuffle } from './prng'
+import { fnv1a32, mulberry32, pick } from './prng'
 import { nextTarget } from './progression'
+import { selectWarmup } from './warmup'
 import type {
   Block,
   DayType,
   GeneratorInput,
   LastPerformance,
   PersonTarget,
-  TimedItem,
   WorkItem,
   WorkoutPlan,
 } from './types'
@@ -441,9 +441,14 @@ export function generateWorkout(input: GeneratorInput): WorkoutPlan {
     Math.max(floor, Math.min(full, Math.round(full * ratio)))
   const warmupPool = performable.filter((e) => e.role === 'warmup')
   const cooldownPool = performable.filter((e) => e.role === 'cooldown')
-  const warmup: TimedItem[] = shuffle(rng, warmupPool)
-    .slice(0, scale(WARMUP_ITEMS, 3))
-    .map((e) => ({ exerciseId: e.id, seconds: WARMUP_SECONDS }))
+  const warmupCount = scale(WARMUP_ITEMS, 3)
+  const warmupBlock: Extract<Block, { kind: 'warmup' }> = {
+    kind: 'warmup',
+    items: Array.from({ length: warmupCount }, () => ({
+      exerciseId: '',
+      seconds: WARMUP_SECONDS,
+    })),
+  }
   const cooldownCount = scale(COOLDOWN_ITEMS, 2)
   const cooldownBlock: Extract<Block, { kind: 'cooldown' }> = {
     kind: 'cooldown',
@@ -456,7 +461,7 @@ export function generateWorkout(input: GeneratorInput): WorkoutPlan {
   }
 
   const blocks: Block[] = fitToBudget(
-    [{ kind: 'warmup', items: warmup }, ...supersetBlocks, circuitBlock, cooldownBlock],
+    [warmupBlock, ...supersetBlocks, circuitBlock, cooldownBlock],
     durationBand(targetSeconds),
   )
 
@@ -469,6 +474,17 @@ export function generateWorkout(input: GeneratorInput): WorkoutPlan {
   // last thing decided, and sharing `rng` would make every warm-up and every
   // main selection sensitive to a change in stretch selection.
   const byId = new Map(catalog.map((e) => [e.id, e]))
+  // Both ends of the session are chosen the same way and for the same reason:
+  // from the fitted blocks, on their own PRNG streams, with counts and seconds
+  // already settled above so neither can move the estimate.
+  warmupBlock.items = selectWarmup({
+    blocks,
+    pool: warmupPool,
+    byId,
+    count: warmupCount,
+    seconds: WARMUP_SECONDS,
+    rng: mulberry32(fnv1a32(`${seed}|warmup`)),
+  })
   cooldownBlock.items = selectCooldown({
     blocks,
     pool: cooldownPool,
