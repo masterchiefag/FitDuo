@@ -60,6 +60,14 @@ export type TargetNote =
  * A first time is a true thing to say, so it is said — and it says what the app
  * will do with today, which is the only promise it can actually keep.
  *
+ * `firstAppearance` is what keeps it from becoming wallpaper. `lastTime` is
+ * frozen at generate time and cannot learn from the session it is in, so from
+ * the second round onward it still reports "nothing logged" for a movement they
+ * finished five minutes ago — and the line would then print on every rest
+ * screen of a first session, which is the staleness the persona brief budgets
+ * against and exactly the noise `lastTimeNews` already refuses to print. Said
+ * once, before the first set of that movement (Grok, PR #30).
+ *
  * Holds keep their existing silence *when there is history*: "last time 1 rep"
  * is not a fact. Never having held it is still a fact.
  */
@@ -67,8 +75,9 @@ export function targetNote(
   target: PersonTarget,
   last: LastPerformance | undefined,
   isHold: boolean,
+  firstAppearance: boolean,
 ): TargetNote | null {
-  if (!last) return { kind: 'first_time' }
+  if (!last) return firstAppearance ? { kind: 'first_time' } : null
   if (isHold) return null
   const news = lastTimeNews(target, last)
   return news ? { kind: 'last_time', last: news, up: movedUp(target, news) } : null

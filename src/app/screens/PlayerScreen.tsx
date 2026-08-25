@@ -411,6 +411,7 @@ function NextTargetCard({
   last,
   hold,
   tone,
+  firstAppearance,
 }: {
   userId: string
   target: PersonTarget
@@ -418,9 +419,11 @@ function NextTargetCard({
   /** Timed holds have no reps to compare — "last time 1 rep" is not a fact. */
   hold: number | null
   tone: 'ready' | 'rest'
+  /** Whether this is the movement's first set of the session — see `targetNote`. */
+  firstAppearance: boolean
 }) {
   const profile = profileById(userId) ?? PROFILES[0]!
-  const note = targetNote(target, last, hold !== null)
+  const note = targetNote(target, last, hold !== null, firstAppearance)
   return (
     <div
       className={
@@ -705,6 +708,9 @@ function ChangeoverView({
               last={next.lastTime?.[userId]}
               hold={hold}
               tone="ready"
+              // Round 0 is the only time this movement has not been done yet
+              // today — the changeover into it is where "first time" is true.
+              firstAppearance={state.round === 0}
             />
           ))}
         </div>
@@ -807,6 +813,9 @@ function RestView({
                 last={next.lastTime?.[userId]}
                 hold={hold}
                 tone="rest"
+                // Never: rest previews item 0 of the NEXT round, which is
+                // always the movement this round opened with.
+                firstAppearance={false}
               />
             ))}
           </div>
