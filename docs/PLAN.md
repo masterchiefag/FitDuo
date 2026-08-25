@@ -214,6 +214,69 @@ curve flattens near week ten and nothing takes over. Deciding that now, from zer
 sessions of real use, would be the same mistake this plan already made once by
 designing before anyone trained. Revisit after eight weeks of real sessions.
 
+### F0 — First-session gate (added 2026-08-25): the foundation, as a finite list
+
+Nine PRs merged since R1 and zero real sessions. Asked directly, the owner said
+**"the app is not there yet"** — and named the gaps as *trust in the workouts*
+and *the switching cost of leaving a routine that works*, *not* missing
+features. Meanwhile the plan had been assuming training was already happening:
+R6a called itself "the first thing the household actually trains with." The
+repo measured progress in merges; the only users measured it in whether they
+would hand it their bodies. Those diverged silently for nine days.
+
+The owner's instinct — *the foundation should be better before we build the
+voice* — is right on exactly one condition: **foundation is a finite checklist
+with an exit test.** The unbounded version ("better" with no definition) is the
+trap this section exists to prevent: the bar drifts up with the effort
+invested, each polished PR makes "not yet" feel *more* true, and the app stays
+unused forever. Foundation is therefore these three items and nothing else:
+
+- **F0.1 — Trust pass.** Render 14 consecutive generated days for both
+  profiles (the M3 dev page exists for this) and both of you review them
+  against what your trainer would program: exercise choice, loads, weekly
+  balance, anything that makes you wince. Findings land as content edits or
+  one rule change each; anything larger is queued behind the gate, not built
+  inside it. Exit: both of you can say "I'd do this week."
+- **F0.2 — Trainer-reference doc.** One evening, `docs/TRAINER.md`: the
+  *specific* things your trainer does that the app doesn't — what they say
+  between sets, what they remember about you, when they change the plan
+  mid-session — and what they get wrong. This is the premium experience being
+  democratized, studied directly instead of reasoned about. It is not a
+  backlog; it is the source material R2a's lines are written from.
+- **F0.3 — Lowest-stakes first session.** Not a trainer-replacement day: one
+  short strength session (20–30 min) or a mobility session on a rest day, so
+  the first real use risks nothing that already works. First-contact rule
+  applies (DECISIONS 2026-08-16): the users drive, the author watches what
+  they ask.
+
+**Exit test for the whole gate: one real duo session completed, observations
+recorded in DECISIONS.md.** Then R2a starts — with TRAINER.md on the desk. If
+two weeks pass and the gate is not crossed, that goes in DECISIONS.md too, with
+the honest reason — schedule, trust, or the product itself — because a "not
+there yet" that survives a *finished* checklist is a different and more
+important problem than any item on it.
+
+### 11-star takeaways (2026-08-25) — what the exercise actually changes
+
+The premium-to-mass framing (YC's Dalton & Michael, Chesky's 11-star exercise)
+was run against this plan; most of it the plan already does. Four things it
+adds, each deliberately small:
+
+1. **R2a's lines are sourced from `TRAINER.md` (F0.2), not only from the data
+   model.** A voice that reads the screen aloud is narration; the trainer is
+   what gets said.
+2. **R2a acceptance test:** every session, the coach says at least one thing a
+   stranger couldn't have said — the last-time fact R6a already computes,
+   readiness and pain context once R5 lands. If every line could be read off
+   the screen, the feature is not done.
+3. **The couple is the thesis, not an implementation detail.** No product at
+   any price offers a trainer for two bodies in one shared session — a human
+   trainer can't split attention that way; software can. Standing note for
+   copy and coach lines, not a new engine.
+4. **Keep R2a and R5 adjacent in the sequence.** Voice becomes a *person* on
+   the day it reacts to how you are today; resist inserting anything between
+   them.
+
 ### Data-model amendments — apply to `supabase/migrations/0001_init.sql` **before R1 lands**, not during M4
 R5 ships before M4, so the schema must already carry what R1/R4/R5 produce or the first sync silently drops it (losing `assumed` flags means fake PRs and ratchets return).
 - `set_logs.assumed boolean not null default false`.
@@ -230,14 +293,15 @@ R5 ships before M4, so the schema must already carry what R1/R4/R5 produce or th
 ### Revised sequencing (one change at a time, each verified before the next starts)
 1. ~~**R1**~~ — ✅ follow-along player shipped 2026-08-16 (PR #9), incl. the short strength session and the estimate fix (PR #10).
 2. ~~R4 mobility~~ — ✅ shipped early 2026-08-14, ahead of R1, because it needed no player rewrite (all-timed blocks)
-3. **R6a** — the dead third: a rest screen worth reading, and the Finisher marked as the peak. *The first thing the household actually trains with after R1.*
-4. **R6b** — the landing: cool-down as an ending, completion as more than a receipt.
-5. **R2a** — coach speaks *the lines R6 already wrote*, including the feedback prompt that keeps progression alive
-6. **R5** — readiness check + pain-aware generation + blocklist
-7. **R6c** — the entry (Today → Start), once R6a/b have been trained with
-8. **R3a** — "Watch form ▶" video links
-9. **R2b** — voice commands (hands-free control) — and the first real witness, which is what revives personal records (decision 1 above)
-10. **M4** — accounts/sync/partner card/onboarding (slimmed) → **M5** PWA polish (no push) → **M6** launch
+3. ~~**R6a**~~ — ✅ shipped 2026-08-16 (PR #22): a rest screen worth reading, and the Finisher marked as the peak.
+4. **R6b** — the landing: cool-down as an ending, completion as more than a receipt. *PR #23 open, walked and reviewed — awaiting the owner's merge call.*
+5. **F0** — the first-session gate (§F0): trust pass, trainer doc, one real low-stakes session. **No feature work starts until its exit test passes** — the next slice after R6b is a session, not a PR.
+6. **R2a** — coach speaks — lines sourced from `TRAINER.md`, including the feedback prompt that keeps progression alive; acceptance test in §11-star takeaways
+7. **R5** — readiness check + pain-aware generation + blocklist — kept adjacent to R2a deliberately (§11-star takeaways)
+8. **R6c** — the entry (Today → Start), once R6a/b have been trained with
+9. **R3a** — "Watch form ▶" video links
+10. **R2b** — voice commands (hands-free control) — and the first real witness, which is what revives personal records (decision 1 above)
+11. **M4** — accounts/sync/partner card/onboarding (slimmed) → **M5** PWA polish (no push) → **M6** launch
 
 Post-launch: R2c conversational coach, R2d authored TTS, R3b self-recorded clips, activity feed, push.
 

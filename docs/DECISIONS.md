@@ -43,6 +43,37 @@ imagined one is paid for by every future PR and buys a feeling of safety.
 
 ---
 
+## 2026-08-25 — Nine merged PRs, zero sessions: "not there yet", named
+
+Asked why the household hadn't trained with the app since R1 shipped, the owner
+said **the app is not there yet** — and, pressed on what "there" means, named
+*trust in the generated workouts* and *the switching cost of a routine that
+works*. Not the rest screens, not the missing voice. Meanwhile PLAN §R6 was
+calling R6a "the first thing the household actually trains with after R1":
+the plan believed usage had started; the owner knew it hadn't. Nine days of
+merges, and the two measures of progress — PRs landed vs. would-you-hand-it-
+your-bodies — diverged without anyone noticing, because nothing in the workflow
+asks the second question.
+
+→ *Class: the repo can only measure what it contains. Merges, tests and walks
+all live inside it; adoption doesn't, so a plan that reads only its own repo
+will mistake shipping for progress indefinitely.* The same structural lesson as
+first contact (2026-08-16) one level up: there, verification confirmed the
+spec; here, the *roadmap* confirmed itself.
+
+A second finding from the same conversation: the owner's instinct "the
+foundation should be better before we build voice" is correct **only as a
+finite list** — his own two named gaps — with an exit test. Unbounded, it is
+the mechanism by which the bar rises with effort invested and the app stays
+unused while accumulating polish.
+
+Encoded at rung 3 (on-demand doc): **PLAN §F0**, a first-session gate — trust
+pass over 14 generated days, a trainer-reference doc, one lowest-stakes real
+session — inserted before R2a, with a two-week deadline that reports its own
+failure. Plus §11-star takeaways: four one-line implications from the
+premium-to-mass exercise, the largest being that R2a's lines get written from
+the trainer doc, not the data model.
+
 ## 2026-08-16 — The reviewer posts its own review
 
 `post` was a separate manual command, justified at length on 2026-08-14: the
