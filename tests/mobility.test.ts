@@ -181,6 +181,67 @@ describe('mobility sessions', () => {
     expect(ids.some((id) => strengtheners.includes(id))).toBe(true)
   })
 
+  /**
+   * Breadth the clock buys (`extendedRegions`).
+   *
+   * A long session used to spend its extra minutes *repeating* the pool, which
+   * is a worse use of thirty minutes than covering more ground. Full Body now
+   * reaches for the legs — but only once a phase can afford a whole extra
+   * movement, and never far enough to stop being the session people picked.
+   */
+  describe('breadth scales with the time available', () => {
+    const byId = new Map(catalog.map((e) => [e.id, e]))
+    const LEG_REGIONS = ['glutes', 'hamstrings', 'quads', 'calves']
+    const idsOf = (focus: MobilityFocus, minutes: number) =>
+      gen(focus, base.equipment, minutes).blocks.flatMap((b) => b.items.map((i) => i.exerciseId))
+    const legsIn = (ids: string[]) =>
+      ids.filter((id) => byId.get(id)!.mobility!.regions.some((r) => LEG_REGIONS.includes(r)))
+
+    it('a five-minute Full Body session is exactly the session it always was', () => {
+      expect(legsIn(idsOf('full_body', 5))).toEqual([])
+    })
+
+    it('a longer Full Body session covers more ground, not the same ground twice', () => {
+      expect(legsIn(idsOf('full_body', 20)).length).toBeGreaterThanOrEqual(2)
+      expect(legsIn(idsOf('full_body', 30)).length).toBeGreaterThanOrEqual(
+        legsIn(idsOf('full_body', 20)).length,
+      )
+    })
+
+    it('never lets breadth become the session', () => {
+      for (const minutes of [5, 10, 20, 30]) {
+        const ids = idsOf('full_body', minutes)
+        expect(
+          legsIn(ids).length / ids.length,
+          `full_body @ ${minutes}min: ${legsIn(ids).length}/${ids.length}`,
+        ).toBeLessThanOrEqual(0.25)
+      }
+    })
+
+    /**
+     * The point of taking breadth's share *first*, and only in whole
+     * movements: what it cannot spend goes back to the focus's own work, so
+     * widening a focus can never shorten a session that gains nothing from it.
+     */
+    it('gives unspent breadth back to the focus', () => {
+      for (const minutes of [5, 10, 20, 30]) {
+        const full = gen('full_body', base.equipment, minutes).estimatedSeconds
+        const posture = gen('posture', base.equipment, minutes).estimatedSeconds
+        expect(full, `@ ${minutes}min`).toBeGreaterThanOrEqual(posture * 0.9)
+      }
+    })
+
+    it('opens the back of the thigh in the sitting-stiffness session, at any length', () => {
+      // Not breadth — hamstrings are core regions for this focus, because
+      // sitting shortens them the same way it shortens the hip flexors.
+      for (const minutes of [10, 20]) {
+        expect(idsOf('lower_back_hips', minutes), `@ ${minutes}min`).toContain(
+          'seated-hamstring-stretch',
+        )
+      }
+    })
+  })
+
   it('every prescribed exercise carries mobility metadata and media', () => {
     const byId = new Map(catalog.map((e) => [e.id, e]))
     for (const focus of focuses) {

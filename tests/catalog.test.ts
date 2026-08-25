@@ -3,6 +3,7 @@ import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { canPerform } from '../src/core/catalog/equipment'
 import { catalogSchema, type Equipment } from '../src/core/catalog/types'
+import { COOLDOWN_CORE_CHAIN } from '../src/core/generator/cooldown'
 import { TEMPLATES } from '../src/core/generator/generate'
 
 /**
@@ -174,6 +175,36 @@ describe('exercise catalog', () => {
         new Set(loaded).size,
         `${ex.id} has kits that disagree about dumbbells: ${JSON.stringify(ex.requires)} — load must become person-scoped (see isWeighted)`,
       ).toBe(1)
+    }
+  })
+
+  /**
+   * The cool-down rule reads `mobility.regions` and nothing else (a stretch
+   * filed under `primaryMuscles: core` is Child's Pose — docs/SESSIONS.md
+   * finding 6). An untagged cool-down entry is therefore invisible to the
+   * targeting and can only ever arrive as filler, which is the old shuffle
+   * again for that one movement.
+   */
+  it('every cool-down movement declares the regions it addresses', () => {
+    for (const ex of catalog.exercises.filter((e) => e.role === 'cooldown')) {
+      expect(ex.mobility?.regions.length, `${ex.id} has no mobility.regions`).toBeGreaterThanOrEqual(
+        1,
+      )
+    }
+  })
+
+  /**
+   * The ending is fixed on purpose — it is the part that is supposed to feel
+   * the same every time. A chain member that stopped existing, changed role, or
+   * grew an equipment requirement would be filtered out for some household and
+   * the ending would quietly stop being the ending, with nothing else noticing.
+   */
+  it('the cool-down core chain is real, and needs nothing to perform', () => {
+    for (const id of COOLDOWN_CORE_CHAIN) {
+      const ex = catalog.exercises.find((e) => e.id === id)
+      expect(ex, `core chain: ${id} is not in the catalog`).toBeDefined()
+      expect(ex!.role, id).toBe('cooldown')
+      expect(ex!.requires, id).toEqual([['bodyweight']])
     }
   })
 
