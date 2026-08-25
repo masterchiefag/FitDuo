@@ -349,29 +349,34 @@ describe('the generated cool-down', () => {
 
 describe('the boundary with mobility sessions', () => {
   /**
-   * The lower-body regions were added for cool-downs. Mobility sessions choose
-   * from their own focus lists, and this rule was not allowed to disturb them —
-   * so the leg stretches must stay invisible there until someone decides
-   * otherwise on purpose.
+   * The lower-body regions were added for cool-downs, and mobility sessions
+   * pick from their own focus lists. Where those lists reach for legs is a
+   * decision made in `MOBILITY_FOCUS` (and tested in `mobility.test.ts`) — what
+   * must never happen is a *cool-down* tag silently changing a session nobody
+   * pointed at the legs.
    */
-  it('leaves mobility session selection alone', () => {
+  it('does not put leg work into a focus that never asked for it', () => {
     const legOnly = cooldownPool
       .filter((e) => e.mobility!.regions.every((r) => ['hamstrings', 'quads', 'calves'].includes(r)))
       .map((e) => e.id)
     expect(legOnly.length).toBeGreaterThanOrEqual(2)
 
-    for (const focus of Object.keys(MOBILITY_FOCUS) as (keyof typeof MOBILITY_FOCUS)[]) {
+    const spec = MOBILITY_FOCUS.posture
+    expect([...spec.regions, ...(spec.extendedRegions ?? [])]).not.toContain('hamstrings')
+
+    for (const minutes of [5, 10, 20, 30]) {
       const plan = generateMobilitySession({
         householdId: 'home',
         dateISO: '2026-08-25',
         generatorVersion: 1,
         catalog,
-        focus,
+        focus: 'posture',
         participantIds: ['p1'],
         kits: [HOME_KIT],
+        targetSeconds: minutes * 60,
       })
       const ids = plan.blocks.flatMap((b) => b.items.map((i) => i.exerciseId))
-      for (const id of legOnly) expect(ids, focus).not.toContain(id)
+      for (const id of legOnly) expect(ids, `posture @ ${minutes}min`).not.toContain(id)
     }
   })
 })

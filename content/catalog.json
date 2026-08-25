@@ -2747,8 +2747,7 @@
           "hamstrings",
           "calves"
         ],
-        "seconds": 45,
-        "priority": 2
+        "seconds": 45
       }
     },
     {
@@ -2833,8 +2832,7 @@
         "regions": [
           "quads"
         ],
-        "seconds": 45,
-        "priority": 2
+        "seconds": 45
       }
     },
     {
