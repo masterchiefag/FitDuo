@@ -94,6 +94,25 @@ export type MobilityRegion = (typeof MOBILITY_REGIONS)[number]
 export const MOBILITY_PHASES = ['mobilise', 'open', 'activate'] as const
 export type MobilityPhase = (typeof MOBILITY_PHASES)[number]
 
+/**
+ * Where a warm-up movement belongs in the order a warm-up is supposed to run.
+ *
+ * The standard shape (RAMP): **raise** the pulse, **mobilise** the joints, then
+ * **rehearse** the patterns the session is about to load. That order is the
+ * whole point of the tag — before it, the warm-up was `shuffle(pool).slice(0,n)`
+ * and a leg day could end with butt-kicks and then hand you dumbbells.
+ *
+ * Deliberately NOT `mobility.phase`, which looks like it would do. That field is
+ * the eligibility gate for Mobility & Relief sessions (`poolFor` in
+ * `generator/mobility.ts` filters on it and never on `role`), so tagging the
+ * catalog's leg warm-ups with it to make them selectable here would put star
+ * jumps and butt-kicks into a ten-minute relief session. Two different questions
+ * — "does this belong in a relief session" and "when in a warm-up does this go"
+ * — need two different fields.
+ */
+export const WARMUP_PHASES = ['raise', 'mobilise', 'rehearse'] as const
+export type WarmupPhase = (typeof WARMUP_PHASES)[number]
+
 export const exerciseSchema = z.object({
   id: z.string().min(1), // stable slug, e.g. 'db-goblet-squat'
   name: z.string().min(1),
@@ -145,6 +164,12 @@ export const exerciseSchema = z.object({
   loads: z
     .array(z.object({ area: z.enum(BODY_AREAS), stress: z.enum(['high', 'moderate']) }))
     .default([]),
+  /**
+   * Present on `warmup` entries: where this goes in the warm-up's order.
+   * Required on every `warmup` by `tests/catalog.test.ts`; an entry that
+   * somehow lacks one is treated as `mobilise`, so the generator stays total.
+   */
+  warmupPhase: z.enum(WARMUP_PHASES).optional(),
   /** Present when the movement can appear in a mobility/relief session. */
   mobility: z
     .object({

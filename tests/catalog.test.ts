@@ -194,6 +194,34 @@ describe('exercise catalog', () => {
   })
 
   /**
+   * The same class, the other end of the session: a rule that reads one
+   * authored field is blind to every entry that omits it. The warm-up is
+   * ordered by `warmupPhase` and nothing else, so an untagged warm-up cannot be
+   * placed — which is what the whole pool was until this landed.
+   */
+  it('every warm-up movement declares where in the warm-up it goes', () => {
+    for (const ex of catalog.exercises.filter((e) => e.role === 'warmup')) {
+      expect(ex.warmupPhase, `${ex.id} has no warmupPhase`).toBeDefined()
+    }
+  })
+
+  /**
+   * `warmupPhase` is a separate field from `mobility` precisely so the leg
+   * warm-ups can be selectable in a warm-up without becoming relief content:
+   * `poolFor` in `generator/mobility.ts` filters on `mobility.phase` and never
+   * on `role`, so tagging star jumps with it to make the warm-up rule see them
+   * would put star jumps in a ten-minute Mobility & Relief session.
+   */
+  it('keeps pulse raisers out of the relief-session pool', () => {
+    for (const ex of catalog.exercises.filter((e) => e.warmupPhase === 'raise')) {
+      expect(
+        ex.mobility,
+        `${ex.id} is a pulse raiser and must not be reachable as relief content`,
+      ).toBeUndefined()
+    }
+  })
+
+  /**
    * The ending is fixed on purpose — it is the part that is supposed to feel
    * the same every time. A chain member that stopped existing, changed role, or
    * grew an equipment requirement would be filtered out for some household and
