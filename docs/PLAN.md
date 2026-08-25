@@ -236,25 +236,32 @@ unused forever. Foundation is therefore these three items and nothing else:
   against what your trainer would program: exercise choice, loads, weekly
   balance, anything that makes you wince. Findings land as content edits or
   one rule change each; anything larger is queued behind the gate, not built
-  inside it. Exit: both of you can say "I'd do this week."
-- **F0.2 — Trainer-reference doc.** One evening, `docs/TRAINER.md`: the
-  *specific* things your trainer does that the app doesn't — what they say
-  between sets, what they remember about you, when they change the plan
-  mid-session — and what they get wrong. This is the premium experience being
-  democratized, studied directly instead of reasoned about. It is not a
-  backlog; it is the source material R2a's lines are written from.
-- **F0.3 — Lowest-stakes first session.** Not a trainer-replacement day: one
-  short strength session (20–30 min) or a mobility session on a rest day, so
-  the first real use risks nothing that already works. First-contact rule
-  applies (DECISIONS 2026-08-16): the users drive, the author watches what
-  they ask.
+  inside it. The right tool is `/preview` under plain `npm run dev` — real
+  profiles are the correct object for a trust review — so **frames from this
+  pass never leave the laptop**: findings land as content/rule diffs on the PR,
+  never screenshots (gitignored is not unpublished, 2026-08-16). Exit: both of
+  you can say "I'd do this week."
+- **F0.2 — Lowest-stakes first sessions.** Not a trainer-replacement day: start
+  wherever the stakes are lowest — a mobility session on a rest day is a fine
+  on-ramp — but **the gate's exit requires one *generated strength* session**
+  (short, 20–30 min, is fine), because the named blocker is trust in the
+  generated workouts and a mobility session never touches the generator's
+  strength programming. First-contact rule applies (DECISIONS 2026-08-16): the
+  users drive, the author watches what they ask.
 
-**Exit test for the whole gate: one real duo session completed, observations
-recorded in DECISIONS.md.** Then R2a starts — with TRAINER.md on the desk. If
-two weeks pass and the gate is not crossed, that goes in DECISIONS.md too, with
-the honest reason — schedule, trust, or the product itself — because a "not
-there yet" that survives a *finished* checklist is a different and more
-important problem than any item on it.
+*(A trainer-reference doc was in this gate's first draft and was moved out on
+review: it is R2a homework, not trust or switching, and blocking usage on a
+writing task is the drift this gate exists to prevent. It returns below as R2a
+prep — as `docs/TRAINER.local.md`, gitignored, because a household's training
+notes on a public remote is the 2026-08-16 leak class again.)*
+
+**Exit test for the whole gate: F0.1 passed *and* one real generated-strength
+duo session completed, observations recorded in DECISIONS.md.** Then R2a
+starts. **The clock starts the day this revision merges; the report — pass or
+the honest reason why not (schedule, trust, or the product itself) — is due in
+DECISIONS.md within 14 days of that date**, because a "not there yet" that
+survives a *finished* checklist is a different and more important problem than
+any item on it.
 
 ### 11-star takeaways (2026-08-25) — what the exercise actually changes
 
@@ -262,13 +269,16 @@ The premium-to-mass framing (YC's Dalton & Michael, Chesky's 11-star exercise)
 was run against this plan; most of it the plan already does. Four things it
 adds, each deliberately small:
 
-1. **R2a's lines are sourced from `TRAINER.md` (F0.2), not only from the data
-   model.** A voice that reads the screen aloud is narration; the trainer is
-   what gets said.
-2. **R2a acceptance test:** every session, the coach says at least one thing a
-   stranger couldn't have said — the last-time fact R6a already computes,
-   readiness and pain context once R5 lands. If every line could be read off
-   the screen, the feature is not done.
+1. **`docs/TRAINER.local.md` (gitignored) is written the evening R2a starts,
+   as its prep step** — the specific things your trainer says and does, studied
+   directly. It is a *crib sheet for which facts the templates speak and in
+   what tone* — R2a stays template-driven over data the app already has, as
+   §R2a specifies; authored per-exercise copy remains R2d.
+2. **Post-R5 acceptance test (not R2a's):** once readiness and pain context
+   exist, the coach should say at least one thing per session that isn't on
+   the screen. R2a is judged by its own spec — targets, cues, transitions, the
+   feedback prompt — because before R5 the app knows nothing the screen
+   doesn't.
 3. **The couple is the thesis, not an implementation detail.** No product at
    any price offers a trainer for two bodies in one shared session — a human
    trainer can't split attention that way; software can. Standing note for
@@ -295,8 +305,8 @@ R5 ships before M4, so the schema must already carry what R1/R4/R5 produce or th
 2. ~~R4 mobility~~ — ✅ shipped early 2026-08-14, ahead of R1, because it needed no player rewrite (all-timed blocks)
 3. ~~**R6a**~~ — ✅ shipped 2026-08-16 (PR #22): a rest screen worth reading, and the Finisher marked as the peak.
 4. **R6b** — the landing: cool-down as an ending, completion as more than a receipt. *PR #23 open, walked and reviewed — awaiting the owner's merge call.*
-5. **F0** — the first-session gate (§F0): trust pass, trainer doc, one real low-stakes session. **No feature work starts until its exit test passes** — the next slice after R6b is a session, not a PR.
-6. **R2a** — coach speaks — lines sourced from `TRAINER.md`, including the feedback prompt that keeps progression alive; acceptance test in §11-star takeaways
+5. **F0** — the first-session gate (§F0): trust pass + one real generated-strength session, 14-day clock. **No feature work starts until its exit test passes** — the next slice after R6b is a session, not a PR.
+6. **R2a** — coach speaks — template-driven per §R2a, with `TRAINER.local.md` written first as the crib sheet (§11-star takeaways #1), including the feedback prompt that keeps progression alive
 7. **R5** — readiness check + pain-aware generation + blocklist — kept adjacent to R2a deliberately (§11-star takeaways)
 8. **R6c** — the entry (Today → Start), once R6a/b have been trained with
 9. **R3a** — "Watch form ▶" video links

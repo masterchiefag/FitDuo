@@ -42,3 +42,4 @@ content/.cache
 
 # Personal data — never checked in (real profiles live here pre-M4, in Supabase after)
 profiles.local.json
+docs/TRAINER.local.md

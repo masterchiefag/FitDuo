@@ -68,11 +68,16 @@ the mechanism by which the bar rises with effort invested and the app stays
 unused while accumulating polish.
 
 Encoded at rung 3 (on-demand doc): **PLAN §F0**, a first-session gate — trust
-pass over 14 generated days, a trainer-reference doc, one lowest-stakes real
-session — inserted before R2a, with a two-week deadline that reports its own
+pass over 14 generated days, then one real generated-strength session —
+inserted before R2a, with a 14-day clock from merge that reports its own
 failure. Plus §11-star takeaways: four one-line implications from the
-premium-to-mass exercise, the largest being that R2a's lines get written from
-the trainer doc, not the data model.
+premium-to-mass exercise, the largest being a trainer-reference crib sheet
+(`docs/TRAINER.local.md`, gitignored) written as R2a's prep step. The gate's
+first draft had that doc *inside* the gate and named it `docs/TRAINER.md`;
+Grok's round moved it out (a writing task is not trust or switching) and
+caught that the un-ignored name would have published household training notes
+to the public remote — the 2026-08-16 leak class, found before it happened
+this time.
 
 ## 2026-08-16 — The reviewer posts its own review
 
