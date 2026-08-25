@@ -13,6 +13,7 @@ import {
   saveSnapshot,
   type SessionSnapshot,
 } from '../../infra/localstore'
+import { sessionTotals } from '../../core/gamification/session'
 import { statsFor } from '../lib/planner'
 
 export interface PersonSummary {
@@ -21,6 +22,9 @@ export interface PersonSummary {
   setsPlanned: number
   xp: number
   streak: number
+  /** What the body did, not what the scoreboard says — see `sessionTotals`. */
+  volumeKg: number
+  reps: number
 }
 
 export interface CompletionSummary {
@@ -171,14 +175,22 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
           })
           clearSnapshot()
           releaseWakeLock()
+          // This session's own rows, by the same rule `resume` uses to rebuild
+          // its counters: everything logged since Start. Read from the log
+          // rather than accumulated in the store, so a session resumed after a
+          // killed tab reports the work it actually did.
+          const sessionSets = loadSetLogs().filter((l) => l.loggedAt >= startedAt)
           const people: PersonSummary[] = plan.participantIds.map((userId) => {
             const after = statsFor(userId)
+            const totals = sessionTotals(sessionSets, userId)
             return {
               userId,
               setsLogged: counts[userId] ?? 0,
               setsPlanned,
               xp: Math.max(0, after.totalXp - (xpBefore.get(userId) ?? 0)),
               streak: after.streak,
+              volumeKg: totals.volumeKg,
+              reps: totals.reps,
             }
           })
           set({ summary: { abandoned: e.abandoned, durationSeconds, people } })
