@@ -43,6 +43,32 @@ imagined one is paid for by every future PR and buys a feeling of safety.
 
 ---
 
+## 2026-08-25 — The corpus is input, not gospel: the rating stays
+
+Five recorded trainer sessions were transcribed locally and distilled into
+`docs/TRAINER.local.md` (gitignored — real names throughout; the pipeline and
+transcripts live outside the repo entirely). The distillation found that the
+trainer *never* asks for a difficulty rating — effort is prescribed before the
+set, not collected after — which reads, at first, as evidence against our
+block-gate 😴/👌/🥵.
+
+The owner's ruling: borrow the best parts, but think before discarding what
+she doesn't do. The sharp form of that: **she doesn't ask because she can
+see.** Her difficulty signal is a dozen faces and elbows on live video; ours
+cannot exist that way — the app is blind, and the rating is its replacement
+for her eyes, load-bearing for per-person progression. Copying her silence
+would have copied the surface of a practice while missing the mechanism
+underneath it.
+
+→ *Class: an expert's omission is only evidence when their constraints match
+yours. Before borrowing (or discarding) any observed practice, ask whether it
+is craft or a workaround for constraints we don't share.* Encoded at rung 3:
+PLAN §"The trainer corpus" carries the borrowing rule with this as its worked
+example, plus everything load-bearing from the local doc, sanitized — because
+a gitignored file cannot be a plan of record, and leaving design decisions
+only there would have created a shadow plan no reviewer or future session
+could see.
+
 ## 2026-08-25 — Nine merged PRs, zero sessions: "not there yet", named
 
 Asked why the household hadn't trained with the app since R1 shipped, the owner
