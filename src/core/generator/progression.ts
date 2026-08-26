@@ -6,7 +6,15 @@ export function epleyE1rm(weight: number, reps: number): number {
   return weight <= 0 ? 0 : weight * (1 + reps / 30)
 }
 
-function stepWeight(available: number[], current: number, direction: 1 | -1): number {
+/**
+ * The next rung up or down the ladder, staying put at either end.
+ *
+ * Exported because the player's ± buttons have to move along the SAME ladder
+ * the generator prescribes from. They used to add and subtract 2.5, which was
+ * merely sloppy for a household owning 2.5 kg steps and is wrong outright for a
+ * band: 1.7 + 2.5 is 4.2, a tension no colour pulls and nobody owns.
+ */
+export function stepWeight(available: number[], current: number, direction: 1 | -1): number {
   const sorted = [...available].sort((a, b) => a - b)
   if (direction === 1) return sorted.find((w) => w > current) ?? current
   return [...sorted].reverse().find((w) => w < current) ?? current

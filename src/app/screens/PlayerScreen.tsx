@@ -20,7 +20,9 @@ import type {
 import type { Overrides, PlayerState } from '../../core/player/types'
 import type { Exercise } from '../../core/catalog/types'
 import { grabLabel, lastTimeLabel, loadLabel } from '../lib/load'
-import { isWorkBlock } from '../../core/player/position'
+import { isWorkBlock, type WorkBlock } from '../../core/player/position'
+import { ladderFor } from '../../core/catalog/resistance'
+import { stepWeight } from '../../core/generator/progression'
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
@@ -517,13 +519,13 @@ function TargetPanel({
                   {target.weight > 0 && onAdjust && (
                     <div className="flex shrink-0 gap-1">
                       <button
-                        onClick={() => onAdjust(userId, 'weight', -2.5)}
+                        onClick={() => onAdjust(userId, 'weight', -1)}
                         className="h-9 w-9 rounded-lg bg-slate-100 text-lg font-bold dark:bg-slate-800"
                       >
                         −
                       </button>
                       <button
-                        onClick={() => onAdjust(userId, 'weight', 2.5)}
+                        onClick={() => onAdjust(userId, 'weight', 1)}
                         className="h-9 w-9 rounded-lg bg-slate-100 text-lg font-bold dark:bg-slate-800"
                       >
                         +
@@ -550,7 +552,7 @@ function WorkView({
   remaining: number
 }) {
   const dispatch = usePlayerStore((s) => s.dispatch)
-  const block = plan.blocks[state.blockIndex] as Extract<Block, { kind: 'superset' | 'circuit' }>
+  const block = plan.blocks[state.blockIndex] as WorkBlock
   const item = block.items[state.itemIndex]!
   const ex = exercisesById.get(item.exerciseId)
   // Adjustments live in the reducer, not here: the set can end on its own
@@ -560,14 +562,30 @@ function WorkView({
   const nextItem = block.items[state.itemIndex + 1]
   const nextEx = nextItem ? exercisesById.get(nextItem.exerciseId) : null
 
+  /**
+   * `delta` is a DIRECTION for weight and an amount for reps.
+   *
+   * Weight moves one rung along the ladder this person actually owns — the same
+   * one `nextTarget` prescribed from — because the alternative is arithmetic on
+   * a number the UI never shows: a band's load is a colour, and 1.7 + 2.5 names
+   * no colour at all. For dumbbells it is the same fix a size smaller, since a
+   * household owning 1, 2.5 and 5 was previously offered 3.5.
+   */
   const adjust = (userId: string, field: 'targetReps' | 'weight', delta: number) => {
     const target = item.perPerson[userId]!
     const current = overrides[userId]?.[field] ?? target[field]
+    if (field === 'weight') {
+      const profile = profileById(userId)
+      const ladder = ex && profile ? ladderFor(ex, profile) : []
+      const next = ladder.length > 0 ? stepWeight(ladder, current, delta > 0 ? 1 : -1) : current
+      dispatch({ type: 'ADJUST', now: Date.now(), userId, target: { weight: next } })
+      return
+    }
     dispatch({
       type: 'ADJUST',
       now: Date.now(),
       userId,
-      target: { [field]: Math.max(field === 'weight' ? 0 : 1, current + delta) },
+      target: { targetReps: Math.max(1, current + delta) },
     })
   }
 
@@ -674,7 +692,7 @@ function ChangeoverView({
   remaining: number
 }) {
   const dispatch = usePlayerStore((s) => s.dispatch)
-  const block = plan.blocks[state.blockIndex] as Extract<Block, { kind: 'superset' | 'circuit' }>
+  const block = plan.blocks[state.blockIndex] as WorkBlock
   const next = block.items[state.nextItemIndex]
   const nextEx = next ? exercisesById.get(next.exerciseId) : null
   const hold = nextEx ? holdSeconds(nextEx) : null
@@ -756,7 +774,7 @@ function RestView({
   remaining: number
 }) {
   const dispatch = usePlayerStore((s) => s.dispatch)
-  const block = plan.blocks[state.blockIndex] as Extract<Block, { kind: 'superset' | 'circuit' }>
+  const block = plan.blocks[state.blockIndex] as WorkBlock
   const next = block.items[state.nextItemIndex]
   const nextEx = next ? exercisesById.get(next.exerciseId) : null
   const hold = nextEx ? holdSeconds(nextEx) : null

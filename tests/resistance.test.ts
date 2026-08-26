@@ -9,7 +9,7 @@ import {
   resistanceKind,
 } from '../src/core/catalog/resistance'
 import { catalogSchema, type Exercise } from '../src/core/catalog/types'
-import { nextTarget } from '../src/core/generator/progression'
+import { nextTarget, stepWeight } from '../src/core/generator/progression'
 
 const catalog = catalogSchema.parse(
   JSON.parse(readFileSync(join(__dirname, '..', 'content', 'catalog.json'), 'utf8')),
@@ -84,5 +84,40 @@ describe('resistance ladders', () => {
     )
     expect(t.weight).toBe(0)
     expect(t.targetReps).toBeGreaterThan(1)
+  })
+})
+
+/**
+ * The ± buttons beside a target move along the SAME ladder the generator
+ * prescribed from.
+ *
+ * They used to add and subtract a literal 2.5. For a household owning 2.5 kg
+ * steps that was merely sloppy; for a band it is wrong outright, because the
+ * number the buttons operate on is never the number on screen. Red pulls
+ * 1.7 kg, 1.7 + 2.5 is 4.2, and 4.2 is not a colour — the panel would name the
+ * nearest one and log a tension nobody owns.
+ */
+describe('the load adjuster steps the ladder, not a fixed amount', () => {
+  const ex = (id: string) => byId.get(id)!
+
+  it('a band steps to the next colour the person owns', () => {
+    const ladder = ladderFor(ex('band-external-rotation'), KIT)
+    expect(bandColourFor(stepWeight(ladder, BAND_FORCE_KG.red, 1))).toBe('green')
+    expect(bandColourFor(stepWeight(ladder, BAND_FORCE_KG.red, -1))).toBe('yellow')
+  })
+
+  it('skips colours the person does not own', () => {
+    const kit = { availableWeights: [], availableBands: ['yellow', 'black'] as const }
+    const ladder = ladderFor(ex('band-external-rotation'), {
+      ...kit,
+      availableBands: [...kit.availableBands],
+    })
+    expect(bandColourFor(stepWeight(ladder, BAND_FORCE_KG.yellow, 1))).toBe('black')
+  })
+
+  it('stays put at the ends rather than inventing a rung', () => {
+    const ladder = ladderFor(ex('db-chest-press'), KIT)
+    expect(stepWeight(ladder, 10, 1)).toBe(10)
+    expect(stepWeight(ladder, 2.5, -1)).toBe(2.5)
   })
 })
