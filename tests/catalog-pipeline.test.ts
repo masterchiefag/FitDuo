@@ -94,7 +94,13 @@ describe('catalog.json is what selection.ts says it is', () => {
       expect(ex.mobility, `${slug} carries mobility metadata nothing declares`).toBeUndefined()
       return
     }
-    const d = declared as { phase: string; regions: string[]; seconds: number; priority?: number }
+    const d = declared as {
+      phase: string
+      regions: string[]
+      seconds: number
+      priority?: number
+      focusCue?: string
+    }
     expect({
       phase: ex.mobility?.phase,
       regions: ex.mobility?.regions,
@@ -102,11 +108,17 @@ describe('catalog.json is what selection.ts says it is', () => {
       // `priority` defaults to 1 in the schema, so an entry that declares
       // nothing and one that declares 1 are the same exercise.
       priority: ex.mobility?.priority,
+      // Included for the same reason as `tempoCue`: it is authored here and
+      // rendered to the person mid-movement — the emerald line under the timer —
+      // so a catalog-only edit is a line that survives until the next
+      // regeneration, and a selection-only edit is a line that never ships.
+      focusCue: ex.mobility?.focusCue,
     }).toEqual({
       phase: d.phase,
       regions: d.regions,
       seconds: d.seconds,
       priority: d.priority ?? 1,
+      focusCue: d.focusCue,
     })
   })
 })
