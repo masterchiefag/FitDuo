@@ -51,11 +51,12 @@ export const MOBILITY_FOCUS: Record<MobilityFocus, MobilityFocusSpec> = {
     label: 'Full Body',
     blurb: 'A bit of everything — the longer you have, the more ground it covers',
     regions: ['thoracic', 'shoulders', 'chest', 'neck', 'lower_back', 'hips'],
-    // The catalog's lower-body work is all `open` holds — there is no leg
-    // `mobilise` or `activate` content yet (PLAN §R4) — so legs join the one
-    // phase that has something to offer, and only once it has room. That keeps
-    // "full body" honest at 20–30 minutes without turning the 5-minute version
-    // into a leg session.
+    // Legs now reach all three phases (the catalog gained leg `mobilise` and
+    // `activate` work), so this list is no longer a compromise about missing
+    // content — it is the budget gate doing its actual job. `quads` and
+    // `calves` are here and in no focus's `regions`, which is why they stay
+    // breadth: a five-minute Full Body session should not spend a slot on a
+    // calf stretch, and a thirty-minute one can afford to.
     extendedRegions: ['glutes', 'hamstrings', 'quads', 'calves'],
   },
 }

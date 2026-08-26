@@ -2747,7 +2747,8 @@
           "hamstrings",
           "calves"
         ],
-        "seconds": 45
+        "seconds": 45,
+        "priority": 2
       }
     },
     {
@@ -3969,6 +3970,288 @@
         ],
         "seconds": 60,
         "focusCue": "Widen your grip if the shoulders shrug — range should come from the joint"
+      }
+    },
+    {
+      "id": "quadruped-hip-circles",
+      "name": "Quadruped Hip Circles",
+      "role": "mobility",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
+      "pattern": "mobility",
+      "primaryMuscles": [
+        "glutes"
+      ],
+      "secondaryMuscles": [],
+      "tier": 1,
+      "unilateral": true,
+      "repRange": [
+        1,
+        1
+      ],
+      "secondsPerRep": 45,
+      "setupSeconds": 10,
+      "media": {
+        "images": [
+          "/exercise-media/quadruped-hip-circles_0.webp",
+          "/exercise-media/quadruped-hip-circles_1.webp"
+        ],
+        "instructions": [
+          "On hands and knees, lift one knee out to the side",
+          "Draw a big slow circle with the knee, hips level",
+          "Switch sides halfway"
+        ]
+      },
+      "loads": [],
+      "mobility": {
+        "phase": "mobilise",
+        "regions": [
+          "hips"
+        ],
+        "seconds": 45,
+        "priority": 2,
+        "focusCue": "The hip that sitting locks up — take it through the range it never gets"
+      }
+    },
+    {
+      "id": "lying-hamstring-extension",
+      "name": "Lying 90/90 Hamstring Extension",
+      "role": "mobility",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
+      "pattern": "mobility",
+      "primaryMuscles": [
+        "hamstrings"
+      ],
+      "secondaryMuscles": [
+        "calves"
+      ],
+      "tier": 1,
+      "unilateral": true,
+      "repRange": [
+        1,
+        1
+      ],
+      "secondsPerRep": 45,
+      "setupSeconds": 10,
+      "media": {
+        "images": [
+          "/exercise-media/lying-hamstring-extension_0.webp",
+          "/exercise-media/lying-hamstring-extension_1.webp"
+        ],
+        "instructions": [
+          "On your back, bring one hip and knee to ninety degrees",
+          "Hold behind the thigh and straighten the leg towards the ceiling",
+          "Lower under control and repeat — switch sides halfway"
+        ]
+      },
+      "loads": [],
+      "mobility": {
+        "phase": "mobilise",
+        "regions": [
+          "hamstrings"
+        ],
+        "seconds": 45,
+        "focusCue": "Straighten only as far as the knee stays comfortable — this is movement, not a hold"
+      }
+    },
+    {
+      "id": "prone-leg-crossover",
+      "name": "Prone Leg Crossover",
+      "role": "mobility",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
+      "pattern": "mobility",
+      "primaryMuscles": [
+        "quads"
+      ],
+      "secondaryMuscles": [],
+      "tier": 1,
+      "unilateral": true,
+      "repRange": [
+        1,
+        1
+      ],
+      "secondsPerRep": 45,
+      "setupSeconds": 10,
+      "media": {
+        "images": [
+          "/exercise-media/prone-leg-crossover_0.webp",
+          "/exercise-media/prone-leg-crossover_1.webp"
+        ],
+        "instructions": [
+          "Face down, arms out wide, palms on the floor",
+          "Bend one knee and take it across behind you towards the opposite hand",
+          "Return slowly and alternate sides — shoulders stay down"
+        ]
+      },
+      "loads": [],
+      "mobility": {
+        "phase": "mobilise",
+        "regions": [
+          "hips",
+          "lower_back"
+        ],
+        "seconds": 45,
+        "focusCue": "Let the low back rotate — the twist is the point, so keep it slow"
+      }
+    },
+    {
+      "id": "lateral-leg-swing",
+      "name": "Lateral Leg Swing",
+      "role": "mobility",
+      "requires": [
+        [
+          "chair"
+        ],
+        [
+          "bench"
+        ],
+        [
+          "wall"
+        ]
+      ],
+      "pattern": "mobility",
+      "primaryMuscles": [
+        "glutes"
+      ],
+      "secondaryMuscles": [],
+      "tier": 1,
+      "unilateral": true,
+      "repRange": [
+        1,
+        1
+      ],
+      "secondsPerRep": 40,
+      "setupSeconds": 10,
+      "setupNote": "Shown holding a chair — a worktop, a bench or a hand on the wall is the same thing.",
+      "media": {
+        "images": [
+          "/exercise-media/lateral-leg-swing_0.webp",
+          "/exercise-media/lateral-leg-swing_1.webp"
+        ],
+        "instructions": [
+          "Hold your support and stand on one leg",
+          "Swing the other leg out to the side and back across in front",
+          "Let the range grow as it loosens — switch sides halfway"
+        ]
+      },
+      "loads": [],
+      "mobility": {
+        "phase": "mobilise",
+        "regions": [
+          "hips"
+        ],
+        "seconds": 40,
+        "focusCue": "Stay tall — the swing comes from the hip, not by leaning away from it"
+      }
+    },
+    {
+      "id": "glute-kickback",
+      "name": "Quadruped Glute Kickback",
+      "role": "mobility",
+      "requires": [
+        [
+          "bodyweight"
+        ]
+      ],
+      "pattern": "mobility",
+      "primaryMuscles": [
+        "glutes"
+      ],
+      "secondaryMuscles": [
+        "hamstrings"
+      ],
+      "tier": 1,
+      "unilateral": true,
+      "repRange": [
+        1,
+        1
+      ],
+      "secondsPerRep": 40,
+      "setupSeconds": 10,
+      "media": {
+        "images": [
+          "/exercise-media/glute-kickback_0.webp",
+          "/exercise-media/glute-kickback_1.webp"
+        ],
+        "instructions": [
+          "On hands and knees, keep the knee bent at a right angle",
+          "Press the sole of the foot up until the thigh is level with your back",
+          "Squeeze at the top, lower slowly — switch sides halfway"
+        ]
+      },
+      "loads": [],
+      "mobility": {
+        "phase": "activate",
+        "regions": [
+          "glutes"
+        ],
+        "seconds": 40,
+        "priority": 2,
+        "focusCue": "Ribs down and squeeze the glute — if the low back arches, go lower"
+      }
+    },
+    {
+      "id": "standing-hip-extension",
+      "name": "Standing Hip Extension",
+      "role": "mobility",
+      "requires": [
+        [
+          "chair"
+        ],
+        [
+          "bench"
+        ],
+        [
+          "wall"
+        ]
+      ],
+      "pattern": "mobility",
+      "primaryMuscles": [
+        "glutes"
+      ],
+      "secondaryMuscles": [
+        "hamstrings"
+      ],
+      "tier": 1,
+      "unilateral": true,
+      "repRange": [
+        1,
+        1
+      ],
+      "secondsPerRep": 40,
+      "setupSeconds": 10,
+      "setupNote": "Shown holding a gym bench — a chair back, a worktop or the wall all work.",
+      "media": {
+        "images": [
+          "/exercise-media/standing-hip-extension_0.webp",
+          "/exercise-media/standing-hip-extension_1.webp"
+        ],
+        "instructions": [
+          "Hold your support, stand tall on one leg",
+          "Draw the other leg straight back behind you, keeping it straight",
+          "Squeeze the glute, return slowly — switch sides halfway"
+        ]
+      },
+      "loads": [],
+      "mobility": {
+        "phase": "activate",
+        "regions": [
+          "glutes",
+          "hamstrings"
+        ],
+        "seconds": 40,
+        "focusCue": "Small range done properly — the movement is the hip opening, not the back arching"
       }
     },
     {

@@ -208,13 +208,55 @@ describe('mobility sessions', () => {
       )
     })
 
-    it('never lets breadth become the session', () => {
-      for (const minutes of [5, 10, 20, 30]) {
-        const ids = idsOf('full_body', minutes)
-        expect(
-          legsIn(ids).length / ids.length,
-          `full_body @ ${minutes}min: ${legsIn(ids).length}/${ids.length}`,
-        ).toBeLessThanOrEqual(0.25)
+    /**
+     * The ceiling moved from a quarter to a third, and the reason is the whole
+     * point of the lower-body content batch rather than a test being loosened
+     * to go green.
+     *
+     * A quarter was never a considered ceiling — it was what Full Body happened
+     * to produce when the catalog's only leg work was `open` holds. Breadth is
+     * a share *per phase*, so with nothing to spend it on, mobilise's and
+     * activate's shares were handed straight back to the focus and only `open`
+     * could reach a leg at all. Now all three phases can spend theirs, which is
+     * exactly what the batch was for, and Full Body's lower-body share roughly
+     * doubles. The two statements are mutually exclusive: region tags are
+     * global, so there is no way to give the sitting-stiffness session leg
+     * mobilisation without Full Body seeing the same movements.
+     *
+     * A third is the honest ceiling for a session that says "full body" — legs
+     * are half of one — and the five-minute session the cap most protects came
+     * out *less* leg-heavy than before (14.3% against 16.7%).
+     *
+     * Sampled across the corpus rather than on one date, which is the part that
+     * actually tightened: the single-date version passed on 2026-08-14 while
+     * days either side of it were free to do anything. Worst observed here is
+     * 30.8%, at ten minutes, over 400 days × 4 kits.
+     */
+    it('never lets breadth become the session, on any day or kit', () => {
+      const kits: Equipment[][] = [
+        ['bodyweight', 'dumbbell'],
+        ['bodyweight', 'dumbbell', 'band', 'roller'],
+        ['bodyweight', 'dumbbell', 'band', 'roller', 'chair', 'wall', 'step'],
+      ]
+      for (const kit of kits) {
+        for (const minutes of [5, 10, 20, 30]) {
+          for (let day = 0; day < 60; day++) {
+            const dateISO = new Date(Date.UTC(2026, 0, 1) + day * 86_400_000)
+              .toISOString()
+              .slice(0, 10)
+            const ids = generateMobilitySession({
+              ...base,
+              dateISO,
+              focus: 'full_body',
+              kits: [kit],
+              targetSeconds: minutes * 60,
+            }).blocks.flatMap((b) => b.items.map((i) => i.exerciseId))
+            expect(
+              legsIn(ids).length / ids.length,
+              `full_body @ ${minutes}min ${dateISO} on a ${kit.length}-item kit: ${legsIn(ids).length}/${ids.length}`,
+            ).toBeLessThanOrEqual(1 / 3)
+          }
+        }
       }
     })
 
@@ -228,6 +270,70 @@ describe('mobility sessions', () => {
         const full = gen('full_body', base.equipment, minutes).estimatedSeconds
         const posture = gen('posture', base.equipment, minutes).estimatedSeconds
         expect(full, `@ ${minutes}min`).toBeGreaterThanOrEqual(posture * 0.9)
+      }
+    })
+
+    /**
+     * The depth this content batch bought, stated as the behaviour it changes.
+     *
+     * `fillBudget` only ever repeats after a full pass of the pool, so a
+     * repeated movement is a statement about the *catalog*, not the algorithm:
+     * it means the phase ran out. The sitting-stiffness session's mobilise pool
+     * was four movements against a seven-slot budget at twenty minutes, so it
+     * ran cat-cow, hip circles, the roller and a twist — and then ran them
+     * again. Asserted across kits because two of the six new movements need
+     * something to hold on to, and the claim must not depend on owning a chair.
+     *
+     * Twenty minutes, not thirty: at thirty a second round is the designed
+     * behaviour (see `allowRepeat`), and no plausible amount of content would
+     * or should eliminate it.
+     */
+    it('mobilises the sitting-stiffness session without repeating itself, to twenty minutes', () => {
+      const kits: Equipment[][] = [
+        ['bodyweight', 'dumbbell'],
+        ['bodyweight', 'dumbbell', 'band', 'roller'],
+        ['bodyweight', 'dumbbell', 'band', 'roller', 'chair', 'wall', 'step'],
+      ]
+      for (const kit of kits) {
+        for (const minutes of [5, 10, 20]) {
+          const mobilise = generateMobilitySession({
+            ...base,
+            focus: 'lower_back_hips',
+            kits: [kit],
+            targetSeconds: minutes * 60,
+          }).blocks.find((b) => b.label === 'Mobilise')!
+          const ids = mobilise.items.map((i) => i.exerciseId)
+          expect(
+            new Set(ids).size,
+            `${kit.length}-item kit @ ${minutes}min: ${ids.join(', ')}`,
+          ).toBe(ids.length)
+        }
+      }
+    })
+
+    /**
+     * The content relation behind it: a phase that can only *hold* a leg is a
+     * phase that answers stiffness with the one thing stiffness does not need.
+     * Guarded here rather than left implicit, because the whole gap was
+     * invisible for as long as nothing asserted it — every lower-body entry in
+     * the catalog was an `open` hold and all three phases still produced a
+     * session, so nothing went red.
+     */
+    it('offers lower-body work in every phase, not just the holds', () => {
+      for (const phase of ['mobilise', 'open', 'activate'] as const) {
+        const legWork = catalog.filter(
+          (ex) =>
+            ex.mobility?.phase === phase &&
+            // `hips` deliberately does not count. It is a joint region every
+            // focus already reaches, and counting it made this assertion pass
+            // against the very catalog it was written to describe — hip circles
+            // mobilised and a glute bridge activated, while the glutes,
+            // hamstrings, quads and calves had nothing but holds. The gap was
+            // in the muscle regions, so those are what it asks about.
+            ex.mobility.regions.some((r) => LEG_REGIONS.includes(r)) &&
+            ex.requires.some((k) => k.every((item) => item === 'bodyweight')),
+        )
+        expect(legWork.map((e) => e.id), `${phase} has no unloaded lower-body work`).not.toEqual([])
       }
     })
 

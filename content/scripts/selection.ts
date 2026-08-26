@@ -1100,7 +1100,25 @@ export const SELECTION: Curated[] = [
 
 type MobilityMeta = {
   phase: 'mobilise' | 'open' | 'activate'
-  regions: ('thoracic' | 'shoulders' | 'neck' | 'chest' | 'lower_back' | 'hips')[]
+  /**
+   * Mirrors MOBILITY_REGIONS in src/core/catalog/types.ts, which is
+   * authoritative. The lower-body four were missing here long after the
+   * vocabulary itself carried them, so the only way to tag a stretch `glutes`
+   * was to edit catalog.json by hand — which is exactly how the pipeline and
+   * the catalog drifted apart (see the header note on MOBILITY_ADDITIONS).
+   */
+  regions: (
+    | 'thoracic'
+    | 'shoulders'
+    | 'neck'
+    | 'chest'
+    | 'lower_back'
+    | 'hips'
+    | 'glutes'
+    | 'hamstrings'
+    | 'quads'
+    | 'calves'
+  )[]
   seconds: number
   focusCue?: string
   /** 2 = highest-value movement for its regions; picked ahead of the rest.
@@ -1133,8 +1151,26 @@ export const MOBILITY_META: Record<string, MobilityMeta> = {
   'cross-shoulder-stretch': { phase: 'open', regions: ['shoulders'], seconds: 40 },
   'childs-pose': { phase: 'open', regions: ['lower_back', 'thoracic'], seconds: 50 },
   'knees-to-chest': { phase: 'open', regions: ['lower_back'], seconds: 40 },
-  'kneeling-hip-flexor-stretch': { phase: 'open', regions: ['hips'], seconds: 45 },
-  'figure-four-stretch': { phase: 'open', regions: ['hips'], seconds: 45 },
+  // The lower-body five, restored to the pipeline. PR #31 tagged these in
+  // catalog.json by hand because `MobilityMeta.regions` had no leg vocabulary
+  // to say it in; regenerating from here would have silently untagged them and
+  // taken the cool-down's leg targeting (docs/SESSIONS.md finding 6) with it.
+  'kneeling-hip-flexor-stretch': { phase: 'open', regions: ['hips', 'quads'], seconds: 45 },
+  'figure-four-stretch': { phase: 'open', regions: ['glutes', 'hips'], seconds: 45 },
+  // `priority: 2` states outright what the ten-minute session was getting by
+  // luck: it is the catalog's only hamstring hold, and `tests/mobility.test.ts`
+  // requires the sitting-stiffness session to open the back of the thigh at any
+  // length. Selection is a shuffle within a priority tier, and pool sizes
+  // upstream move the PRNG stream, so any content change anywhere could drop it
+  // — as adding the mobilise work promptly did.
+  'seated-hamstring-stretch': {
+    phase: 'open',
+    regions: ['hamstrings', 'calves'],
+    seconds: 45,
+    priority: 2,
+  },
+  'side-quad-stretch': { phase: 'open', regions: ['quads'], seconds: 45 },
+  'standing-calf-stretch': { phase: 'open', regions: ['calves'], seconds: 40 },
   'worlds-greatest-stretch': { phase: 'open', regions: ['hips', 'thoracic'], seconds: 45 },
   superman: {
     phase: 'activate',
@@ -1540,6 +1576,185 @@ export const MOBILITY_ADDITIONS: (Curated & { mobility: MobilityMeta })[] = [
       regions: ['chest', 'shoulders'],
       seconds: 60,
       focusCue: 'Widen your grip if the shoulders shrug — range should come from the joint',
+    },
+  },
+
+  // ── Lower-body mobilise and activate work ──────────────────────────────────
+  //
+  // The catalog's lower body was entirely `open` holds: one movement each for
+  // hamstrings and glutes, two for quads and calves, and nothing at all that
+  // *moved* a hip or *switched on* a glute. Sitting stiffness is the whole
+  // premise of the Lower Back & Hips session, and its mobilise phase was four
+  // movements deep against a seven-slot budget at twenty minutes — so it ran
+  // cat-cow, hip circles, the roller and a twist, then ran them again.
+  //
+  // These six are picked for the regions the focuses actually select
+  // (`lower_back`, `hips`, `glutes`, `hamstrings`), not for even coverage of
+  // the region vocabulary: `quads` and `calves` appear in no focus's `regions`
+  // at all, only in `full_body.extendedRegions`, where a whole phase yields at
+  // most one breadth slot. A calf raise would have been near-unreachable — and
+  // is not sourceable anyway, since every calf raise in the dataset is machine,
+  // barbell or dumbbell, and this session is unloaded by definition.
+  //
+  // Each is tagged with what it *addresses*, never with everything it touches,
+  // and that distinction is load-bearing rather than editorial fussiness.
+  // `hips` is a Full Body core region while `glutes` and `hamstrings` are only
+  // breadth, so a hip mobiliser also tagged `glutes` enters Full Body through
+  // the front door and skips the budget gate entirely. Tagged that way the
+  // first time, these six put legs into a five-minute Full Body session and
+  // took it to 38% lower-body at ten — both caught by `tests/mobility.test.ts`.
+  {
+    slug: 'quadruped-hip-circles',
+    sourceId: 'Hip_Circles_prone',
+    displayName: 'Quadruped Hip Circles',
+    requires: [['bodyweight']],
+    role: 'mobility',
+    pattern: 'mobility',
+    tier: 1,
+    unilateral: true,
+    repRange: [1, 1],
+    secondsPerRep: 45,
+    setupSeconds: 10,
+    cues: [
+      'On hands and knees, lift one knee out to the side',
+      'Draw a big slow circle with the knee, hips level',
+      'Switch sides halfway',
+    ],
+    mobility: {
+      phase: 'mobilise',
+      regions: ['hips'],
+      seconds: 45,
+      priority: 2,
+      focusCue: 'The hip that sitting locks up — take it through the range it never gets',
+    },
+  },
+  {
+    slug: 'lying-hamstring-extension',
+    sourceId: '90_90_Hamstring',
+    displayName: 'Lying 90/90 Hamstring Extension',
+    requires: [['bodyweight']],
+    role: 'mobility',
+    pattern: 'mobility',
+    tier: 1,
+    unilateral: true,
+    repRange: [1, 1],
+    secondsPerRep: 45,
+    setupSeconds: 10,
+    cues: [
+      'On your back, bring one hip and knee to ninety degrees',
+      'Hold behind the thigh and straighten the leg towards the ceiling',
+      'Lower under control and repeat — switch sides halfway',
+    ],
+    mobility: {
+      phase: 'mobilise',
+      regions: ['hamstrings'],
+      seconds: 45,
+      // Moving the hamstring through range before the holds, rather than
+      // hanging off it cold — this is the mobilise counterpart to the seated
+      // stretch that was the catalog's only hamstring entry.
+      focusCue: 'Straighten only as far as the knee stays comfortable — this is movement, not a hold',
+    },
+  },
+  {
+    slug: 'prone-leg-crossover',
+    sourceId: 'Iron_Crosses_stretch',
+    displayName: 'Prone Leg Crossover',
+    requires: [['bodyweight']],
+    role: 'mobility',
+    pattern: 'mobility',
+    tier: 1,
+    unilateral: true,
+    repRange: [1, 1],
+    secondsPerRep: 45,
+    setupSeconds: 10,
+    cues: [
+      'Face down, arms out wide, palms on the floor',
+      'Bend one knee and take it across behind you towards the opposite hand',
+      'Return slowly and alternate sides — shoulders stay down',
+    ],
+    mobility: {
+      phase: 'mobilise',
+      regions: ['hips', 'lower_back'],
+      seconds: 45,
+      focusCue: 'Let the low back rotate — the twist is the point, so keep it slow',
+    },
+  },
+  {
+    slug: 'lateral-leg-swing',
+    sourceId: 'Side_Leg_Raises',
+    displayName: 'Lateral Leg Swing',
+    // Genuinely held onto for balance in the frames, so it is declared, not
+    // waved away: on one leg with the other swinging, the support is the
+    // movement's precondition rather than scenery.
+    requires: [['chair'], ['bench'], ['wall']],
+    setupNote: 'Shown holding a chair — a worktop, a bench or a hand on the wall is the same thing.',
+    role: 'mobility',
+    pattern: 'mobility',
+    tier: 1,
+    unilateral: true,
+    repRange: [1, 1],
+    secondsPerRep: 40,
+    setupSeconds: 10,
+    cues: [
+      'Hold your support and stand on one leg',
+      'Swing the other leg out to the side and back across in front',
+      'Let the range grow as it loosens — switch sides halfway',
+    ],
+    mobility: {
+      phase: 'mobilise',
+      regions: ['hips'],
+      seconds: 40,
+      focusCue: 'Stay tall — the swing comes from the hip, not by leaning away from it',
+    },
+  },
+  {
+    slug: 'glute-kickback',
+    sourceId: 'Glute_Kickback',
+    displayName: 'Quadruped Glute Kickback',
+    requires: [['bodyweight']],
+    role: 'mobility',
+    pattern: 'mobility',
+    tier: 1,
+    unilateral: true,
+    repRange: [1, 1],
+    secondsPerRep: 40,
+    setupSeconds: 10,
+    cues: [
+      'On hands and knees, keep the knee bent at a right angle',
+      'Press the sole of the foot up until the thigh is level with your back',
+      'Squeeze at the top, lower slowly — switch sides halfway',
+    ],
+    mobility: {
+      phase: 'activate',
+      regions: ['glutes'],
+      seconds: 40,
+      priority: 2,
+      focusCue: 'Ribs down and squeeze the glute — if the low back arches, go lower',
+    },
+  },
+  {
+    slug: 'standing-hip-extension',
+    sourceId: 'Leg_Lift',
+    displayName: 'Standing Hip Extension',
+    requires: [['chair'], ['bench'], ['wall']],
+    setupNote: 'Shown holding a gym bench — a chair back, a worktop or the wall all work.',
+    role: 'mobility',
+    pattern: 'mobility',
+    tier: 1,
+    unilateral: true,
+    repRange: [1, 1],
+    secondsPerRep: 40,
+    setupSeconds: 10,
+    cues: [
+      'Hold your support, stand tall on one leg',
+      'Draw the other leg straight back behind you, keeping it straight',
+      'Squeeze the glute, return slowly — switch sides halfway',
+    ],
+    mobility: {
+      phase: 'activate',
+      regions: ['glutes', 'hamstrings'],
+      seconds: 40,
+      focusCue: 'Small range done properly — the movement is the hip opening, not the back arching',
     },
   },
 ]
