@@ -206,6 +206,7 @@ async function main() {
       tier: sel.tier,
       unilateral: sel.unilateral,
       repRange: sel.repRange,
+      ...(sel.tempoCue ? { tempoCue: sel.tempoCue } : {}),
       secondsPerRep: sel.secondsPerRep,
       setupSeconds: sel.setupSeconds,
       ...(sel.setupNote ? { setupNote: sel.setupNote } : {}),
