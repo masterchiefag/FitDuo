@@ -204,6 +204,11 @@ export function deriveStats(
   const prCountBySession = new Map<number, number>()
   for (const s of mySets) {
     if (s.assumed) continue
+    // Cuff work at 2.5 kg is not a personal record, and the day it beats a row
+    // is the day the record stops meaning anything. Same rule as
+    // `sessionsCompleted` below: recovery work is real, and it is not strength
+    // accounting.
+    if (sessionOf(s.loggedAt)?.mode === 'mobility') continue
     const e = epleyE1rm(s.weight, s.actualReps)
     if (e > 0 && e > (bestE1rm.get(s.exerciseId) ?? 0) + 1e-9) {
       if (bestE1rm.has(s.exerciseId)) {
@@ -235,7 +240,16 @@ export function deriveStats(
     const completed = completedDates.has(d)
     const daySessions = mySessions.filter((s) => s.dateISO === d)
     const setsOf = (s: SessionEvent) => setsBySession.get(s.startedAt) ?? []
-    const daySets = [...daySessions.flatMap(setsOf), ...(orphanSetsByDate.get(d) ?? [])]
+    // Lifetime tonnage counts strength days only — the same line
+    // `sessionsCompleted` draws, and for the same reason. A relief session
+    // still reports its own volume on its own celebration card, which is a
+    // true statement about that session; what it must not do is inflate the
+    // number that unlocks `volume_10t`. Orphan sets predate the split and are
+    // all strength work.
+    const daySets = [
+      ...daySessions.filter((s) => s.mode !== 'mobility').flatMap(setsOf),
+      ...(orphanSetsByDate.get(d) ?? []),
+    ]
     totalVolumeKg += daySets.reduce((a, s) => a + s.weight * s.actualReps, 0)
 
     // XP is per SESSION; streaks, freezes and achievements are per DAY.

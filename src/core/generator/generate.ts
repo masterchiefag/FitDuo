@@ -7,6 +7,7 @@ import { selectCooldown } from './cooldown'
 import { fnv1a32, mulberry32, pick } from './prng'
 import { nextTarget } from './progression'
 import { selectWarmup } from './warmup'
+import { isWorkBlock } from '../player/position'
 import type {
   Block,
   DayType,
@@ -315,8 +316,6 @@ function changeoversPerRound(items: WorkItem[]): number {
   return n
 }
 
-type WorkBlock = Extract<Block, { kind: 'superset' | 'circuit' }>
-
 const MIN_ROUNDS = 2
 const MAX_ROUNDS = 4
 
@@ -329,8 +328,7 @@ const MAX_ROUNDS = 4
  * seven-move warm-up into twenty minutes.
  */
 function fitToBudget(blocks: Block[], [minS, maxS]: [number, number]): Block[] {
-  const work = () =>
-    blocks.filter((b): b is WorkBlock => b.kind === 'superset' || b.kind === 'circuit')
+  const work = () => blocks.filter(isWorkBlock)
   const estimate = () => estimatePlanSeconds(blocks)
 
   const fitRounds = () => {

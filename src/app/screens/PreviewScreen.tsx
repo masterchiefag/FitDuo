@@ -6,6 +6,7 @@ import { DAY_TYPE_LABEL, generatorInputFor } from '../lib/planner'
 import { ThinKitError, generateWorkout } from '../../core/generator/generate'
 import { addDays, localDateISO } from '../../core/dates'
 import type { DayHistory, WorkoutPlan } from '../../core/generator/types'
+import { isWorkBlock } from '../../core/player/position'
 
 /**
  * Dev sanity-check: the next 14 generated days for both profiles, simulating
@@ -28,9 +29,7 @@ export default function PreviewScreen() {
         if (err instanceof ThinKitError) return [out, err.pattern]
         throw err
       }
-      const mains = plan.blocks
-        .filter((b) => b.kind === 'superset' || b.kind === 'circuit')
-        .flatMap((b) => b.items)
+      const mains = plan.blocks.filter(isWorkBlock).flatMap((b) => b.items)
       history = [
         ...history,
         {
@@ -78,35 +77,33 @@ export default function PreviewScreen() {
               <p className="text-xs text-slate-400">{Math.round(plan.estimatedSeconds / 60)} min</p>
             </div>
             <div className="mt-2 space-y-2">
-              {plan.blocks
-                .filter((b) => b.kind === 'superset' || b.kind === 'circuit')
-                .map((b, i) => (
-                  <div key={i} className="rounded-lg bg-slate-50 p-2 text-sm dark:bg-slate-800">
-                    <p className="text-xs font-bold text-slate-400">
-                      {b.kind === 'superset' ? b.label : 'Finisher'} · {b.rounds}×, rest{' '}
-                      {b.restSeconds}s
-                    </p>
-                    {b.items.map((item) => {
-                      const ex = exercisesById.get(item.exerciseId)
-                      return (
-                        <p key={item.exerciseId} className="mt-0.5">
-                          <span className="font-semibold">{ex?.name}</span>{' '}
-                          <span className="text-xs text-slate-500">
-                            {ex?.repRange[1] === 1
-                              ? `${ex.secondsPerRep}s hold`
-                              : PROFILES.map((p) => {
-                                  const t = item.perPerson[p.id]
-                                  if (!t) return null
-                                  return `${p.name}: ${t.targetReps}×${t.weight > 0 ? loadLabel(ex, t.weight) : 'bw'}`
-                                })
-                                  .filter(Boolean)
-                                  .join(' · ')}
-                          </span>
-                        </p>
-                      )
-                    })}
-                  </div>
-                ))}
+              {plan.blocks.filter(isWorkBlock).map((b, i) => (
+                <div key={i} className="rounded-lg bg-slate-50 p-2 text-sm dark:bg-slate-800">
+                  <p className="text-xs font-bold text-slate-400">
+                    {b.kind === 'superset' ? b.label : 'Finisher'} · {b.rounds}×, rest{' '}
+                    {b.restSeconds}s
+                  </p>
+                  {b.items.map((item) => {
+                    const ex = exercisesById.get(item.exerciseId)
+                    return (
+                      <p key={item.exerciseId} className="mt-0.5">
+                        <span className="font-semibold">{ex?.name}</span>{' '}
+                        <span className="text-xs text-slate-500">
+                          {ex?.repRange[1] === 1
+                            ? `${ex.secondsPerRep}s hold`
+                            : PROFILES.map((p) => {
+                                const t = item.perPerson[p.id]
+                                if (!t) return null
+                                return `${p.name}: ${t.targetReps}×${t.weight > 0 ? loadLabel(ex, t.weight) : 'bw'}`
+                              })
+                                .filter(Boolean)
+                                .join(' · ')}
+                        </span>
+                      </p>
+                    )
+                  })}
+                </div>
+              ))}
             </div>
           </div>
         ))}

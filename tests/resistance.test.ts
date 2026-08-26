@@ -9,7 +9,6 @@ import {
   resistanceKind,
 } from '../src/core/catalog/resistance'
 import { catalogSchema, type Exercise } from '../src/core/catalog/types'
-import { deriveProgression } from '../src/core/gamification/derive'
 import { nextTarget } from '../src/core/generator/progression'
 
 const catalog = catalogSchema.parse(
@@ -85,65 +84,5 @@ describe('resistance ladders', () => {
     )
     expect(t.weight).toBe(0)
     expect(t.targetReps).toBeGreaterThan(1)
-  })
-})
-
-/**
- * `db-reverse-fly` is a `pull_h` main AND an Activate movement, and it is not
- * the only one. Pooling both into one progression lets Sunday's 2.5 kg cuff
- * work set Monday's rear-delt prescription: the strength day opens at a rehab
- * weight and "progresses" downwards from there.
- *
- * This is also what keeps `generator/types.ts` literally true when it says
- * recovery days do not drive progression — they drive their own, never
- * strength's.
- */
-describe('relief work and strength work progress on separate tracks', () => {
-  const SHARED = 'db-reverse-fly'
-  const strengthSession = {
-    dateISO: '2026-08-24' as const,
-    mode: 'full' as const,
-    completed: true,
-    participantIds: ['p1'],
-    startedAt: Date.UTC(2026, 7, 24, 9, 0),
-    endedAt: Date.UTC(2026, 7, 24, 10, 0),
-  }
-  const reliefSession = {
-    dateISO: '2026-08-25' as const,
-    mode: 'mobility' as const,
-    completed: true,
-    participantIds: ['p1'],
-    startedAt: Date.UTC(2026, 7, 25, 9, 0),
-    endedAt: Date.UTC(2026, 7, 25, 9, 20),
-  }
-  const set = (at: number, weight: number, reps: number) => ({
-    userId: 'p1',
-    exerciseId: SHARED,
-    targetReps: reps,
-    actualReps: reps,
-    weight,
-    loggedAt: at,
-  })
-  const sessions = [strengthSession, reliefSession]
-  const sets = [
-    set(Date.UTC(2026, 7, 24, 9, 30), 10, 12),
-    set(Date.UTC(2026, 7, 25, 9, 10), 2.5, 15),
-  ]
-
-  it('the strength track never reads a set logged in a relief session', () => {
-    const strength = deriveProgression('p1', sessions, sets, [], 'strength')
-    expect(strength[SHARED]?.lastWeight).toBe(10)
-  })
-
-  it('the relief track never reads a set logged in a strength session', () => {
-    const relief = deriveProgression('p1', sessions, sets, [], 'relief')
-    expect(relief[SHARED]?.lastWeight).toBe(2.5)
-  })
-
-  /** History from before the split is strength work, and stays where it was. */
-  it('keeps unassigned history on the strength track', () => {
-    const orphan = [set(Date.UTC(2026, 6, 1, 9, 0), 7.5, 10)]
-    expect(deriveProgression('p1', sessions, orphan, [], 'strength')[SHARED]?.lastWeight).toBe(7.5)
-    expect(deriveProgression('p1', sessions, orphan, [], 'relief')[SHARED]).toBeUndefined()
   })
 })

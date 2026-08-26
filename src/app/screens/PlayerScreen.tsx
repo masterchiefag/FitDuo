@@ -20,6 +20,7 @@ import type {
 import type { Overrides, PlayerState } from '../../core/player/types'
 import type { Exercise } from '../../core/catalog/types'
 import { grabLabel, lastTimeLabel, loadLabel } from '../lib/load'
+import { isWorkBlock } from '../../core/player/position'
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
@@ -35,15 +36,14 @@ function phaseTotalSeconds(plan: WorkoutPlan, state: PlayerState): number {
     }
     case 'work': {
       const b = plan.blocks[state.blockIndex]
-      const item =
-        b && (b.kind === 'superset' || b.kind === 'circuit') ? b.items[state.itemIndex] : undefined
+      const item = b && isWorkBlock(b) ? b.items[state.itemIndex] : undefined
       return item?.workSeconds ?? 1
     }
     case 'changeover':
       return CHANGEOVER_SECONDS
     case 'rest': {
       const b = plan.blocks[state.blockIndex]
-      return b && (b.kind === 'superset' || b.kind === 'circuit') ? b.restSeconds : 1
+      return b && isWorkBlock(b) ? b.restSeconds : 1
     }
     case 'block_transition':
       return BLOCK_TRANSITION_SECONDS
@@ -63,7 +63,7 @@ function phaseTotalSeconds(plan: WorkoutPlan, state: PlayerState): number {
  * cards, where each person has their own.
  */
 function workDoneLine(plan: WorkoutPlan, setsDone: number): string {
-  const blocks = plan.blocks.filter((b) => b.kind === 'superset' || b.kind === 'circuit').length
+  const blocks = plan.blocks.filter(isWorkBlock).length
   const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`
   return `That's the work done — ${plural(blocks, 'block')}, ${plural(setsDone, 'set')}.`
 }
@@ -71,7 +71,7 @@ function workDoneLine(plan: WorkoutPlan, setsDone: number): string {
 /** Linear progress through the whole session, 0..1. */
 function sessionProgress(plan: WorkoutPlan, state: PlayerState): number {
   const steps: number[] = plan.blocks.map((b) =>
-    b.kind === 'superset' || b.kind === 'circuit' ? b.rounds * b.items.length : b.items.length,
+    isWorkBlock(b) ? b.rounds * b.items.length : b.items.length,
   )
   const total = steps.reduce((a, b) => a + b, 0)
   if (total === 0) return 0
@@ -362,7 +362,7 @@ function TimedView({
  */
 function NextUpPreview({ block }: { block: Block | undefined }) {
   if (!block) return null
-  const rounds = block.kind === 'superset' || block.kind === 'circuit' ? block.rounds : null
+  const rounds = isWorkBlock(block) ? block.rounds : null
   return (
     <div className="mx-auto mt-3 flex max-w-xl flex-wrap items-center justify-center gap-2">
       {block.items.map((item, i) => {
@@ -889,7 +889,7 @@ function BlockGateView({
 }) {
   const dispatch = usePlayerStore((s) => s.dispatch)
   const block = plan.blocks[state.blockIndex]
-  const done = block && (block.kind === 'superset' || block.kind === 'circuit') ? block : null
+  const done = block && isWorkBlock(block) ? block : null
   const nextBlock = plan.blocks[state.nextBlockIndex]
   // Both halves of this screen used to print the plan's own identifier —
   // "Strength B done! Up next: Strength C" — and the first real session read it
@@ -1257,8 +1257,7 @@ export default function PlayerScreen() {
           {state.phase === 'timed' &&
             (() => {
               const b = plan.blocks[state.blockIndex]
-              if (!b || !('items' in b) || b.kind === 'superset' || b.kind === 'circuit')
-                return null
+              if (!b || !('items' in b) || isWorkBlock(b)) return null
               const item = b.items[state.itemIndex] as { exerciseId: string } | undefined
               const next = b.items[state.itemIndex + 1] as { exerciseId: string } | undefined
               const winding = b.kind === 'cooldown'
