@@ -71,6 +71,15 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
   summary: null,
   soundOn: false,
 
+  /**
+   * Load the plan and stop — the session does not begin here.
+   *
+   * `idle` is the opening ritual's screen (PlayerScreen): the day, its shape
+   * and today's targets, waiting for one tap. START is dispatched from there,
+   * which is also when the clock starts and the first snapshot is written, so
+   * reading the shape for a minute is not billed as training and backing out
+   * of the opening leaves nothing behind.
+   */
   start(plan) {
     const ok = unlockAudio() // must run inside the Start tap
     keepAwake()
@@ -83,7 +92,6 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
       summary: null,
       soundOn: ok,
     })
-    get().dispatch({ type: 'START', now: Date.now() })
   },
 
   resume(snap) {
@@ -120,8 +128,14 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
   },
 
   dispatch(event) {
-    const { plan, state, startedAt } = get()
+    const { plan, state } = get()
     if (!plan) return
+    // The session's clock starts with the warm-up, not with the opening screen
+    // that precedes it: someone can stand and read the day's shape for a minute
+    // before tapping, and that minute is not training time. Set before the
+    // snapshot below is written, or a resumed session inherits the old stamp.
+    if (event.type === 'START') set({ startedAt: event.now })
+    const startedAt = get().startedAt
     const { state: next, effects } = reduce(plan, state, event)
 
     const logs = effects.flatMap((e) => (e.type === 'LOG_SET' ? [e.log] : []))

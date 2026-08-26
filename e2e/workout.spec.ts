@@ -41,8 +41,17 @@ async function driveSessionToCompletion(page: Page) {
   throw new Error('session did not complete within bounds')
 }
 
+/**
+ * Get past the opening ritual — the day, its shape and today's targets, which
+ * every session now starts with (R6c) and which holds until somebody taps.
+ */
+async function passOpening(page: Page) {
+  await page.getByRole('button', { name: /^Start (warm-up|→)/ }).click()
+}
+
 /** Advance until the first work screen of the session. */
 async function reachFirstSet(page: Page) {
+  await passOpening(page)
   for (let i = 0; i < 20; i++) {
     if (await page.getByRole('button', { name: 'Done ✓' }).isVisible().catch(() => false)) return
     const startNow = page.getByRole('button', { name: 'Start now →' })
@@ -62,6 +71,13 @@ test('golden path: duo workout from start to celebration', async ({ page }) => {
   await page.reload()
 
   await page.getByRole('button', { name: /Start duo workout/ }).click()
+  // The opening names the day and its shape before anything starts. Asserted
+  // structurally: the day type rotates with the date, and the target panels
+  // carry names from gitignored profiles (CLAUDE.md — the remote is public),
+  // so what is checked is that each person got one.
+  await expect(page.getByText(/blocks · \d+ sets each · about \d+ min/)).toBeVisible()
+  await expect(page.getByText(/to have out|nothing to pick up/)).toHaveCount(2)
+  await passOpening(page)
   await expect(page.getByText(/WARM-UP/i)).toBeVisible()
 
   // Duo target panels appear once we reach work; drive the whole session.
@@ -185,6 +201,7 @@ test('kill-safe: reload mid-session offers resume', async ({ page }) => {
   await page.evaluate(() => localStorage.clear())
   await page.reload()
   await page.getByRole('button', { name: /Start duo workout/ }).click()
+  await passOpening(page)
   await expect(page.getByText(/WARM-UP/i)).toBeVisible()
   await page.getByRole('button', { name: 'Skip →' }).click()
 
@@ -193,4 +210,24 @@ test('kill-safe: reload mid-session offers resume', async ({ page }) => {
   await expect(page.getByText('Resume your workout?')).toBeVisible()
   await page.getByRole('button', { name: 'Resume' }).click()
   await expect(page.getByText(/WARM-UP/i)).toBeVisible()
+})
+
+test('a mobility session opens on what it works, and never on load', async ({ page }) => {
+  await page.goto('/')
+  await page.evaluate(() => localStorage.clear())
+  await page.reload()
+  await page.getByRole('button', { name: /Posture & Shoulders/ }).click()
+
+  // A mobility plan carries a placeholder dayType to satisfy the shared plan
+  // shape, so the one thing this opening must not say is "Full Body". It names
+  // the regions the chosen stretches actually address instead.
+  await expect(page.getByText('Mobility & relief').first()).toBeVisible()
+  await expect(page.getByText(/phases · about \d+ min/)).toBeVisible()
+  // No loads on a no-load day: no kit panels, and nothing about weight at all
+  // (docs/PERSONA.md — mobility is sensation over range).
+  await expect(page.getByText(/to have out|nothing to pick up/)).toHaveCount(0)
+  await expect(page.getByText(/\d+(\.\d+)? kg/)).toHaveCount(0)
+
+  await passOpening(page)
+  await expect(page.getByText(/Mobilise/i).first()).toBeVisible()
 })

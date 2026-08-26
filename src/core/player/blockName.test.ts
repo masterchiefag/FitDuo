@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { blockPosition, muscleWords, workBlockName } from './blockName'
+import { blockPosition, muscleWords, regionWords, workBlockName } from './blockName'
 
 describe('muscleWords', () => {
   it('joins two movements with an ampersand', () => {
@@ -25,6 +25,35 @@ describe('muscleWords', () => {
 
   it('is null when there is nothing to say', () => {
     expect(muscleWords([])).toBeNull()
+  })
+})
+
+describe('regionWords', () => {
+  it('speaks the words a person uses about their own body', () => {
+    expect(regionWords(['thoracic', 'lower_back'])).toBe('upper back & lower back')
+  })
+
+  it('names what the session spends its time on first', () => {
+    // A Posture session that borrowed one hip movement for breadth is still
+    // about the upper back, whatever order the blocks happened to run in.
+    expect(regionWords(['hips', 'thoracic', 'shoulders', 'thoracic', 'shoulders', 'thoracic'])).toBe(
+      'upper back, shoulders & hips',
+    )
+  })
+
+  it('breaks ties by first appearance, never by Map order', () => {
+    expect(regionWords(['glutes', 'hips'], 1)).toBe('glutes')
+    expect(regionWords(['hips', 'glutes'], 1)).toBe('hips')
+  })
+
+  it('is a name, not an inventory', () => {
+    expect(regionWords(['thoracic', 'shoulders', 'chest', 'neck', 'hips'])).toBe(
+      'upper back, shoulders & chest',
+    )
+  })
+
+  it('is null when there is nothing to say', () => {
+    expect(regionWords([])).toBeNull()
   })
 })
 
