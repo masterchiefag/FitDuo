@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { usePlayerStore } from '../stores/playerStore'
 import { exercisesById } from '../lib/catalog'
@@ -24,7 +24,20 @@ import {
 export default function TodayScreen() {
   const navigate = useNavigate()
   const start = usePlayerStore((s) => s.start)
+  const resumeSession = usePlayerStore((s) => s.resume)
   const todayISO = localDateISO(Date.now())
+
+  // Being on Today means no session is running. The opening holds a loaded
+  // plan in `idle` and writes nothing, so leaving it by the nav — which on the
+  // laptop is a permanent sidebar, far more reachable than "Not now" — used to
+  // strand that plan in the store: it kept the wake lock, and it shadowed the
+  // snapshot the banner below was offering, so Resume re-opened the new day's
+  // opening and the unfinished session became unreachable (Grok, PR #40).
+  // Idempotent, which is what StrictMode's double mount needs.
+  useEffect(() => {
+    const player = usePlayerStore.getState()
+    if (player.plan && player.state.phase === 'idle') player.reset()
+  }, [])
 
   const everyone = useMemo(() => PROFILES.map((p) => p.id), [])
   // Closing the lid mid-session is the normal way sessions end now (the
@@ -122,8 +135,14 @@ export default function TodayScreen() {
               will discard it.
             </p>
           </div>
+          {/* Apply the snapshot here rather than navigating and hoping the
+              player picks it up: this button names a specific session, so it
+              must be the one that opens, whatever the store happens to hold. */}
           <button
-            onClick={() => void navigate('/workout')}
+            onClick={() => {
+              resumeSession(snapshot)
+              void navigate('/workout')
+            }}
             className="rounded-xl bg-amber-500 px-4 py-2 text-sm font-extrabold text-white hover:bg-amber-400"
           >
             Resume

@@ -114,8 +114,21 @@ describe('openingLine', () => {
   })
 
   it('moves with the seed, which carries the date', () => {
-    const lines = new Set([0, 1, 2].map((s) => openingLine(s, 'full')))
-    expect(lines.size).toBe(3)
+    const strength = new Set([0, 1, 2, 3].map((s) => openingLine(s, 'full')))
+    const mobility = new Set([0, 1, 2, 3].map((s) => openingLine(s, 'mobility')))
+    expect(strength.size).toBeGreaterThan(1)
+    expect(mobility.size).toBeGreaterThan(1)
+  })
+
+  /**
+   * The opening claims nothing the session will not keep. "The only tap is
+   * between blocks" was true of no player this app has ever shipped.
+   */
+  it('never promises how few taps the session takes', () => {
+    for (let seed = 0; seed < 12; seed++) {
+      expect(openingLine(seed, 'full')).not.toMatch(/only tap|no tap|hands.free/i)
+      expect(openingLine(seed, 'mobility')).not.toMatch(/only tap|no tap|hands.free/i)
+    }
   })
 
   /** A seed is an fnv1a32 hash and may arrive negative after coercion. */

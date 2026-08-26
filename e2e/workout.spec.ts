@@ -212,6 +212,39 @@ test('kill-safe: reload mid-session offers resume', async ({ page }) => {
   await expect(page.getByText(/WARM-UP/i)).toBeVisible()
 })
 
+/**
+ * The opening loads a plan and writes nothing, so leaving it by the nav — a
+ * permanent sidebar on the laptop, and far more reachable than "Not now" — must
+ * not strand that plan in the store, where it would shadow the snapshot the
+ * Today banner is offering and make the unfinished session unreachable (Grok,
+ * PR #40).
+ */
+test('an unfinished session survives someone opening today and changing their mind', async ({
+  page,
+}) => {
+  await page.goto('/')
+  await page.evaluate(() => localStorage.clear())
+  await page.reload()
+
+  // Leave a real session unfinished.
+  await page.getByRole('button', { name: /Start duo workout/ }).click()
+  await passOpening(page)
+  await expect(page.getByText(/WARM-UP/i)).toBeVisible()
+  await page.getByRole('button', { name: 'Skip →' }).click()
+  await page.getByRole('link', { name: /Today/ }).click()
+  await expect(page.getByText('Unfinished session')).toBeVisible()
+
+  // Start something new, then back out by the nav rather than by "Not now".
+  await page.getByRole('button', { name: /Start duo workout/ }).click()
+  await expect(page.getByText(/sets each · about \d+ min/)).toBeVisible()
+  await page.getByRole('link', { name: /Today/ }).click()
+
+  // The banner is still true, and Resume opens the session it names.
+  await expect(page.getByText('Unfinished session')).toBeVisible()
+  await page.getByRole('button', { name: 'Resume' }).click()
+  await expect(page.getByText(/WARM-UP/i)).toBeVisible()
+})
+
 test('a mobility session opens on what it works, and never on load', async ({ page }) => {
   await page.goto('/')
   await page.evaluate(() => localStorage.clear())

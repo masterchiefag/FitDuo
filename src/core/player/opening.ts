@@ -83,7 +83,10 @@ export function personLoads(plan: WorkoutPlan): PersonLoads[] {
  */
 const OPENING_LINES: Record<'strength' | 'mobility', readonly string[]> = {
   strength: [
-    'Sets and rests are timed — the only tap is between blocks.',
+    // A third variant said "the only tap is between blocks", which is a promise
+    // this player does not keep — Done, Skip, +15s and "I'm ready" are all
+    // taps inside a block. The contract is that the timers advance WITHOUT a
+    // tap, not that taps are rare (Grok, PR #40).
     'Every set runs on its own clock. Change a number whenever it is wrong.',
     'Warm-up first, then the blocks in order. The screen keeps count.',
   ],
