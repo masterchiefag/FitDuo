@@ -59,6 +59,16 @@ export interface Curated {
   repRange: [number, number]
   secondsPerRep: number
   setupSeconds: number
+  /**
+   * How the reps are paced, shown on the work screen. Authored per movement and
+   * required on every `main` by `tests/catalog.test.ts`.
+   *
+   * It lives here rather than only in `catalog.json` because the catalog is
+   * generated, not edited: written straight into the JSON it survives exactly
+   * until someone runs `curate.ts`, which is how all 45 of these came to be one
+   * pipeline run away from deletion.
+   */
+  tempoCue?: string
   cues: string[]
 }
 
@@ -195,6 +205,7 @@ export const SELECTION: Curated[] = [
     tier: 1,
     unilateral: false,
     repRange: [6, 15],
+    tempoCue: 'Lower over 2, pause an inch off the floor, press up in 1.',
     secondsPerRep: 3,
     setupSeconds: 10,
     cues: [
@@ -217,6 +228,7 @@ export const SELECTION: Curated[] = [
     tier: 3,
     unilateral: false,
     repRange: [6, 12],
+    tempoCue: '2 seconds down, brief pause at the bottom, drive up in 1.',
     secondsPerRep: 3,
     setupSeconds: 15,
     cues: ['Feet on a sturdy chair or step', 'Brace hard — no sagging hips', 'Lower under control'],
@@ -231,6 +243,7 @@ export const SELECTION: Curated[] = [
     tier: 2,
     unilateral: false,
     repRange: [6, 12],
+    tempoCue: 'Press up in 1, rotate over 2, hold the top for a breath.',
     secondsPerRep: 4,
     setupSeconds: 10,
     cues: [
@@ -251,6 +264,7 @@ export const SELECTION: Curated[] = [
     tier: 1,
     unilateral: false,
     repRange: [8, 15],
+    tempoCue: 'Lower over 2 until the elbows touch down, pause, press in 1.',
     secondsPerRep: 3,
     setupSeconds: 15,
     cues: [
@@ -270,6 +284,7 @@ export const SELECTION: Curated[] = [
     tier: 2,
     unilateral: false,
     repRange: [10, 15],
+    tempoCue: 'Open over 2 with soft elbows, close in 1 — never bounce at the bottom.',
     secondsPerRep: 3,
     setupSeconds: 15,
     cues: [
@@ -288,6 +303,7 @@ export const SELECTION: Curated[] = [
     tier: 1,
     unilateral: false,
     repRange: [10, 15],
+    tempoCue: 'Lower over 2 behind the head, press up in 1 — elbows stay still.',
     secondsPerRep: 3,
     setupSeconds: 10,
     cues: [
@@ -308,6 +324,7 @@ export const SELECTION: Curated[] = [
     tier: 1,
     unilateral: false,
     repRange: [10, 15],
+    tempoCue: 'Extend in 1, hold straight for 1, return over 1 — the upper arm never moves.',
     secondsPerRep: 3,
     setupSeconds: 10,
     cues: [
@@ -327,6 +344,7 @@ export const SELECTION: Curated[] = [
     tier: 2,
     unilateral: false,
     repRange: [8, 15],
+    tempoCue: 'Lower over 2 towards the forehead, pause, press up in 1.',
     secondsPerRep: 3,
     setupSeconds: 15,
     cues: [
@@ -346,6 +364,7 @@ export const SELECTION: Curated[] = [
     tier: 2,
     unilateral: false,
     repRange: [8, 15],
+    tempoCue: 'Lower over 2, pause at the bottom, press up in 1 — shoulders down.',
     secondsPerRep: 3,
     setupSeconds: 15,
     cues: [
@@ -366,6 +385,7 @@ export const SELECTION: Curated[] = [
     tier: 1,
     unilateral: false,
     repRange: [8, 15],
+    tempoCue: 'Press up in 1, lower over 2 — no leaning back.',
     secondsPerRep: 3,
     setupSeconds: 10,
     cues: [
@@ -385,6 +405,7 @@ export const SELECTION: Curated[] = [
     tier: 2,
     unilateral: false,
     repRange: [8, 12],
+    tempoCue: 'Rotate and press in 2, reverse it over 2 — one smooth path.',
     secondsPerRep: 4,
     setupSeconds: 10,
     cues: [
@@ -403,6 +424,7 @@ export const SELECTION: Curated[] = [
     tier: 1,
     unilateral: false,
     repRange: [10, 18],
+    tempoCue: 'Up in 1, pause at shoulder height, lower over 2 — the lowering is the set.',
     secondsPerRep: 3,
     setupSeconds: 10,
     cues: [
@@ -421,6 +443,7 @@ export const SELECTION: Curated[] = [
     tier: 1,
     unilateral: false,
     repRange: [10, 15],
+    tempoCue: 'Up in 1, pause at eye level, lower over 2 — no swinging.',
     secondsPerRep: 3,
     setupSeconds: 10,
     cues: [
@@ -441,6 +464,7 @@ export const SELECTION: Curated[] = [
     tier: 1,
     unilateral: false,
     repRange: [8, 15],
+    tempoCue: 'Pull in 1, squeeze the shoulder blades, lower over 2.',
     secondsPerRep: 3,
     setupSeconds: 10,
     cues: [
@@ -461,6 +485,7 @@ export const SELECTION: Curated[] = [
     tier: 1,
     unilateral: true,
     repRange: [8, 15],
+    tempoCue: 'Pull in 1, squeeze at the top, lower over 2 — no twisting the torso.',
     secondsPerRep: 3,
     setupSeconds: 15,
     cues: [
@@ -481,6 +506,7 @@ export const SELECTION: Curated[] = [
     tier: 1,
     unilateral: false,
     repRange: [10, 18],
+    tempoCue: 'Open in 1, hold for 1, lower over 1 — elbows stay soft.',
     secondsPerRep: 3,
     setupSeconds: 10,
     cues: [
@@ -499,6 +525,7 @@ export const SELECTION: Curated[] = [
     tier: 1,
     unilateral: false,
     repRange: [8, 15],
+    tempoCue: 'Curl in 1, squeeze at the top, lower over 2 — elbows pinned.',
     secondsPerRep: 3,
     setupSeconds: 5,
     cues: [
@@ -517,6 +544,7 @@ export const SELECTION: Curated[] = [
     tier: 1,
     unilateral: false,
     repRange: [8, 15],
+    tempoCue: 'Curl in 1, lower over 2 — no swinging from the shoulders.',
     secondsPerRep: 3,
     setupSeconds: 5,
     cues: ['Palms face each other', 'Curl without moving the elbows', 'Control the way down'],
@@ -537,6 +565,7 @@ export const SELECTION: Curated[] = [
     tier: 2,
     unilateral: true,
     repRange: [8, 12],
+    tempoCue: 'Curl in 1, pause at the top, lower over 2 — the slow half is the point.',
     secondsPerRep: 3,
     setupSeconds: 15,
     cues: [
@@ -559,6 +588,7 @@ export const SELECTION: Curated[] = [
     tier: 2,
     unilateral: false,
     repRange: [8, 12],
+    tempoCue: 'Lower over 3 with the ribs down, pull back over in 1.',
     secondsPerRep: 4,
     setupSeconds: 15,
     cues: [
@@ -577,6 +607,7 @@ export const SELECTION: Curated[] = [
     tier: 2,
     unilateral: false,
     repRange: [10, 15],
+    tempoCue: 'Pull in 1, pause with the elbows high, lower over 2.',
     secondsPerRep: 3,
     setupSeconds: 5,
     cues: [
@@ -595,6 +626,7 @@ export const SELECTION: Curated[] = [
     tier: 1,
     unilateral: false,
     repRange: [10, 18],
+    tempoCue: 'Shrug up in 1, lower over 1 — no rolling.',
     secondsPerRep: 2,
     setupSeconds: 5,
     cues: [
@@ -615,6 +647,7 @@ export const SELECTION: Curated[] = [
     tier: 1,
     unilateral: false,
     repRange: [8, 15],
+    tempoCue: '2 seconds down, pause at the bottom, drive up in 1.',
     secondsPerRep: 3,
     setupSeconds: 10,
     cues: [
@@ -633,6 +666,7 @@ export const SELECTION: Curated[] = [
     tier: 1,
     unilateral: false,
     repRange: [10, 20],
+    tempoCue: '2 seconds down, pause at the bottom, stand up in 1.',
     secondsPerRep: 3,
     setupSeconds: 5,
     cues: [
@@ -651,6 +685,7 @@ export const SELECTION: Curated[] = [
     tier: 1,
     unilateral: false,
     repRange: [10, 15],
+    tempoCue: '2 seconds down with the knees tracking out, drive up in 1.',
     secondsPerRep: 3,
     setupSeconds: 10,
     cues: [
@@ -669,6 +704,7 @@ export const SELECTION: Curated[] = [
     tier: 2,
     unilateral: false,
     repRange: [8, 15],
+    tempoCue: 'Down over 2, explode up, land soft and absorb into the next one.',
     secondsPerRep: 3,
     setupSeconds: 5,
     cues: ['Squat down, explode up', 'Land soft, sink into the next rep', 'Arms drive the jump'],
@@ -685,6 +721,7 @@ export const SELECTION: Curated[] = [
     tier: 1,
     unilateral: false,
     repRange: [12, 20],
+    tempoCue: 'Up in 1, lower over 1 — full stretch at the bottom.',
     secondsPerRep: 2,
     setupSeconds: 5,
     cues: [
@@ -705,6 +742,7 @@ export const SELECTION: Curated[] = [
     tier: 1,
     unilateral: false,
     repRange: [8, 15],
+    tempoCue: '2 seconds down, feel the hamstrings stretch, drive the hips through in 1.',
     secondsPerRep: 3,
     setupSeconds: 10,
     cues: [
@@ -723,6 +761,7 @@ export const SELECTION: Curated[] = [
     tier: 3,
     unilateral: false,
     repRange: [6, 10],
+    tempoCue: 'Explosive up, 2 seconds down — the power is on the way up only.',
     secondsPerRep: 3,
     setupSeconds: 10,
     cues: [
@@ -741,6 +780,7 @@ export const SELECTION: Curated[] = [
     tier: 1,
     unilateral: false,
     repRange: [10, 20],
+    tempoCue: 'Drive up in 1, squeeze the top for 1, lower over 1.',
     secondsPerRep: 3,
     setupSeconds: 10,
     cues: [
@@ -759,6 +799,7 @@ export const SELECTION: Curated[] = [
     tier: 2,
     unilateral: true,
     repRange: [8, 15],
+    tempoCue: 'Up in 1, hold for 1, lower over 1 — hips stay level.',
     secondsPerRep: 3,
     setupSeconds: 10,
     cues: [
@@ -777,6 +818,7 @@ export const SELECTION: Curated[] = [
     tier: 1,
     unilateral: false,
     repRange: [8, 15],
+    tempoCue: 'Lift and hold 2 seconds at the top, then lower — no jerking.',
     secondsPerRep: 3,
     setupSeconds: 10,
     cues: [
@@ -797,6 +839,7 @@ export const SELECTION: Curated[] = [
     tier: 1,
     unilateral: true,
     repRange: [8, 12],
+    tempoCue: 'Step, lower over 2 until the back knee nearly touches, drive up in 1.',
     secondsPerRep: 3,
     setupSeconds: 10,
     cues: [
@@ -815,6 +858,7 @@ export const SELECTION: Curated[] = [
     tier: 1,
     unilateral: true,
     repRange: [8, 12],
+    tempoCue: 'Step back, lower over 2, drive up through the front heel in 1.',
     secondsPerRep: 3,
     setupSeconds: 10,
     cues: [
@@ -837,6 +881,7 @@ export const SELECTION: Curated[] = [
     tier: 2,
     unilateral: true,
     repRange: [8, 12],
+    tempoCue: '2 seconds down, pause an inch off the floor, up in 1.',
     secondsPerRep: 3,
     setupSeconds: 15,
     cues: [
@@ -861,6 +906,7 @@ export const SELECTION: Curated[] = [
     tier: 2,
     unilateral: true,
     repRange: [8, 12],
+    tempoCue: 'Up in 1 with no push off the back foot, lower over 3.',
     secondsPerRep: 4,
     setupSeconds: 15,
     cues: [
@@ -879,6 +925,7 @@ export const SELECTION: Curated[] = [
     tier: 3,
     unilateral: false,
     repRange: [8, 14],
+    tempoCue: 'Land soft and absorb it, then jump again — quiet feet, no rushing.',
     secondsPerRep: 2,
     setupSeconds: 5,
     cues: [
@@ -899,6 +946,7 @@ export const SELECTION: Curated[] = [
     tier: 1,
     unilateral: false,
     repRange: [1, 1],
+    tempoCue: 'Nothing moves — slow, steady breathing the whole hold.',
     secondsPerRep: 40, // timed hold: reps=1, tempo carries the duration
     setupSeconds: 10,
     cues: [
@@ -917,6 +965,7 @@ export const SELECTION: Curated[] = [
     tier: 2,
     unilateral: true,
     repRange: [1, 1],
+    tempoCue: 'Nothing moves — hips stacked and lifted, breathing steadily.',
     secondsPerRep: 30,
     setupSeconds: 10,
     cues: [
@@ -935,6 +984,7 @@ export const SELECTION: Curated[] = [
     tier: 1,
     unilateral: false,
     repRange: [8, 14],
+    tempoCue: '2 seconds out, 2 seconds back — ribs stay down throughout.',
     secondsPerRep: 4,
     setupSeconds: 10,
     cues: [
@@ -953,6 +1003,7 @@ export const SELECTION: Curated[] = [
     tier: 2,
     unilateral: false,
     repRange: [10, 20],
+    tempoCue: 'Controlled rotation, touch each side — no swinging through the middle.',
     secondsPerRep: 2,
     setupSeconds: 10,
     cues: ['Lean back, chest proud', 'Rotate shoulder to shoulder', 'Add a dumbbell to progress'],
@@ -967,6 +1018,7 @@ export const SELECTION: Curated[] = [
     tier: 1,
     unilateral: false,
     repRange: [10, 18],
+    tempoCue: 'Curl up in 1, lower over 2 — no swinging the legs.',
     secondsPerRep: 3,
     setupSeconds: 10,
     cues: ['Knees to chest, lift the hips', 'Roll the spine up, not a swing', 'Lower legs slowly'],
@@ -981,6 +1033,7 @@ export const SELECTION: Curated[] = [
     tier: 1,
     unilateral: false,
     repRange: [10, 18],
+    tempoCue: 'Lift in 1, lower over 2 — the lowering half is the work.',
     secondsPerRep: 3,
     setupSeconds: 10,
     cues: [
@@ -999,6 +1052,7 @@ export const SELECTION: Curated[] = [
     tier: 1,
     unilateral: true,
     repRange: [10, 15],
+    tempoCue: 'Lower over 2, up in 1 — no leaning forward.',
     secondsPerRep: 3,
     setupSeconds: 5,
     cues: [
@@ -1017,6 +1071,7 @@ export const SELECTION: Curated[] = [
     tier: 2,
     unilateral: false,
     repRange: [10, 20],
+    tempoCue: 'Quick feet, still hips — fast, but never bouncing.',
     secondsPerRep: 2,
     setupSeconds: 10,
     cues: ['From plank, knee to outside elbow', 'Hips low and level', 'Alternate with rhythm'],
