@@ -46,26 +46,47 @@ const catalog = catalogSchema.parse(rawCatalog)
  * the shape is guarded here rather than the values alone: an unrecognised key
  * fails on arrival, whatever it ends up being called.
  */
-const PIPELINE_KEYS = new Set([
-  'id',
-  'name',
-  'role',
-  'warmupPhase',
-  'requires',
-  'pattern',
-  'primaryMuscles',
-  'secondaryMuscles',
-  'tier',
-  'unilateral',
-  'repRange',
-  'tempoCue',
-  'secondsPerRep',
-  'setupSeconds',
-  'setupNote',
-  'media',
-  'loads',
-  'mobility',
-])
+type KeySpec = true | { [key: string]: KeySpec }
+
+const PIPELINE_KEYS: { [key: string]: KeySpec } = {
+  id: true,
+  name: true,
+  role: true,
+  warmupPhase: true,
+  requires: true,
+  pattern: true,
+  primaryMuscles: true,
+  secondaryMuscles: true,
+  tier: true,
+  unilateral: true,
+  repRange: true,
+  tempoCue: true,
+  secondsPerRep: true,
+  setupSeconds: true,
+  setupNote: true,
+  media: { images: true, instructions: true },
+  loads: { area: true, stress: true },
+  mobility: { phase: true, regions: true, seconds: true, priority: true, focusCue: true },
+}
+
+/**
+ * Nested, because a flat walk does not cover the incident this guard cites.
+ *
+ * The first version checked top-level keys only. That catches `warmupPhase`
+ * and stays green on `mobility.focusCue` — the other half of the same story,
+ * and the one Grok had to point out twice (#38, then #39). The fields most
+ * likely to be hand-edited are the authored ones, and those are exactly the
+ * nested ones: cues under `media`, the phase and regions under `mobility`.
+ */
+function unknownKeys(value: unknown, spec: KeySpec, path = ''): string[] {
+  if (spec === true || value === null || typeof value !== 'object') return []
+  if (Array.isArray(value)) return value.flatMap((v) => unknownKeys(v, spec, `${path}[]`))
+  return Object.entries(value as Record<string, unknown>).flatMap(([k, v]) => {
+    const child = (spec as { [key: string]: KeySpec })[k]
+    const here = path ? `${path}.${k}` : k
+    return child === undefined ? [here] : unknownKeys(v, child, here)
+  })
+}
 
 /** Every curated entry, in the order `curate.ts` walks them. */
 const curated: Curated[] = [...SELECTION, ...MOBILITY_ADDITIONS, ...EQUIPMENT_MOBILITY]
@@ -73,7 +94,7 @@ const curated: Curated[] = [...SELECTION, ...MOBILITY_ADDITIONS, ...EQUIPMENT_MO
 describe('catalog.json is what selection.ts says it is', () => {
   it('carries no field the pipeline cannot write', () => {
     for (const ex of rawCatalog.exercises) {
-      const unknown = Object.keys(ex).filter((k) => !PIPELINE_KEYS.has(k))
+      const unknown = unknownKeys(ex, PIPELINE_KEYS)
       expect(
         unknown,
         `${ex.id} carries ${unknown.join(', ')} — hand-edited into catalog.json, and gone at the next regeneration unless curate.ts learns to emit it`,
