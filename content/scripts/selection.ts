@@ -69,19 +69,35 @@ export interface Curated {
    * pipeline run away from deletion.
    */
   tempoCue?: string
+  /**
+   * Where in the warm-up this goes — raise the pulse, mobilise the joints,
+   * rehearse the patterns. Warm-ups only; `W()` requires it.
+   *
+   * Deliberately not `mobility.phase`: that field is the eligibility gate for
+   * Mobility & Relief sessions, and tagging star jumps with it to answer this
+   * question would put star jumps in a ten-minute relief session (#35).
+   */
+  warmupPhase?: 'raise' | 'mobilise' | 'rehearse'
   cues: string[]
 }
 
+// `warmupPhase` is required, not optional: `tests/catalog.test.ts` demands one
+// on every warm-up, and a required argument makes that unwriteable rather than
+// merely caught. The phase is authored because nothing already in the catalog
+// says it — every warm-up carries `pattern: 'mobility'`, and `primaryMuscles`
+// says what a movement touches, never when it belongs (#35).
 const W = (
   slug: string,
   sourceId: string,
   displayName: string,
+  warmupPhase: NonNullable<Curated['warmupPhase']>,
   cues: string[],
   setupNote?: string,
 ): Curated => ({
   slug,
   sourceId,
   displayName,
+  warmupPhase,
   ...(setupNote ? { setupNote } : {}),
   // Not an inference: W() exists for timed, unloaded warm-ups. A warm-up
   // needing a band would be written out in full, not built with this.
@@ -121,32 +137,32 @@ const C = (
 
 export const SELECTION: Curated[] = [
   // ─── Warm-up (timed, dynamic) ──────────────────────────────────────────────
-  W('arm-circles', 'Arm_Circles', 'Arm Circles', [
+  W('arm-circles', 'Arm_Circles', 'Arm Circles', 'mobilise', [
     'Arms straight out to the sides',
     'Small circles growing to large',
     'Reverse direction halfway',
   ]),
-  W('shoulder-circles', 'Shoulder_Circles', 'Shoulder Rolls', [
+  W('shoulder-circles', 'Shoulder_Circles', 'Shoulder Rolls', 'mobilise', [
     'Roll shoulders up, back, and down',
     'Keep arms relaxed',
     'Big, slow circles',
   ]),
-  W('dynamic-chest-stretch', 'Dynamic_Chest_Stretch', 'Dynamic Chest Opener', [
+  W('dynamic-chest-stretch', 'Dynamic_Chest_Stretch', 'Dynamic Chest Opener', 'mobilise', [
     'Swing arms wide, then cross over',
     'Stay tall, ribs down',
     'Smooth rhythm, no bouncing',
   ]),
-  W('dynamic-back-stretch', 'Dynamic_Back_Stretch', 'Dynamic Back Reach', [
+  W('dynamic-back-stretch', 'Dynamic_Back_Stretch', 'Dynamic Back Reach', 'mobilise', [
     'Reach forward and round the upper back',
     'Then open arms and squeeze shoulder blades',
     'Move with your breath',
   ]),
-  W('hip-circles', 'Standing_Hip_Circles', 'Hip Circles', [
+  W('hip-circles', 'Standing_Hip_Circles', 'Hip Circles', 'mobilise', [
     'Hands on hips, feet shoulder-width',
     'Draw big circles with your hips',
     'Both directions',
   ]),
-  W('ankle-circles', 'Ankle_Circles', 'Ankle Circles', [
+  W('ankle-circles', 'Ankle_Circles', 'Ankle Circles', 'mobilise', [
     'Balance on one leg or hold support',
     'Circle the ankle both ways',
     'Switch feet halfway',
@@ -155,40 +171,41 @@ export const SELECTION: Curated[] = [
     'leg-swings',
     'Front_Leg_Raises',
     'Leg Swings',
+    'mobilise',
     ['Hold a wall for balance', 'Swing the leg front to back', 'Controlled, growing range'],
     'Shown holding a chair — a wall or a doorframe works just as well.',
   ),
-  W('inchworm', 'Inchworm', 'Inchworm Walkout', [
+  W('inchworm', 'Inchworm', 'Inchworm Walkout', 'rehearse', [
     'Fold, walk hands out to plank',
     'Keep legs as straight as comfortable',
     'Walk hands back and stand tall',
   ]),
-  W('groiners', 'Groiners', 'Hip Opener Lunges', [
+  W('groiners', 'Groiners', 'Hip Opener Lunges', 'rehearse', [
     'From plank, step foot outside hand',
     'Sink the hips, chest up',
     'Alternate sides',
   ]),
-  W('worlds-greatest-stretch', 'Worlds_Greatest_Stretch', "World's Greatest Stretch", [
+  W('worlds-greatest-stretch', 'Worlds_Greatest_Stretch', "World's Greatest Stretch", 'rehearse', [
     'Deep lunge, opposite hand down',
     'Rotate chest to the sky, reach up',
     'Alternate sides slowly',
   ]),
-  W('butt-kicks', 'Double_Leg_Butt_Kick', 'Butt Kicks', [
+  W('butt-kicks', 'Double_Leg_Butt_Kick', 'Butt Kicks', 'raise', [
     'Light jog in place',
     'Kick heels toward glutes',
     'Stay springy on the balls of your feet',
   ]),
-  W('star-jumps', 'Star_Jump', 'Star Jumps', [
+  W('star-jumps', 'Star_Jump', 'Star Jumps', 'raise', [
     'Jump arms and legs wide',
     'Land soft with bent knees',
     'Steady pace, keep breathing',
   ]),
-  W('cat-cow', 'Cat_Stretch', 'Cat-Cow', [
+  W('cat-cow', 'Cat_Stretch', 'Cat-Cow', 'mobilise', [
     'On all fours, round the spine up',
     'Then arch and lift the chest',
     'Move slowly with your breath',
   ]),
-  W('sit-squats', 'Sit_Squats', 'Air Squat Pulses', [
+  W('sit-squats', 'Sit_Squats', 'Air Squat Pulses', 'rehearse', [
     'Sit back like reaching for a chair',
     'Light and quick, half depth',
     'Warm up the knees and hips',
@@ -1715,7 +1732,8 @@ export const MOBILITY_ADDITIONS: (Curated & { mobility: MobilityMeta })[] = [
       // Moving the hamstring through range before the holds, rather than
       // hanging off it cold — this is the mobilise counterpart to the seated
       // stretch that was the catalog's only hamstring entry.
-      focusCue: 'Straighten only as far as the knee stays comfortable — this is movement, not a hold',
+      focusCue:
+        'Straighten only as far as the knee stays comfortable — this is movement, not a hold',
     },
   },
   {
@@ -1750,7 +1768,8 @@ export const MOBILITY_ADDITIONS: (Curated & { mobility: MobilityMeta })[] = [
     // waved away: on one leg with the other swinging, the support is the
     // movement's precondition rather than scenery.
     requires: [['chair'], ['bench'], ['wall']],
-    setupNote: 'Shown holding a chair — a worktop, a bench or a hand on the wall is the same thing.',
+    setupNote:
+      'Shown holding a chair — a worktop, a bench or a hand on the wall is the same thing.',
     role: 'mobility',
     pattern: 'mobility',
     tier: 1,
