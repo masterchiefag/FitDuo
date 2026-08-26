@@ -197,6 +197,7 @@ async function main() {
       id: sel.slug,
       name: sel.displayName,
       role: sel.role,
+      ...(sel.warmupPhase ? { warmupPhase: sel.warmupPhase } : {}),
       requires: sel.requires,
       pattern: sel.pattern,
       primaryMuscles: mapMuscles(src.primaryMuscles, ['core']),
