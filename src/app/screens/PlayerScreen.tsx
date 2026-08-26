@@ -19,15 +19,11 @@ import type {
 } from '../../core/generator/types'
 import type { Overrides, PlayerState } from '../../core/player/types'
 import type { Exercise } from '../../core/catalog/types'
+import { grabLabel, lastTimeLabel, loadLabel } from '../lib/load'
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
-const fmtWeight = (w: number) => (w === 0 ? 'bodyweight' : `${w} kg`)
 const holdSeconds = (ex: Exercise) => (ex.repRange[1] === 1 ? ex.secondsPerRep : null)
-/** The one thing to do before a set starts: pick up the right bell. */
-const grabLabel = (t: PersonTarget) => (t.weight === 0 ? 'Bodyweight' : `Grab ${t.weight} kg`)
-const lastTimeLabel = (last: LastPerformance) =>
-  last.weight === 0 ? `${last.reps} reps` : `${last.weight} kg × ${last.reps}`
 
 function phaseTotalSeconds(plan: WorkoutPlan, state: PlayerState): number {
   switch (state.phase) {
@@ -39,7 +35,8 @@ function phaseTotalSeconds(plan: WorkoutPlan, state: PlayerState): number {
     }
     case 'work': {
       const b = plan.blocks[state.blockIndex]
-      const item = b && (b.kind === 'superset' || b.kind === 'circuit') ? b.items[state.itemIndex] : undefined
+      const item =
+        b && (b.kind === 'superset' || b.kind === 'circuit') ? b.items[state.itemIndex] : undefined
       return item?.workSeconds ?? 1
     }
     case 'changeover':
@@ -159,13 +156,7 @@ const MEDIA_SIZE = {
   small: 'h-16 w-20 rounded-lg bg-white object-contain',
 } as const
 
-function ExerciseMedia({
-  ex,
-  size = 'large',
-}: {
-  ex: Exercise
-  size?: keyof typeof MEDIA_SIZE
-}) {
+function ExerciseMedia({ ex, size = 'large' }: { ex: Exercise; size?: keyof typeof MEDIA_SIZE }) {
   const [frame, setFrame] = useState(0)
   useEffect(() => {
     const t = setInterval(() => setFrame((f) => (f === 0 ? 1 : 0)), 1100)
@@ -407,6 +398,7 @@ function NextUpPreview({ block }: { block: Block | undefined }) {
  */
 function NextTargetCard({
   userId,
+  exercise,
   target,
   last,
   hold,
@@ -414,6 +406,8 @@ function NextTargetCard({
   firstAppearance,
 }: {
   userId: string
+  /** Needed to say the load: a band is a colour, a dumbbell is kilos. */
+  exercise: Exercise | undefined
   target: PersonTarget
   last: LastPerformance | undefined
   /** Timed holds have no reps to compare — "last time 1 rep" is not a fact. */
@@ -433,7 +427,7 @@ function NextTargetCard({
       }
     >
       <p className={`${T.person} ${profile.accent.text}`}>{profile.name}</p>
-      <p className={`mt-0.5 ${T.grab}`}>{grabLabel(target)}</p>
+      <p className={`mt-0.5 ${T.grab}`}>{grabLabel(exercise, target.weight)}</p>
       <p className={`font-semibold text-slate-500 dark:text-slate-400 ${T.status}`}>
         {hold ? `${hold}s hold` : `${target.targetReps} reps`}
       </p>
@@ -447,7 +441,7 @@ function NextTargetCard({
         <p
           className={`mt-1 ${T.note} ${note.up ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-500 dark:text-slate-400'}`}
         >
-          Last time {lastTimeLabel(note.last)}
+          Last time {lastTimeLabel(exercise, note.last)}
         </p>
       )}
       {note?.kind === 'first_time' && (
@@ -518,7 +512,7 @@ function TargetPanel({
                 </div>
                 <div className="mt-1 flex flex-wrap items-baseline justify-between gap-x-2 gap-y-1">
                   <p className="text-2xl font-bold whitespace-nowrap text-slate-600 sm:text-3xl dark:text-slate-300">
-                    {fmtWeight(weight)}
+                    {loadLabel(ex, weight)}
                   </p>
                   {target.weight > 0 && onAdjust && (
                     <div className="flex shrink-0 gap-1">
@@ -704,6 +698,7 @@ function ChangeoverView({
             <NextTargetCard
               key={userId}
               userId={userId}
+              exercise={nextEx ?? undefined}
               target={target}
               last={next.lastTime?.[userId]}
               hold={hold}
@@ -777,12 +772,7 @@ function RestView({
         </p>
       )}
       <div className="mt-5">
-        <RingTimer
-          remaining={remaining}
-          total={block.restSeconds}
-          tone="rest"
-          caption="rest"
-        />
+        <RingTimer remaining={remaining} total={block.restSeconds} tone="rest" caption="rest" />
       </div>
       {nextEx && next && (
         <div className="mx-auto mt-6 max-w-xl rounded-2xl border border-slate-200 bg-white p-3 text-left dark:border-slate-800 dark:bg-slate-900">
@@ -809,6 +799,7 @@ function RestView({
               <NextTargetCard
                 key={userId}
                 userId={userId}
+                exercise={nextEx ?? undefined}
                 target={target}
                 last={next.lastTime?.[userId]}
                 hold={hold}
@@ -923,9 +914,7 @@ function BlockGateView({
       {/* Framing, never a control — the ratings below are what keep progression
           alive and are the only required tap in the hour (JOURNEY Part 5). */}
       {finisherNext && (
-        <p className={`mt-1 font-bold text-rose-500 ${T.status}`}>
-          🔥 Last block — the Finisher.
-        </p>
+        <p className={`mt-1 font-bold text-rose-500 ${T.status}`}>🔥 Last block — the Finisher.</p>
       )}
       {finisherDone && (
         <p className={`mt-1 text-slate-500 dark:text-slate-400 ${T.status}`}>
@@ -1299,9 +1288,7 @@ export default function PlayerScreen() {
                 />
               )
             })()}
-          {state.phase === 'work' && (
-            <WorkView plan={plan} state={state} remaining={remaining} />
-          )}
+          {state.phase === 'work' && <WorkView plan={plan} state={state} remaining={remaining} />}
           {state.phase === 'changeover' && (
             <ChangeoverView plan={plan} state={state} remaining={remaining} />
           )}

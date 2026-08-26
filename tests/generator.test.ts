@@ -43,6 +43,7 @@ const participantArb = (userId: string): fc.Arbitrary<ParticipantInput> =>
   fc.record({
     userId: fc.constant(userId),
     availableWeights: weightsArb,
+    availableBands: fc.constant([]),
     equipment: equipmentArb.map((k) => [...k]),
     maxTier: fc.constantFrom(1 as const, 2 as const, 3 as const),
     progression: fc.constant({}),
@@ -269,7 +270,14 @@ describe('generateWorkout properties', () => {
       catalog,
       scheduledDays: [true, true, true, true, true, false, false],
       participants: [
-        { userId: 'p1', availableWeights: [5, 10], equipment: [...HOME_KIT], maxTier: 2, progression: {} },
+        {
+          userId: 'p1',
+          availableWeights: [5, 10],
+          availableBands: [],
+          equipment: [...HOME_KIT],
+          maxTier: 2,
+          progression: {},
+        },
       ],
       recentHistory: [],
     }
@@ -278,8 +286,7 @@ describe('generateWorkout properties', () => {
     expect(short.estimatedSeconds).toBeLessThan(full.estimatedSeconds)
     // Fewer blocks and a shorter warm-up — not the same plan cut off midway.
     expect(short.blocks.length).toBeLessThan(full.blocks.length)
-    const warmupItems = (p: typeof short) =>
-      p.blocks.find((b) => b.kind === 'warmup')!.items.length
+    const warmupItems = (p: typeof short) => p.blocks.find((b) => b.kind === 'warmup')!.items.length
     expect(warmupItems(short)).toBeLessThan(warmupItems(full))
     // Deterministic, like every other plan.
     expect(generateWorkout({ ...base, targetSeconds: 1200 })).toEqual(short)
@@ -296,6 +303,7 @@ describe('generateWorkout properties', () => {
         {
           userId: 'p1',
           availableWeights: [5, 10],
+          availableBands: [],
           equipment: [...HOME_KIT],
           maxTier: 2,
           progression: {},
@@ -353,7 +361,12 @@ describe('no rule can emit an unliftable or out-of-range prescription', () => {
       lastWeight: fc.constantFrom(0, 1, 3, 5, 12.5, 17.5, 40),
       lastTargetReps: fc.integer({ min: 1, max: repCeiling }),
       lastActualReps: fc.array(fc.integer({ min: 0, max: repCeiling }), { maxLength: 5 }),
-      lastFeedback: fc.constantFrom('too_easy' as const, 'right' as const, 'too_hard' as const, null),
+      lastFeedback: fc.constantFrom(
+        'too_easy' as const,
+        'right' as const,
+        'too_hard' as const,
+        null,
+      ),
       bestE1rm: fc.nat(),
     })
 
@@ -508,6 +521,7 @@ describe('equipment eligibility', () => {
           {
             userId: 'p1',
             availableWeights: [],
+            availableBands: [],
             equipment: ['bodyweight'],
             maxTier: 2,
             progression: {},
@@ -570,8 +584,22 @@ describe('last time is baked into the plan', () => {
     catalog,
     scheduledDays: [true, true, true, true, true, false, false],
     participants: [
-      { userId: 'p1', availableWeights: [5, 7.5, 10], equipment: [...HOME_KIT], maxTier: 2, progression: {} },
-      { userId: 'p2', availableWeights: [2.5, 5], equipment: [...HOME_KIT], maxTier: 2, progression: {} },
+      {
+        userId: 'p1',
+        availableWeights: [5, 7.5, 10],
+        availableBands: [],
+        equipment: [...HOME_KIT],
+        maxTier: 2,
+        progression: {},
+      },
+      {
+        userId: 'p2',
+        availableWeights: [2.5, 5],
+        availableBands: [],
+        equipment: [...HOME_KIT],
+        maxTier: 2,
+        progression: {},
+      },
     ],
     recentHistory: [],
   }

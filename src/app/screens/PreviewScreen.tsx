@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { exercisesById } from '../lib/catalog'
 import { PROFILES } from '../lib/profiles'
+import { loadLabel } from '../lib/load'
 import { DAY_TYPE_LABEL, generatorInputFor } from '../lib/planner'
 import { ThinKitError, generateWorkout } from '../../core/generator/generate'
 import { addDays, localDateISO } from '../../core/dates'
@@ -96,7 +97,7 @@ export default function PreviewScreen() {
                               : PROFILES.map((p) => {
                                   const t = item.perPerson[p.id]
                                   if (!t) return null
-                                  return `${p.name}: ${t.targetReps}×${t.weight > 0 ? `${t.weight}kg` : 'bw'}`
+                                  return `${p.name}: ${t.targetReps}×${t.weight > 0 ? loadLabel(ex, t.weight) : 'bw'}`
                                 })
                                   .filter(Boolean)
                                   .join(' · ')}

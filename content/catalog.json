@@ -3440,10 +3440,10 @@
       "tier": 1,
       "unilateral": false,
       "repRange": [
-        1,
-        1
+        10,
+        15
       ],
-      "secondsPerRep": 40,
+      "secondsPerRep": 2,
       "setupSeconds": 5,
       "setupNote": "Shown face-down on a bench with dumbbells — do it standing, with no weight at all.",
       "media": {
@@ -3486,10 +3486,10 @@
       "tier": 1,
       "unilateral": true,
       "repRange": [
-        1,
-        1
+        10,
+        15
       ],
-      "secondsPerRep": 40,
+      "secondsPerRep": 3,
       "setupSeconds": 5,
       "setupNote": "Shown on a bench with a dumbbell — lie on the floor instead, and the weight is optional.",
       "media": {
@@ -3530,10 +3530,10 @@
       "tier": 1,
       "unilateral": false,
       "repRange": [
-        1,
-        1
+        10,
+        15
       ],
-      "secondsPerRep": 40,
+      "secondsPerRep": 2,
       "setupSeconds": 10,
       "setupNote": "Shown on a bench with dumbbells — face down on the floor is the same movement.",
       "media": {
@@ -4287,10 +4287,10 @@
       "tier": 1,
       "unilateral": false,
       "repRange": [
-        1,
-        1
+        10,
+        15
       ],
-      "secondsPerRep": 45,
+      "secondsPerRep": 2,
       "setupSeconds": 10,
       "media": {
         "images": [
@@ -4335,10 +4335,10 @@
       "tier": 1,
       "unilateral": false,
       "repRange": [
-        1,
-        1
+        10,
+        15
       ],
-      "secondsPerRep": 40,
+      "secondsPerRep": 2,
       "setupSeconds": 10,
       "setupNote": "Shown anchored to a squat rack — a closed door, a door handle or a bannister all work.",
       "media": {
@@ -4379,10 +4379,10 @@
       "tier": 1,
       "unilateral": true,
       "repRange": [
-        1,
-        1
+        10,
+        15
       ],
-      "secondsPerRep": 45,
+      "secondsPerRep": 3,
       "setupSeconds": 10,
       "setupNote": "Shown anchored to a gym frame — a door handle at elbow height does the same.",
       "media": {
@@ -4553,10 +4553,10 @@
       "tier": 1,
       "unilateral": true,
       "repRange": [
-        1,
-        1
+        10,
+        15
       ],
-      "secondsPerRep": 45,
+      "secondsPerRep": 3,
       "setupSeconds": 10,
       "setupNote": "Shown anchored to a gym frame — a door handle at elbow height does the same.",
       "media": {

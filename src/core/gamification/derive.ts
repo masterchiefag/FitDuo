@@ -314,20 +314,46 @@ export function deriveStats(
   }
 }
 
+/**
+ * Which progression a set belongs to. Two tracks, never one.
+ *
+ * `db-reverse-fly` is both a `pull_h` main and an Activate movement, and it is
+ * not the only one. Pooling them would let Sunday's 2 kg cuff work set Monday's
+ * rear-delt prescription — the strength day would open at a rehab weight and
+ * "progress" downwards, which is the opposite of what either session is for.
+ *
+ * This is also how `types.ts`'s rule that recovery days do not drive
+ * progression stays literally true: they drive their own, and never strength's.
+ */
+export type ProgressionTrack = 'strength' | 'relief'
+
+const trackOf = (mode: SessionMode): ProgressionTrack =>
+  mode === 'mobility' ? 'relief' : 'strength'
+
 /** Per-exercise progression state for the generator, derived from the log. */
 export function deriveProgression(
   userId: string,
   sessions: SessionEvent[],
   sets: SetEvent[],
   feedback: FeedbackEvent[],
+  track: ProgressionTrack = 'strength',
 ): Record<string, ExerciseProgress> {
   const out: Record<string, ExerciseProgress> = {}
   const mySessions = sessions.filter((s) => s.participantIds.includes(userId))
-  const mySets = sets.filter((s) => s.userId === userId).sort((a, b) => a.loggedAt - b.loggedAt)
-  const myFeedback = feedback
-    .filter((f) => f.userId === userId)
-    .sort((a, b) => a.loggedAt - b.loggedAt)
   const sessionOf = makeEventSessionAssigner(mySessions)
+  // A set with no session to belong to is history from before this split, and
+  // all of that history is strength work — assigning it there keeps every
+  // existing prescription exactly where it was.
+  const onTrack = (loggedAt: number) => {
+    const s = sessionOf(loggedAt)
+    return s ? trackOf(s.mode) === track : track === 'strength'
+  }
+  const mySets = sets
+    .filter((s) => s.userId === userId && onTrack(s.loggedAt))
+    .sort((a, b) => a.loggedAt - b.loggedAt)
+  const myFeedback = feedback
+    .filter((f) => f.userId === userId && onTrack(f.loggedAt))
+    .sort((a, b) => a.loggedAt - b.loggedAt)
   const keyOf = (loggedAt: number) => sessionOf(loggedAt)?.startedAt ?? localDateISO(loggedAt)
 
   const setsByExercise = new Map<string, SetEvent[]>()

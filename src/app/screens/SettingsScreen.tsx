@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { catalog } from '../lib/catalog'
 import { allCanPerform, canPerform } from '../../core/catalog/equipment'
 import type { Equipment } from '../../core/catalog/types'
+import type { BandColour } from '../lib/profiles'
 import { EQUIPMENT_LABEL, EQUIPMENT_PRESETS } from '../lib/equipmentPresets'
 import { PROFILES } from '../lib/profiles'
 import { clearAllLocalData } from '../../infra/localstore'
@@ -9,6 +10,31 @@ import { clearAllLocalData } from '../../infra/localstore'
 /** Movements this kit unlocks — the only number that makes a kit change concrete. */
 function performableCount(equipment: Equipment[]): number {
   return catalog.exercises.filter((ex) => canPerform(ex, equipment)).length
+}
+
+/**
+ * The band colours this person owns, in ladder order.
+ *
+ * Shown only to someone who owns bands at all, and shown as a ladder rather
+ * than a set: the Activate phase progresses UP it, so which colour comes next
+ * is the fact worth reading. Empty is a real state and says so — a band with no
+ * colour recorded still gets prescribed, just without a resistance to climb.
+ */
+function BandLadder({ colours }: { colours: BandColour[] }) {
+  return (
+    <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+      <span className="font-semibold">Bands: </span>
+      {colours.length === 0 ? (
+        <span>
+          none listed — add{' '}
+          <code className="rounded bg-slate-100 px-1 dark:bg-slate-800">availableBands</code> to
+          progress them
+        </span>
+      ) : (
+        colours.join(' → ')
+      )}
+    </p>
+  )
 }
 
 function KitChips({ equipment }: { equipment: Equipment[] }) {
@@ -157,6 +183,7 @@ export default function SettingsScreen() {
               </span>
             </div>
             <KitChips equipment={p.equipment} />
+            {p.equipment.includes('band') && <BandLadder colours={p.availableBands} />}
           </div>
         ))}
       </div>
