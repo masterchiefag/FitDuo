@@ -4012,7 +4012,6 @@
           "hips"
         ],
         "seconds": 45,
-        "priority": 2,
         "focusCue": "The hip that sitting locks up — take it through the range it never gets"
       }
     },
@@ -4179,6 +4178,7 @@
       ],
       "secondsPerRep": 40,
       "setupSeconds": 10,
+      "setupNote": "Shown lifting higher than you need — stop when the thigh is level with your back.",
       "media": {
         "images": [
           "/exercise-media/glute-kickback_0.webp",

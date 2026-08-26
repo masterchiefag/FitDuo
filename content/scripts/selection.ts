@@ -1624,7 +1624,15 @@ export const MOBILITY_ADDITIONS: (Curated & { mobility: MobilityMeta })[] = [
       phase: 'mobilise',
       regions: ['hips'],
       seconds: 45,
-      priority: 2,
+      // Deliberately no `priority: 2`, and the reason generalises: `hips` is a
+      // Full Body *core* region, so priority here is not a nudge inside the
+      // sitting-stiffness pool — it orders this ahead of thoracic work in every
+      // focus that includes `hips`. Tagged `priority: 2` on the first pass it
+      // opened Full Body at five minutes on 18 days in 60, and appeared in all
+      // 60 at ten (Grok, PR #37). `EXTENDED_SHARE` cannot catch that: it gates
+      // `extendedRegions` only, so core-region content never goes through it.
+      // The twenty-minute no-repeat fill does not need the priority — that
+      // session consumes the whole mobilise pool either way.
       focusCue: 'The hip that sitting locks up — take it through the range it never gets',
     },
   },
@@ -1712,6 +1720,10 @@ export const MOBILITY_ADDITIONS: (Curated & { mobility: MobilityMeta })[] = [
     sourceId: 'Glute_Kickback',
     displayName: 'Quadruped Glute Kickback',
     requires: [['bodyweight']],
+    // The demo lifts past level with the back, which is the exact fault the cue
+    // and focus cue warn against — and people do the photo, not the paragraph.
+    // Said out loud rather than left for the picture to win (Grok, PR #37).
+    setupNote: 'Shown lifting higher than you need — stop when the thigh is level with your back.',
     role: 'mobility',
     pattern: 'mobility',
     tier: 1,

@@ -197,8 +197,45 @@ describe('mobility sessions', () => {
     const legsIn = (ids: string[]) =>
       ids.filter((id) => byId.get(id)!.mobility!.regions.some((r) => LEG_REGIONS.includes(r)))
 
-    it('a five-minute Full Body session is exactly the session it always was', () => {
-      expect(legsIn(idsOf('full_body', 5))).toEqual([])
+    /**
+     * Five minutes buys no breadth at all — the invariant this was always
+     * reaching for, now stated in the vocabulary that actually decides it.
+     *
+     * It used to assert "no leg-tagged movement" on a single date, and that was
+     * never generally true: `figure-four-stretch` is tagged `glutes` *and*
+     * `hips`, so it enters as core content on plenty of days and the old check
+     * survived only because 2026-08-14 happened not to be one of them. It
+     * measured the wrong thing too — `glutes` is not what makes a movement
+     * breadth, being outside `regions` entirely is. So this asks the real
+     * question, across dates and kits: at five minutes, `edge: 'strict'` means
+     * a whole movement never fits inside a phase's breadth share, so nothing
+     * reaches the session that the focus itself did not ask for.
+     */
+    it('buys no breadth at five minutes, on any day or kit', () => {
+      const coreRegions = MOBILITY_FOCUS.full_body.regions
+      const kits: Equipment[][] = [
+        ['bodyweight', 'dumbbell'],
+        ['bodyweight', 'dumbbell', 'band', 'roller'],
+        ['bodyweight', 'dumbbell', 'band', 'roller', 'chair', 'wall', 'step'],
+      ]
+      for (const kit of kits) {
+        for (let day = 0; day < 60; day++) {
+          const dateISO = new Date(Date.UTC(2026, 0, 1) + day * 86_400_000)
+            .toISOString()
+            .slice(0, 10)
+          const ids = generateMobilitySession({
+            ...base,
+            dateISO,
+            focus: 'full_body',
+            kits: [kit],
+            targetSeconds: 5 * 60,
+          }).blocks.flatMap((b) => b.items.map((i) => i.exerciseId))
+          const breadthOnly = ids.filter(
+            (id) => !byId.get(id)!.mobility!.regions.some((r) => coreRegions.includes(r)),
+          )
+          expect(breadthOnly, `full_body @ 5min ${dateISO} on a ${kit.length}-item kit`).toEqual([])
+        }
+      }
     })
 
     it('a longer Full Body session covers more ground, not the same ground twice', () => {
