@@ -10,6 +10,7 @@ import {
 } from '../src/core/catalog/resistance'
 import { catalogSchema, type Exercise } from '../src/core/catalog/types'
 import { nextTarget, stepWeight } from '../src/core/generator/progression'
+import { grabLabel, loadLabel } from '../src/app/lib/load'
 
 const catalog = catalogSchema.parse(
   JSON.parse(readFileSync(join(__dirname, '..', 'content', 'catalog.json'), 'utf8')),
@@ -119,5 +120,33 @@ describe('the load adjuster steps the ladder, not a fixed amount', () => {
     const ladder = ladderFor(ex('db-chest-press'), KIT)
     expect(stepWeight(ladder, 10, 1)).toBe(10)
     expect(stepWeight(ladder, 2.5, -1)).toBe(2.5)
+  })
+})
+
+/**
+ * `availableBands` defaults to empty, and eligibility keys off `equipment`.
+ * Someone who owns a band and has not recorded its colour is still prescribed
+ * Band Pull-Apart — correctly — with no rung to stand on.
+ *
+ * What they must not be told is "Bodyweight", on a movement whose name begins
+ * with the word Band (Grok, PR #41).
+ */
+describe('a band with no colour recorded is still a band', () => {
+  const rotation = byId.get('band-external-rotation')!
+  const pushup = byId.get('push-up')!
+
+  it('names the band rather than calling it bodyweight', () => {
+    expect(loadLabel(rotation, 0)).toBe('your band')
+    expect(grabLabel(rotation, 0)).toBe('Grab your band')
+  })
+
+  it('still calls a bodyweight movement bodyweight', () => {
+    expect(loadLabel(pushup, 0)).toBe('bodyweight')
+    expect(grabLabel(pushup, 0)).toBe('Bodyweight')
+  })
+
+  it('names the colour once there is one', () => {
+    expect(loadLabel(rotation, BAND_FORCE_KG.red)).toBe('red band')
+    expect(grabLabel(rotation, BAND_FORCE_KG.red)).toBe('Grab the red band')
   })
 })

@@ -259,9 +259,21 @@ function RingTimer({
  * above the form cues because it is the one that changes what the next rep
  * looks like.
  */
-function Cues({ ex }: { ex: Exercise }) {
+function Cues({ ex, focusCue }: { ex: Exercise; focusCue?: string | undefined }) {
   return (
     <div className="mx-auto mt-4 max-w-2xl">
+      {/* Why this movement is in the session at all — above the tempo, because
+          it is the reason to do the next rep properly rather than the way to.
+          Lives here rather than in `TimedView` so it survives the phase
+          becoming loaded: an Activate set is the one that most needs it, and it
+          was the one screen that had lost it (Grok, PR #41). */}
+      {focusCue && (
+        <p
+          className={`mb-3 rounded-2xl bg-emerald-50 px-4 py-3 font-semibold text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200 ${T.cue}`}
+        >
+          {focusCue}
+        </p>
+      )}
       {ex.tempoCue && (
         <p
           className={`rounded-2xl border-2 border-slate-200 bg-white px-4 py-3 font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 ${T.cue}`}
@@ -323,14 +335,7 @@ function TimedView({
       <div className="mt-4">
         <RingTimer remaining={remaining} total={total} tone={ending ? 'wind_down' : 'work'} />
       </div>
-      {focusCue && (
-        <p
-          className={`mx-auto mt-3 max-w-2xl rounded-2xl bg-emerald-50 px-4 py-3 font-semibold text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200 ${T.cue}`}
-        >
-          {focusCue}
-        </p>
-      )}
-      {exercise && <Cues ex={exercise} />}
+      {exercise && <Cues ex={exercise} focusCue={focusCue} />}
       {ending?.lastOne ? (
         <p className={`mt-4 text-slate-500 dark:text-slate-400 ${T.status}`}>
           Last one — take it slow.
@@ -638,7 +643,10 @@ function WorkView({
               and they were losing the page to a 320 px stock frame. */}
           <ExerciseMedia ex={ex} size="medium" />
           <div className="text-left">
-            <Cues ex={ex} />
+            <Cues
+              ex={ex}
+              focusCue={block.kind === 'activate' ? ex.mobility?.focusCue : undefined}
+            />
           </div>
         </div>
       )}

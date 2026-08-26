@@ -116,3 +116,40 @@ describe('relief work stays out of strength accounting', () => {
     expect(stats.sessionsCompleted).toBe(0)
   })
 })
+
+/**
+ * Every other mode gets this for free: completing adds `base` on top of the
+ * same per-set total abandoning earns. Relief is paid a flat rate for
+ * finishing — it is not measured in sets — and that had nothing to beat while
+ * relief logged no sets. Activate logs them now (Grok, PR #41).
+ */
+describe('finishing a relief session always beats quitting it', () => {
+  const SCHEDULE = [true, true, true, true, true, false, false]
+  const at = (h: number, m = 0) => Date.UTC(2026, 7, 25, h, m)
+  const session = (completed: boolean) => [
+    {
+      dateISO: '2026-08-25' as const,
+      mode: 'mobility' as const,
+      completed,
+      participantIds: ['p1'],
+      startedAt: at(9),
+      endedAt: at(9, 40),
+    },
+  ]
+  // A 30-minute posture session: three movements, three rounds, both sides.
+  const sets = Array.from({ length: 12 }, (_, i) => ({
+    userId: 'p1',
+    exerciseId: 'band-external-rotation',
+    targetReps: 12,
+    actualReps: 12,
+    weight: 1.7,
+    loggedAt: at(9, 1 + i),
+    assumed: false,
+  }))
+
+  it('however many sets were logged before the ✕', () => {
+    const finished = deriveStats('p1', session(true), sets, SCHEDULE, '2026-08-26').totalXp
+    const quit = deriveStats('p1', session(false), sets, SCHEDULE, '2026-08-26').totalXp
+    expect(quit).toBeLessThan(finished)
+  })
+})

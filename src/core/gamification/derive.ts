@@ -142,6 +142,21 @@ const MODE_XP: Record<SessionMode, { base: number; fullClear: number }> = {
   mobility: { base: 20, fullClear: 0 },
 }
 
+/**
+ * The most a quit relief session can pay — half of what finishing one pays.
+ *
+ * Every other mode gets this invariant for free: completing adds `base` on top
+ * of the same per-set total abandoning earns, so completing always wins by
+ * `base`. Relief is paid a FLAT rate for finishing, deliberately — it is not
+ * measured in sets — and that flat rate had nothing to beat while relief logged
+ * no sets at all. Activate logs them now, and twelve sets of cuff work paid 24
+ * for pressing ✕ against 20 for pressing Continue (Grok, PR #41).
+ *
+ * A cap rather than a per-set rule for the completed side, because paying
+ * relief by the set is the thing the flat rate exists to avoid.
+ */
+const ABANDONED_MOBILITY_XP_CAP = Math.floor(MODE_XP.mobility.base / 2)
+
 function sessionXp(session: SessionEvent, sets: SetEvent[], prCount: number): number {
   // Recovery work counts for the streak but is not a strength session.
   if (session.mode === 'mobility') return MODE_XP.mobility.base
@@ -259,7 +274,15 @@ export function deriveStats(
         if (session.mode !== 'mobility') sessionsCompleted += 1
         totalXp += sessionXp(session, setsOf(session), prCountBySession.get(session.startedAt) ?? 0)
       } else {
-        totalXp += 2 * setsOf(session).length // abandoned work still counts
+        // Abandoned work still counts — but a relief session is paid a flat
+        // rate for finishing, and per-set for quitting would now beat it.
+        // Activate logs sets; a 30-minute posture session logs about twelve, so
+        // hitting ✕ after the last one paid 24 against the 20 for pressing
+        // Continue. Completing must never lose to quitting (Grok, PR #41).
+        totalXp +=
+          session.mode === 'mobility'
+            ? Math.min(2 * setsOf(session).length, ABANDONED_MOBILITY_XP_CAP)
+            : 2 * setsOf(session).length
       }
     }
     // Sets with no owning session still represent work done.

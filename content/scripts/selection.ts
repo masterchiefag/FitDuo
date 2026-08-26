@@ -1254,7 +1254,12 @@ export const MOBILITY_META: Record<string, MobilityMeta> = {
     phase: 'activate',
     regions: ['thoracic', 'shoulders'],
     seconds: 40,
-    focusCue: 'Light or no weight here — squeeze the shoulder blades together, hold a beat',
+    // Was "Light or no weight here", which was true while Activate was a timed
+    // hold and became a contradiction the moment the phase prescribed 5 kg. The
+    // load is the prescription's job now; the cue's job is what the movement is
+    // for.
+    focusCue:
+      'Rear shoulder and mid-back do this — open slowly, hold a beat at the top, no swing',
   },
   'dead-bug': { phase: 'activate', regions: ['lower_back'], seconds: 40 },
   'glute-bridge': {
