@@ -7,8 +7,11 @@ import exampleProfiles from '../../../content/profiles.example.json'
 // profiles, which is also what a production build currently gets.
 declare const __LOCAL_PROFILES__: ProfilesFile | null
 
+import type { BandColour } from '../../core/catalog/resistance'
+import { BAND_COLOURS } from '../../core/catalog/resistance'
 import type { BodyArea, Equipment } from '../../core/catalog/types'
 export type { BodyArea, Equipment }
+export type { BandColour }
 
 interface ProfilesFile {
   people: {
@@ -16,6 +19,7 @@ interface ProfilesFile {
     name: string
     accent: string
     availableWeights: number[]
+    availableBands?: BandColour[]
     painAreas?: BodyArea[]
     equipment?: Equipment[]
     notes?: string
@@ -41,6 +45,11 @@ export interface LocalProfile {
   name: string
   accent: { text: string; bg: string; ring: string }
   availableWeights: number[]
+  /**
+   * Ordered by the Theraband ladder rather than by how they were typed, so the
+   * generator can step up a colour without re-deriving what "up" means.
+   */
+  availableBands: BandColour[]
   painAreas: BodyArea[]
   equipment: Equipment[]
 }
@@ -50,6 +59,9 @@ export const PROFILES: LocalProfile[] = source.people.map((p) => ({
   name: p.name,
   accent: ACCENTS[p.accent] ?? ACCENTS.amber!,
   availableWeights: [...p.availableWeights].sort((a, b) => a - b),
+  availableBands: [...(p.availableBands ?? [])].sort(
+    (a, b) => BAND_COLOURS.indexOf(a) - BAND_COLOURS.indexOf(b),
+  ),
   painAreas: p.painAreas ?? [],
   equipment: p.equipment ?? ['bodyweight', 'dumbbell'],
 }))

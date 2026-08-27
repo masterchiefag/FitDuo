@@ -1,4 +1,5 @@
 import { allCanPerform } from '../catalog/equipment'
+import { ladderFor } from '../catalog/resistance'
 import type { Exercise, Pattern } from '../catalog/types'
 import { daysBetween, weekdayIndex } from '../dates'
 import { BLOCK_TRANSITION_SECONDS, CHANGEOVER_SECONDS } from '../player/reducer'
@@ -6,9 +7,11 @@ import { selectCooldown } from './cooldown'
 import { fnv1a32, mulberry32, pick } from './prng'
 import { nextTarget } from './progression'
 import { selectWarmup } from './warmup'
+import { isWorkBlock } from '../player/position'
 import type {
   Block,
   DayType,
+  ParticipantInput,
   GeneratorInput,
   LastPerformance,
   PersonTarget,
@@ -239,6 +242,39 @@ function setSeconds(ex: Exercise, target: PersonTarget): number {
   return ex.setupSeconds + target.targetReps * ex.secondsPerRep * sides
 }
 
+/**
+ * One prescribed movement, targeted for everyone in the session.
+ *
+ * Shared with the relief generator rather than duplicated there: an Activate
+ * set is a set, and the moment the two builders drift is the moment a band
+ * external rotation stops progressing the way a curl does for no reason anyone
+ * could state. The ladder each person climbs comes from `ladderFor`, so this
+ * never has to know whether the load is kilos or latex.
+ */
+export function buildWorkItem(ex: Exercise, participants: ParticipantInput[]): WorkItem {
+  const perPerson: Record<string, PersonTarget> = {}
+  const lastTime: Record<string, LastPerformance> = {}
+  for (const p of participants) {
+    const progress = p.progression[ex.id]
+    perPerson[p.userId] = nextTarget(ex, ladderFor(ex, p), progress)
+    // The set the progression state was read from: same set for both numbers,
+    // so "7.5 kg × 10" is one performance and not two halves of different ones.
+    if (progress) {
+      lastTime[p.userId] = {
+        weight: progress.lastWeight,
+        reps:
+          progress.lastActualReps[progress.lastActualReps.length - 1] ?? progress.lastTargetReps,
+      }
+    }
+  }
+  const item: WorkItem = {
+    exerciseId: ex.id,
+    perPerson,
+    workSeconds: workItemSeconds(ex, perPerson),
+  }
+  return Object.keys(lastTime).length > 0 ? { ...item, lastTime } : item
+}
+
 /** The set's length: the MAX across participants — they lift simultaneously. */
 export function workItemSeconds(ex: Exercise, perPerson: Record<string, PersonTarget>): number {
   return Math.max(...Object.values(perPerson).map((t) => setSeconds(ex, t)))
@@ -280,8 +316,6 @@ function changeoversPerRound(items: WorkItem[]): number {
   return n
 }
 
-type WorkBlock = Extract<Block, { kind: 'superset' | 'circuit' }>
-
 const MIN_ROUNDS = 2
 const MAX_ROUNDS = 4
 
@@ -294,8 +328,7 @@ const MAX_ROUNDS = 4
  * seven-move warm-up into twenty minutes.
  */
 function fitToBudget(blocks: Block[], [minS, maxS]: [number, number]): Block[] {
-  const work = () =>
-    blocks.filter((b): b is WorkBlock => b.kind === 'superset' || b.kind === 'circuit')
+  const work = () => blocks.filter(isWorkBlock)
   const estimate = () => estimatePlanSeconds(blocks)
 
   const fitRounds = () => {
@@ -394,28 +427,7 @@ export function generateWorkout(input: GeneratorInput): WorkoutPlan {
     muscleSets7d,
   }
 
-  const toWorkItem = (ex: Exercise): WorkItem => {
-    const perPerson: Record<string, PersonTarget> = {}
-    const lastTime: Record<string, LastPerformance> = {}
-    for (const p of participants) {
-      const progress = p.progression[ex.id]
-      perPerson[p.userId] = nextTarget(ex, p.availableWeights, progress)
-      // The set the progression state was read from: same set for both numbers,
-      // so "7.5 kg × 10" is one performance and not two halves of different ones.
-      if (progress) {
-        lastTime[p.userId] = {
-          weight: progress.lastWeight,
-          reps: progress.lastActualReps[progress.lastActualReps.length - 1] ?? progress.lastTargetReps,
-        }
-      }
-    }
-    const item: WorkItem = {
-      exerciseId: ex.id,
-      perPerson,
-      workSeconds: workItemSeconds(ex, perPerson),
-    }
-    return Object.keys(lastTime).length > 0 ? { ...item, lastTime } : item
-  }
+  const toWorkItem = (ex: Exercise): WorkItem => buildWorkItem(ex, participants)
 
   // Fixed call order: supersets in template order, then circuit, then warmup/cooldown.
   const supersetBlocks: Block[] = template.supersets.map((patterns, i) => ({

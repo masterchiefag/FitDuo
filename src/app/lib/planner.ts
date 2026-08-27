@@ -1,6 +1,7 @@
 import { catalog, exercisesById } from './catalog'
 import { PROFILES, HOUSEHOLD_EQUIPMENT, HOUSEHOLD_SCHEDULE } from './profiles'
-import type { Equipment, Pattern } from '../../core/catalog/types'
+import { BAND_COLOURS } from '../../core/catalog/resistance'
+import type { Pattern } from '../../core/catalog/types'
 import { loadFeedback, loadSessions, loadSetLogs } from '../../infra/localstore'
 import {
   deriveProgression,
@@ -12,7 +13,13 @@ import {
 import { ThinKitError, generateWorkout } from '../../core/generator/generate'
 import { generateMobilitySession, type MobilityFocus } from '../../core/generator/mobility'
 import { localDateISO, type LocalDateISO } from '../../core/dates'
-import type { DayHistory, DayType, GeneratorInput, WorkoutPlan } from '../../core/generator/types'
+import type {
+  DayHistory,
+  DayType,
+  GeneratorInput,
+  ParticipantInput,
+  WorkoutPlan,
+} from '../../core/generator/types'
 
 export const GENERATOR_VERSION = 1
 export const HOUSEHOLD_ID = 'home'
@@ -99,6 +106,7 @@ export function generatorInputFor(participantIds: string[], dateISO: LocalDateIS
       return {
         userId: id,
         availableWeights: profile.availableWeights,
+        availableBands: profile.availableBands,
         equipment: profile.equipment,
         maxTier: 2 as const,
         progression: deriveProgression(id, sessions, sets, feedback),
@@ -109,17 +117,56 @@ export function generatorInputFor(participantIds: string[], dateISO: LocalDateIS
 }
 
 /**
- * One kit per participant — never merged into a single list. Everyone does the
- * same movement at the same time, so the generator asks whether EACH of these
- * kits can do it (`allCanPerform`); intersecting the lists first would lose
- * movements that one person does on a chair and the other on a step.
+ * Who a relief session is being generated for.
  *
- * With nobody selected (the Today preview before a choice) the household union
- * is the loosest honest guess.
+ * One kit per participant, never merged into a single list: everyone does the
+ * same movement at the same time, so the generator asks whether EACH kit can do
+ * it (`allCanPerform`), and intersecting the lists first would lose movements
+ * that one person does on a chair and the other on a step.
+ *
+ * The Activate phase prescribes real sets now, so it needs the same per-person
+ * facts a strength day does. Progression comes from the RELIEF track: a cuff
+ * movement climbs its own ladder, and never reads the weight a strength day set
+ * for the same exercise (see `deriveProgression`).
+ *
+ * With nobody selected — the Today preview before a choice — one stand-in
+ * carries the household union and no history: the same loosest honest guess the
+ * preview always made about kit, now with targets attached.
  */
-function kitsFor(participantIds: string[]): Equipment[][] {
-  if (participantIds.length === 0) return [HOUSEHOLD_EQUIPMENT]
-  return participantIds.map((id) => PROFILES.find((p) => p.id === id)?.equipment ?? [])
+function reliefParticipants(participantIds: string[]): ParticipantInput[] {
+  const sessions = sessionEvents()
+  const sets = setEvents()
+  const feedback = loadFeedback()
+  if (participantIds.length === 0) {
+    return [
+      {
+        userId: 'preview',
+        availableWeights: [...new Set(PROFILES.flatMap((p) => p.availableWeights))].sort(
+          (a, b) => a - b,
+        ),
+        // Ladder order, like every other `availableBands` — `PROFILES` already
+        // sorts each person's, so a merge of sorted lists only needs deduping
+        // once it is re-sorted by the ladder itself.
+        availableBands: BAND_COLOURS.filter((c) =>
+          PROFILES.some((p) => p.availableBands.includes(c)),
+        ),
+        equipment: HOUSEHOLD_EQUIPMENT,
+        maxTier: 2,
+        progression: {},
+      },
+    ]
+  }
+  return participantIds.map((id) => {
+    const profile = PROFILES.find((p) => p.id === id)!
+    return {
+      userId: id,
+      availableWeights: profile.availableWeights,
+      availableBands: profile.availableBands,
+      equipment: profile.equipment,
+      maxTier: 2 as const,
+      progression: deriveProgression(id, sessions, sets, feedback, 'relief'),
+    }
+  })
 }
 
 export function mobilityPlan(
@@ -133,9 +180,8 @@ export function mobilityPlan(
     generatorVersion: GENERATOR_VERSION,
     catalog: catalog.exercises,
     focus,
-    participantIds,
+    participants: reliefParticipants(participantIds),
     targetSeconds: minutes * 60,
-    kits: kitsFor(participantIds),
   })
 }
 

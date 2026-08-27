@@ -17,10 +17,10 @@ export interface SessionPosition {
   setsToGo: number
 }
 
-type WorkBlock = Extract<Block, { kind: 'superset' | 'circuit' }>
+export type WorkBlock = Extract<Block, { kind: 'superset' | 'circuit' | 'activate' }>
 
 export function isWorkBlock(block: Block): block is WorkBlock {
-  return block.kind === 'superset' || block.kind === 'circuit'
+  return block.kind === 'superset' || block.kind === 'circuit' || block.kind === 'activate'
 }
 
 /** The next set to be performed (or the one in progress), as a plan cursor. */

@@ -1,4 +1,5 @@
 import type { Block, WorkoutPlan } from '../generator/types'
+import { isWorkBlock } from './position'
 import type { Effect, Overrides, PlayerEvent, PlayerState, SetLogDraft, Transition } from './types'
 
 export const BLOCK_TRANSITION_SECONDS = 20
@@ -31,7 +32,7 @@ export const LATE_TIMER_GRACE_MS = 15_000
 
 // ─── plan helpers ────────────────────────────────────────────────────────────
 
-type WorkBlock = Extract<Block, { kind: 'superset' | 'circuit' }>
+type WorkBlock = Extract<Block, { kind: 'superset' | 'circuit' | 'activate' }>
 type TimedBlock = Extract<Block, { kind: 'warmup' | 'mobility' | 'cooldown' }>
 
 function blockAt(plan: WorkoutPlan, index: number): Block | undefined {
@@ -44,7 +45,7 @@ export function isTimedBlock(block: Block): block is TimedBlock {
 
 function workBlockAt(plan: WorkoutPlan, index: number): WorkBlock | undefined {
   const b = blockAt(plan, index)
-  return b && (b.kind === 'superset' || b.kind === 'circuit') ? b : undefined
+  return b && isWorkBlock(b) ? b : undefined
 }
 
 const completed = (): Transition => ({

@@ -1254,7 +1254,12 @@ export const MOBILITY_META: Record<string, MobilityMeta> = {
     phase: 'activate',
     regions: ['thoracic', 'shoulders'],
     seconds: 40,
-    focusCue: 'Light or no weight here — squeeze the shoulder blades together, hold a beat',
+    // Was "Light or no weight here", which was true while Activate was a timed
+    // hold and became a contradiction the moment the phase prescribed 5 kg. The
+    // load is the prescription's job now; the cue's job is what the movement is
+    // for.
+    focusCue:
+      'Rear shoulder and mid-back do this — open slowly, hold a beat at the top, no swing',
   },
   'dead-bug': { phase: 'activate', regions: ['lower_back'], seconds: 40 },
   'glute-bridge': {
@@ -1381,8 +1386,8 @@ export const MOBILITY_ADDITIONS: (Curated & { mobility: MobilityMeta })[] = [
     setupNote: 'Shown face-down on a bench with dumbbells — do it standing, with no weight at all.',
     tier: 1,
     unilateral: false,
-    repRange: [1, 1],
-    secondsPerRep: 40,
+    repRange: [10, 15],
+    secondsPerRep: 2,
     setupSeconds: 5,
     cues: [
       'Pull the shoulder blades back and down',
@@ -1408,8 +1413,8 @@ export const MOBILITY_ADDITIONS: (Curated & { mobility: MobilityMeta })[] = [
       'Shown on a bench with a dumbbell — lie on the floor instead, and the weight is optional.',
     tier: 1,
     unilateral: true,
-    repRange: [1, 1],
-    secondsPerRep: 40,
+    repRange: [10, 15],
+    secondsPerRep: 3,
     setupSeconds: 5,
     cues: [
       'Lie on your side, top arm along your ribs, elbow bent 90°',
@@ -1433,8 +1438,8 @@ export const MOBILITY_ADDITIONS: (Curated & { mobility: MobilityMeta })[] = [
     setupNote: 'Shown on a bench with dumbbells — face down on the floor is the same movement.',
     tier: 1,
     unilateral: false,
-    repRange: [1, 1],
-    secondsPerRep: 40,
+    repRange: [10, 15],
+    secondsPerRep: 2,
     setupSeconds: 10,
     cues: [
       'Lie face down on the floor, arms out in a T',
@@ -1856,8 +1861,8 @@ export const EQUIPMENT_MOBILITY: (Curated & { mobility: MobilityMeta })[] = [
     pattern: 'mobility',
     tier: 1,
     unilateral: false,
-    repRange: [1, 1],
-    secondsPerRep: 45,
+    repRange: [10, 15],
+    secondsPerRep: 2,
     setupSeconds: 10,
     cues: [
       'Band at chest height, arms straight',
@@ -1884,8 +1889,8 @@ export const EQUIPMENT_MOBILITY: (Curated & { mobility: MobilityMeta })[] = [
     pattern: 'mobility',
     tier: 1,
     unilateral: false,
-    repRange: [1, 1],
-    secondsPerRep: 40,
+    repRange: [10, 15],
+    secondsPerRep: 2,
     setupSeconds: 10,
     cues: [
       'Anchor the band in front at chest height',
@@ -1904,8 +1909,8 @@ export const EQUIPMENT_MOBILITY: (Curated & { mobility: MobilityMeta })[] = [
     pattern: 'mobility',
     tier: 1,
     unilateral: true,
-    repRange: [1, 1],
-    secondsPerRep: 45,
+    repRange: [10, 15],
+    secondsPerRep: 3,
     setupSeconds: 10,
     cues: [
       'Elbow tucked at your side, bent 90°',
@@ -1994,8 +1999,8 @@ export const EQUIPMENT_MOBILITY: (Curated & { mobility: MobilityMeta })[] = [
     pattern: 'mobility',
     tier: 1,
     unilateral: true,
-    repRange: [1, 1],
-    secondsPerRep: 45,
+    repRange: [10, 15],
+    secondsPerRep: 3,
     setupSeconds: 10,
     cues: [
       'Anchor the band at elbow height and stand side-on to it',

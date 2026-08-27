@@ -15,6 +15,7 @@ import {
 } from '../../infra/localstore'
 import { sessionTotals } from '../../core/gamification/session'
 import { statsFor } from '../lib/planner'
+import { isWorkBlock } from '../../core/player/position'
 
 export interface PersonSummary {
   userId: string
@@ -43,7 +44,7 @@ function plannedSetsPerPerson(plan: WorkoutPlan, throughBlockIndex?: number): nu
   let sets = 0
   plan.blocks.forEach((b, i) => {
     if (throughBlockIndex !== undefined && i > throughBlockIndex) return
-    if (b.kind === 'superset' || b.kind === 'circuit') sets += b.rounds * b.items.length
+    if (isWorkBlock(b)) sets += b.rounds * b.items.length
   })
   return sets
 }

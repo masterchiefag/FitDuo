@@ -110,9 +110,7 @@ describe('workedRegions', () => {
     ]
     const ranked = workedRegions(blocks, byId)
     expect(ranked.map((r) => r.region)).not.toContain('hips')
-    expect(new Set(ranked.map((r) => r.region))).toEqual(
-      new Set(['hamstrings', 'quads', 'glutes']),
-    )
+    expect(new Set(ranked.map((r) => r.region))).toEqual(new Set(['hamstrings', 'quads', 'glutes']))
   })
 
   it('ignores warm-up and cool-down blocks — only work counts as worked', () => {
@@ -160,7 +158,10 @@ describe('selectCooldown', () => {
     const ids = select(legDay, 5).slice(0, 2)
     const worked = new Set(workedRegions(legDay, byId).map((r) => r.region))
     for (const id of ids) {
-      expect(byId.get(id)!.mobility!.regions.some((r) => worked.has(r)), id).toBe(true)
+      expect(
+        byId.get(id)!.mobility!.regions.some((r) => worked.has(r)),
+        id,
+      ).toBe(true)
     }
   })
 
@@ -212,7 +213,10 @@ describe('selectCooldown', () => {
     const prelude = select(pushDay, 5).slice(0, 2)
     expect(prelude).toHaveLength(2)
     for (const id of prelude) {
-      expect(byId.get(id)!.mobility!.regions.some((r) => worked.has(r)), id).toBe(true)
+      expect(
+        byId.get(id)!.mobility!.regions.some((r) => worked.has(r)),
+        id,
+      ).toBe(true)
     }
   })
 
@@ -291,9 +295,11 @@ describe('the generated cool-down', () => {
     const seen = new Set<DayType>()
     for (const plan of everyDay()) {
       seen.add(plan.dayType)
-      expect(cooldownOf(plan).items.map((i) => i.exerciseId).slice(-3)).toEqual([
-        ...COOLDOWN_CORE_CHAIN,
-      ])
+      expect(
+        cooldownOf(plan)
+          .items.map((i) => i.exerciseId)
+          .slice(-3),
+      ).toEqual([...COOLDOWN_CORE_CHAIN])
     }
     // The promise is "every day type", so the loop has to have visited them.
     expect(seen.size).toBe(8)
@@ -308,9 +314,10 @@ describe('the generated cool-down', () => {
       expect(prelude.length, plan.dayType).toBeGreaterThanOrEqual(1)
       for (const id of prelude) {
         const regions = byId.get(id)!.mobility!.regions
-        expect(regions.some((r) => worked.has(r)), `${plan.dayType}: ${id} vs ${[...worked]}`).toBe(
-          true,
-        )
+        expect(
+          regions.some((r) => worked.has(r)),
+          `${plan.dayType}: ${id} vs ${[...worked]}`,
+        ).toBe(true)
       }
     }
   })
@@ -326,7 +333,10 @@ describe('the generated cool-down', () => {
         .items.map((i) => i.exerciseId)
         .filter((id) => !(COOLDOWN_CORE_CHAIN as readonly string[]).includes(id))
       for (const id of prelude) {
-        expect(byId.get(id)!.mobility!.regions.some((r) => worked.has(r)), id).toBe(true)
+        expect(
+          byId.get(id)!.mobility!.regions.some((r) => worked.has(r)),
+          id,
+        ).toBe(true)
       }
     }
   })
@@ -357,7 +367,9 @@ describe('the boundary with mobility sessions', () => {
    */
   it('does not put leg work into a focus that never asked for it', () => {
     const legOnly = cooldownPool
-      .filter((e) => e.mobility!.regions.every((r) => ['hamstrings', 'quads', 'calves'].includes(r)))
+      .filter((e) =>
+        e.mobility!.regions.every((r) => ['hamstrings', 'quads', 'calves'].includes(r)),
+      )
       .map((e) => e.id)
     expect(legOnly.length).toBeGreaterThanOrEqual(2)
 
@@ -371,8 +383,16 @@ describe('the boundary with mobility sessions', () => {
         generatorVersion: 1,
         catalog,
         focus: 'posture',
-        participantIds: ['p1'],
-        kits: [HOME_KIT],
+        participants: [
+          {
+            userId: 'p1',
+            availableWeights: [2.5, 5, 7.5, 10],
+            availableBands: ['yellow', 'red', 'green'],
+            equipment: [...HOME_KIT],
+            maxTier: 2,
+            progression: {},
+          },
+        ],
         targetSeconds: minutes * 60,
       })
       const ids = plan.blocks.flatMap((b) => b.items.map((i) => i.exerciseId))
