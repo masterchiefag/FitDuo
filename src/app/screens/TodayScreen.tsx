@@ -15,6 +15,7 @@ import {
 import { localDateISO } from '../../core/dates'
 import { loadSnapshot, clearSnapshot } from '../../infra/localstore'
 import { isWorkBlock } from '../../core/player/position'
+import { areaLabel } from '../lib/cautions'
 import {
   DEFAULT_MOBILITY_MINUTES,
   MOBILITY_DURATIONS,
@@ -123,6 +124,31 @@ export default function TodayScreen() {
           </p>
         </div>
       )}
+
+      {/* A flag must never apply silently. Without this the only evidence is a
+          number one rung lower than last week, which reads as the app being
+          wrong rather than the app doing what it was told (PLAN §R5). No
+          countdown yet: `painAreas` is a profile field, not the renewable
+          10-day event R5 specifies, so there is no honest number of days to
+          show and inventing one would be worse than the banner's absence. */}
+      {PROFILES.filter((p) => p.painAreas.length > 0).map((p) => (
+        <div
+          key={p.id}
+          className="mt-5 flex flex-wrap items-center gap-3 rounded-2xl border border-amber-300 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950"
+        >
+          <span className="text-2xl">🩹</span>
+          <div className="min-w-40 flex-1">
+            <p className="font-bold">
+              Going lighter on {p.name}&rsquo;s {p.painAreas.map(areaLabel).join(' and ')} work
+            </p>
+            <p className="mt-0.5 text-sm text-slate-600 dark:text-slate-300">
+              Same movements, same session: on the ones that load it {p.name} goes a rung lighter
+              and to the bottom of the rep range, and nobody else&rsquo;s targets change. Clear it
+              in <code>profiles.local.json</code> when it stops hurting.
+            </p>
+          </div>
+        </div>
+      ))}
 
       {snapshot && (
         <div className="mt-5 flex flex-wrap items-center gap-3 rounded-2xl border border-amber-300 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950">

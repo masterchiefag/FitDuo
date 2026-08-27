@@ -388,6 +388,8 @@ describe('the boundary with mobility sessions', () => {
             userId: 'p1',
             availableWeights: [2.5, 5, 7.5, 10],
             availableBands: ['yellow', 'red', 'green'],
+            painAreas: [],
+            painAreas: [],
             equipment: [...HOME_KIT],
             maxTier: 2,
             progression: {},

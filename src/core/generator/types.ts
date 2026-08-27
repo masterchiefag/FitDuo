@@ -1,5 +1,5 @@
 import type { BandColour } from '../catalog/resistance'
-import type { Equipment, Exercise, MuscleGroup } from '../catalog/types'
+import type { BodyArea, Equipment, Exercise, MuscleGroup } from '../catalog/types'
 
 export type DayType = 'full_a' | 'full_b' | 'full_c' | 'upper' | 'lower' | 'push' | 'pull' | 'legs'
 
@@ -26,6 +26,12 @@ export interface ParticipantInput {
   availableWeights: number[] // per-dumbbell, sorted asc
   /** Theraband colours owned, in ladder order — the band-side `availableWeights`. */
   availableBands: BandColour[]
+  /**
+   * Areas this person has flagged as hurting. Per person and never shared: the
+   * household trains the same movement, and only the affected person goes
+   * lighter (PLAN §R5).
+   */
+  painAreas: BodyArea[]
   /** What this person owns. Per-person, like weights — see `allCanPerform`. */
   equipment: Equipment[]
   maxTier: 1 | 2 | 3
