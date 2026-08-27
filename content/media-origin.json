@@ -200,5 +200,13 @@
   "glute-kickback_0.webp": "Glute_Kickback/0.jpg",
   "glute-kickback_1.webp": "Glute_Kickback/1.jpg",
   "standing-hip-extension_0.webp": "Leg_Lift/0.jpg",
-  "standing-hip-extension_1.webp": "Leg_Lift/1.jpg"
+  "standing-hip-extension_1.webp": "Leg_Lift/1.jpg",
+  "db-scaption_0.webp": "Dumbbell_Scaption/0.jpg",
+  "db-scaption_1.webp": "Dumbbell_Scaption/1.jpg",
+  "db-cuban-rotation_0.webp": "Cuban_Press/0.jpg",
+  "db-cuban-rotation_1.webp": "Cuban_Press/1.jpg",
+  "db-reverse-fly-rotation_0.webp": "Reverse_Flyes_With_External_Rotation/0.jpg",
+  "db-reverse-fly-rotation_1.webp": "Reverse_Flyes_With_External_Rotation/1.jpg",
+  "farmers-walk_0.webp": "Farmers_Walk/0.jpg",
+  "farmers-walk_1.webp": "Farmers_Walk/1.jpg"
 }

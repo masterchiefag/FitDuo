@@ -47,6 +47,19 @@ const LOAD_OVERRIDES: Record<string, Load[]> = {
     { area: 'wrist', stress: 'high' },
     { area: 'shoulder', stress: 'high' },
   ],
+  // The point of adding scaption: `push_v` defaults to `shoulder: high` and
+  // every other vertical push earns it. This one does not — raising in the
+  // scapular plane with the thumb up is the line the joint has the most room
+  // in, which is why it is the raise physios prescribe and the others are the
+  // ones they take away. It is the only safe harbour the `push_v` slot has.
+  'db-scaption': [{ area: 'shoulder', stress: 'moderate' }],
+  'db-cuban-rotation': [{ area: 'shoulder', stress: 'moderate' }],
+  // Recued OFF the chest-supported bench the photo shows, so it carries MORE
+  // spinal load than the demo, not less — and `pattern: 'mobility'` defaults to
+  // no load at all. Its sibling `db-reverse-fly` inherits `lower_back:
+  // moderate` from `pull_h` and this one would have shipped unloaded, which is
+  // exactly the wrong answer for whatever reads `loads` next (Grok, PR #42).
+  'db-reverse-fly-rotation': [{ area: 'lower_back', stress: 'moderate' }],
   'db-lateral-raise': [{ area: 'shoulder', stress: 'high' }],
   'db-front-raise': [{ area: 'shoulder', stress: 'high' }],
   'db-upright-row': [{ area: 'shoulder', stress: 'high' }],
@@ -78,9 +91,24 @@ interface SourceExercise {
   id: string
   name: string
   level: string
+  equipment: string | null
+  mechanic: string | null
   primaryMuscles: string[]
   secondaryMuscles: string[]
-  images: string[]
+  /**
+   * The source's own prose. NEVER shipped — `media.instructions` is authored in
+   * `selection.ts`, because this text is written for a gym reader in
+   * paragraphs, names gear our cues deliberately drop ("lie down on a flat
+   * bench"), and is far too long to read mid-set from across a room.
+   *
+   * Kept anyway, in `source-notes.json`, because it is the only field in this
+   * dataset that reliably says what a movement IS. `Dumbbell_Scaption` is the
+   * Y raise and nothing but its text says so; `Incline_Bench_Pull` is tagged
+   * barbell and its text says "grab a dumbbell in each hand". Name, `equipment`
+   * and `primaryMuscles` are all unreliable — see `selection.ts`. Search this,
+   * then open the two frames, which is still the step that decides.
+   */
+  instructions: string[]
 }
 
 // Their muscle vocabulary -> our MuscleGroup (null = drop)
@@ -153,6 +181,13 @@ async function main() {
   const ORIGINS = join(ROOT, 'content', 'media-origin.json')
   const origins: Record<string, string> = JSON.parse((await readIfPresent(ORIGINS)) ?? '{}')
 
+  // Provenance for the words, beside the provenance for the pictures: what the
+  // source said about each movement we ship, next to what we wrote instead.
+  // Only the shipped entries — the full 873 is 715 KB of someone else's public
+  // repo, and `content/.cache/exercises.json` already holds it for searching.
+  const SOURCE_NOTES = join(ROOT, 'content', 'source-notes.json')
+  const sourceNotes: Record<string, unknown> = {}
+
   const slugs = new Set<string>()
   const exercises = []
   const allSelected: Curated[] = [...SELECTION, ...MOBILITY_ADDITIONS, ...EQUIPMENT_MOBILITY]
@@ -219,12 +254,23 @@ async function main() {
         ('mobility' in sel ? (sel as { mobility?: unknown }).mobility : undefined) ??
         MOBILITY_META[sel.slug],
     })
+    sourceNotes[sel.slug] = {
+      sourceId: sel.sourceId,
+      name: src.name,
+      equipment: src.equipment,
+      mechanic: src.mechanic,
+      level: src.level,
+      primaryMuscles: src.primaryMuscles,
+      secondaryMuscles: src.secondaryMuscles,
+      instructions: src.instructions,
+    }
     process.stdout.write(`✓ ${sel.slug}\n`)
   }
 
   const catalog = { version: 1, exercises }
   await writeFile(join(ROOT, 'content', 'catalog.json'), JSON.stringify(catalog, null, 2))
   await writeFile(ORIGINS, JSON.stringify(origins, null, 2) + '\n')
+  await writeFile(SOURCE_NOTES, JSON.stringify(sourceNotes, null, 2) + '\n')
   const counts: Record<string, number> = {}
   for (const e of exercises) counts[e.role] = (counts[e.role] ?? 0) + 1
   console.log(`\ncatalog.json written: ${exercises.length} exercises`, counts)

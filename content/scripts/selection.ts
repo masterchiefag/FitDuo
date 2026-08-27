@@ -451,6 +451,25 @@ export const SELECTION: Curated[] = [
     ],
   },
   {
+    slug: 'db-scaption',
+    requires: [['dumbbell']],
+    sourceId: 'Dumbbell_Scaption',
+    displayName: 'Scaption Raise',
+    role: 'main',
+    pattern: 'push_v',
+    tier: 1,
+    unilateral: false,
+    repRange: [10, 16],
+    tempoCue: 'Up in 1, pause at shoulder height, lower over 2 — the lowering is the set.',
+    secondsPerRep: 3,
+    setupSeconds: 10,
+    cues: [
+      'Thumbs up, arms angled about 30° in front of you',
+      'Raise to shoulder height — not to the side, not straight ahead',
+      'Lower slowly, no swing',
+    ],
+  },
+  {
     slug: 'db-front-raise',
     requires: [['dumbbell']],
     sourceId: 'Front_Dumbbell_Raise',
@@ -1250,6 +1269,24 @@ export const MOBILITY_META: Record<string, MobilityMeta> = {
     seconds: 35,
     focusCue: 'Lift from between the shoulder blades, not the neck',
   },
+  /**
+   * Scaption is the Y raise, and it earns its place twice.
+   *
+   * In Activate it is cuff and lower-trap work a physio prescribes by name. In
+   * the `push_v` slot it is the ONLY vertical push in the catalog that is not
+   * `shoulder: high` — every other one is a press or a straight-arm raise. A
+   * shoulder that has to avoid high-stress work had nowhere to be sent before
+   * this, because the day templates fill a `push_v` slot whether or not one is
+   * safe (see `LOAD_OVERRIDES` in curate.ts).
+   */
+  'db-scaption': {
+    phase: 'activate',
+    regions: ['shoulders'],
+    seconds: 40,
+    priority: 2,
+    focusCue:
+      'Thumbs up, angled forward — this is the line the shoulder is strongest in, and the one that does not pinch',
+  },
   'db-reverse-fly': {
     phase: 'activate',
     regions: ['thoracic', 'shoulders'],
@@ -1276,6 +1313,78 @@ export const MOBILITY_META: Record<string, MobilityMeta> = {
 
 /** Mobility-only movements — the posture work the strength catalog was missing. */
 export const MOBILITY_ADDITIONS: (Curated & { mobility: MobilityMeta })[] = [
+  /**
+   * The W of Y-T-W, under the name the dataset files it as.
+   *
+   * `Cuban_Press` is a rotation followed by an overhead press, and its two
+   * frames stop at the top of the ROTATION — scarecrow, then forearms vertical.
+   * So the frames are the W exactly, and the press exists only in prose we do
+   * not ship. Cued as the rotation: the press would add a high-stress vertical
+   * push to the phase that exists to avoid one.
+   */
+  {
+    slug: 'db-cuban-rotation',
+    requires: [['dumbbell']],
+    sourceId: 'Cuban_Press',
+    displayName: 'Cuban Rotation',
+    role: 'mobility',
+    pattern: 'mobility',
+    tier: 2,
+    unilateral: false,
+    repRange: [8, 12],
+    secondsPerRep: 4,
+    setupSeconds: 10,
+    cues: [
+      'Upper arms out level with the floor, forearms hanging down',
+      'Rotate the forearms up until they point at the ceiling',
+      'Elbows stay where they are — light weight, slow return',
+    ],
+    mobility: {
+      phase: 'activate',
+      regions: ['shoulders', 'thoracic'],
+      seconds: 45,
+      // Priority 1, with `band-pull-apart` and the band rotations left at 2.
+      // Three new priority-2 movements crowded the band work out of the short
+      // sessions — a ten-minute Activate takes two movements, so every addition
+      // at the top tier is a subtraction from what was already there. Daily
+      // band cuff work is the thing being trained; Y/T/W variety is what a
+      // longer session can afford (Grok, PR #42).
+      priority: 1,
+      focusCue:
+        'The hardest thing to train and the first thing to go — external rotation with the arm up',
+    },
+  },
+  /**
+   * The T and the W in one rep: rear delts open the arms, thumbs finish
+   * pointing up. Distinct from `db-reverse-fly`, which stops at the opening.
+   */
+  {
+    slug: 'db-reverse-fly-rotation',
+    requires: [['dumbbell']],
+    setupNote:
+      'Shown chest-supported on an incline bench — hinge forward at the hips instead; same movement.',
+    sourceId: 'Reverse_Flyes_With_External_Rotation',
+    displayName: 'Reverse Fly with Rotation',
+    role: 'mobility',
+    pattern: 'mobility',
+    tier: 2,
+    unilateral: false,
+    repRange: [8, 14],
+    secondsPerRep: 4,
+    setupSeconds: 10,
+    cues: [
+      'Hinge forward, arms hanging, palms facing each other',
+      'Open wide and turn the thumbs up at the top',
+      'Lower under control — the turn is the point, not the height',
+    ],
+    mobility: {
+      phase: 'activate',
+      regions: ['thoracic', 'shoulders'],
+      seconds: 45,
+      priority: 1,
+      focusCue: 'Opening and turning together — the mid-back and the cuff do one job here',
+    },
+  },
   {
     slug: 'elbows-back',
     requires: [['bodyweight']],

@@ -170,14 +170,37 @@ describe('mobility sessions', () => {
       const target = item.perPerson.p1!
       expect(target.targetReps, item.exerciseId).toBeGreaterThan(1)
     }
-    // A band movement is prescribed a band the person owns, not a bare number.
+    // Band work is prescribed a colour the person owns, never a bare number.
+    // Asked across a fortnight rather than of one day: the Activate pool holds
+    // eight priority movements and a ten-minute session takes two, so "today
+    // has a band in it" is a claim about the shuffle, not about the catalog.
     const catalogById = new Map(catalog.map((e) => [e.id, e]))
-    const banded = activate.items.find((i) =>
-      catalogById.get(i.exerciseId)!.requires.flat().includes('band'),
-    )
-    expect(banded).toBeDefined()
-    const force = banded!.perPerson.p1!.weight
-    expect(BAND_COLOURS.slice(0, 3).map((c) => BAND_FORCE_KG[c])).toContain(force)
+    const owned = BAND_COLOURS.slice(0, 3).map((c) => BAND_FORCE_KG[c])
+    let daysWithBand = 0
+    for (let d = 14; d < 28; d++) {
+      const day = generateMobilitySession({
+        ...base,
+        dateISO: `2026-08-${d}`,
+        focus: 'posture',
+        participants: [soloParticipant(base.equipment)],
+        targetSeconds: 10 * 60,
+      })
+      for (const b of day.blocks) {
+        if (b.kind !== 'activate') continue
+        const banded = b.items.filter((i) =>
+          catalogById.get(i.exerciseId)!.requires.flat().includes('band'),
+        )
+        if (banded.length > 0) daysWithBand += 1
+        for (const i of banded) expect(owned, i.exerciseId).toContain(i.perPerson.p1!.weight)
+      }
+    }
+    // Twelve of fourteen at ten minutes. The bar sat at four while three new
+    // priority-2 movements were crowding the band rotations out of the short
+    // sessions — a widened test standing in for a programming change nobody
+    // chose. Cuban Rotation and Reverse Fly with Rotation dropped to priority 1
+    // and the daily cuff work came back (Grok, PR #42), so the bar states what
+    // is actually true and will fail if the next addition takes it away again.
+    expect(daysWithBand, 'band work over a fortnight').toBeGreaterThanOrEqual(10)
   })
 
   it('is deterministic for the same day and focus', () => {
@@ -231,6 +254,11 @@ describe('mobility sessions', () => {
       'scap-retraction',
       'prone-rear-delt-raise',
       'shoulder-external-rotation',
+      'db-scaption',
+      'db-cuban-rotation',
+      'db-reverse-fly-rotation',
+      'band-external-rotation',
+      'band-pull-apart',
       'superman',
       'db-reverse-fly',
       'chin-tuck',
@@ -360,10 +388,23 @@ describe('mobility sessions', () => {
      * widening a focus can never shorten a session that gains nothing from it.
      */
     it('gives unspent breadth back to the focus', () => {
+      // Measured over the TIMED phases only. Comparing whole sessions was a
+      // proxy for this, and a valid one while every movement in every phase
+      // cost the same 40-second hold. Activate movements are sets now and
+      // differ by 2x — a unilateral band rotation is 12 reps a side, a scapular
+      // retraction is 12 total — so at five minutes, where `minOne` admits
+      // exactly one movement, two focuses can differ by more than breadth ever
+      // could. That difference is the phase working as designed, and it was
+      // drowning the property this test is named for.
+      const timedSeconds = (focus: MobilityFocus, minutes: number) =>
+        gen(focus, base.equipment, minutes)
+          .blocks.filter((b) => b.kind === 'mobility')
+          .flatMap((b) => b.items)
+          .reduce((a, i) => a + i.seconds, 0)
       for (const minutes of [5, 10, 20, 30]) {
-        const full = gen('full_body', base.equipment, minutes).estimatedSeconds
-        const posture = gen('posture', base.equipment, minutes).estimatedSeconds
-        expect(full, `@ ${minutes}min`).toBeGreaterThanOrEqual(posture * 0.9)
+        expect(timedSeconds('full_body', minutes), `@ ${minutes}min`).toBeGreaterThanOrEqual(
+          timedSeconds('posture', minutes) * 0.9,
+        )
       }
     })
 
