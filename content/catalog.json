@@ -3303,7 +3303,7 @@
           "thoracic"
         ],
         "seconds": 45,
-        "priority": 2,
+        "priority": 1,
         "focusCue": "The hardest thing to train and the first thing to go — external rotation with the arm up"
       }
     },
@@ -3341,57 +3341,6 @@
           "Lower under control — the turn is the point, not the height"
         ]
       },
-      "loads": [],
-      "mobility": {
-        "phase": "activate",
-        "regions": [
-          "thoracic",
-          "shoulders"
-        ],
-        "seconds": 45,
-        "priority": 2,
-        "focusCue": "Opening and turning together — the mid-back and the cuff do one job here"
-      }
-    },
-    {
-      "id": "farmers-walk",
-      "name": "Farmer's Walk",
-      "role": "mobility",
-      "requires": [
-        [
-          "dumbbell"
-        ]
-      ],
-      "pattern": "mobility",
-      "primaryMuscles": [
-        "core"
-      ],
-      "secondaryMuscles": [
-        "glutes",
-        "hamstrings",
-        "quads",
-        "back"
-      ],
-      "tier": 1,
-      "unilateral": false,
-      "repRange": [
-        2,
-        5
-      ],
-      "secondsPerRep": 15,
-      "setupSeconds": 15,
-      "setupNote": "Shown outdoors with loaded bars — one dumbbell in each hand is the same walk. A corridor and a turn is enough room.",
-      "media": {
-        "images": [
-          "/exercise-media/farmers-walk_0.webp",
-          "/exercise-media/farmers-walk_1.webp"
-        ],
-        "instructions": [
-          "A weight in each hand, arms straight down",
-          "One rep is one length — walk it slowly, then turn",
-          "Stand tall the whole way: chest up, shoulders back, no rounding"
-        ]
-      },
       "loads": [
         {
           "area": "lower_back",
@@ -3401,13 +3350,12 @@
       "mobility": {
         "phase": "activate",
         "regions": [
-          "shoulders",
           "thoracic",
-          "lower_back"
+          "shoulders"
         ],
-        "seconds": 40,
+        "seconds": 45,
         "priority": 1,
-        "focusCue": "Holding a tall posture while loaded — the thing a stiff upper back stops doing first"
+        "focusCue": "Opening and turning together — the mid-back and the cuff do one job here"
       }
     },
     {

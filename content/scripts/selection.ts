@@ -1343,7 +1343,13 @@ export const MOBILITY_ADDITIONS: (Curated & { mobility: MobilityMeta })[] = [
       phase: 'activate',
       regions: ['shoulders', 'thoracic'],
       seconds: 45,
-      priority: 2,
+      // Priority 1, with `band-pull-apart` and the band rotations left at 2.
+      // Three new priority-2 movements crowded the band work out of the short
+      // sessions — a ten-minute Activate takes two movements, so every addition
+      // at the top tier is a subtraction from what was already there. Daily
+      // band cuff work is the thing being trained; Y/T/W variety is what a
+      // longer session can afford (Grok, PR #42).
+      priority: 1,
       focusCue:
         'The hardest thing to train and the first thing to go — external rotation with the arm up',
     },
@@ -1375,56 +1381,8 @@ export const MOBILITY_ADDITIONS: (Curated & { mobility: MobilityMeta })[] = [
       phase: 'activate',
       regions: ['thoracic', 'shoulders'],
       seconds: 45,
-      priority: 2,
-      focusCue: 'Opening and turning together — the mid-back and the cuff do one job here',
-    },
-  },
-  /**
-   * A carry, in the one place the app can currently use one: `carry` is a
-   * pattern the generator knows and NO day template asks for, so a carry added
-   * as a main would never be selected. Activate can select it today, and it is
-   * postural endurance under load — which is what a carry trains and what
-   * picking things up all day demands.
-   */
-  {
-    slug: 'farmers-walk',
-    requires: [['dumbbell']],
-    setupNote:
-      'Shown outdoors with loaded bars — one dumbbell in each hand is the same walk. A corridor and a turn is enough room.',
-    sourceId: 'Farmers_Walk',
-    displayName: "Farmer's Walk",
-    role: 'mobility',
-    pattern: 'mobility',
-    tier: 1,
-    unilateral: false,
-    /**
-     * A rep is one length — down the room, or down and back if the room is
-     * short. `[1, 1]` would have been the natural reading of "walk for 40
-     * seconds", and it is the one thing this must not say: that range means
-     * "timed hold" everywhere else in the catalog, which routes the movement
-     * into the UNLOADED half of the Activate phase. A carry with no weight is
-     * walking.
-     */
-    repRange: [2, 5],
-    secondsPerRep: 15,
-    setupSeconds: 15,
-    cues: [
-      'A weight in each hand, arms straight down',
-      // Says what a rep is, because the panel counts them and nothing else on
-      // that screen explains what one length of walking has to do with a rep.
-      'One rep is one length — walk it slowly, then turn',
-      'Stand tall the whole way: chest up, shoulders back, no rounding',
-    ],
-    mobility: {
-      phase: 'activate',
-      regions: ['shoulders', 'thoracic', 'lower_back'],
-      seconds: 40,
-      // Deliberately not a priority movement: a loaded carry costs more of the
-      // phase than any cuff movement does, and cuff work is what the phase is
-      // for. It surfaces when a longer session can afford it.
       priority: 1,
-      focusCue:
-        'Holding a tall posture while loaded — the thing a stiff upper back stops doing first',
+      focusCue: 'Opening and turning together — the mid-back and the cuff do one job here',
     },
   },
   {

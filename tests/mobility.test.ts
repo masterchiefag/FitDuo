@@ -194,7 +194,13 @@ describe('mobility sessions', () => {
         for (const i of banded) expect(owned, i.exerciseId).toContain(i.perPerson.p1!.weight)
       }
     }
-    expect(daysWithBand, 'band work over a fortnight').toBeGreaterThanOrEqual(4)
+    // Twelve of fourteen at ten minutes. The bar sat at four while three new
+    // priority-2 movements were crowding the band rotations out of the short
+    // sessions — a widened test standing in for a programming change nobody
+    // chose. Cuban Rotation and Reverse Fly with Rotation dropped to priority 1
+    // and the daily cuff work came back (Grok, PR #42), so the bar states what
+    // is actually true and will fail if the next addition takes it away again.
+    expect(daysWithBand, 'band work over a fortnight').toBeGreaterThanOrEqual(10)
   })
 
   it('is deterministic for the same day and focus', () => {
@@ -251,6 +257,8 @@ describe('mobility sessions', () => {
       'db-scaption',
       'db-cuban-rotation',
       'db-reverse-fly-rotation',
+      'band-external-rotation',
+      'band-pull-apart',
       'superman',
       'db-reverse-fly',
       'chin-tuck',

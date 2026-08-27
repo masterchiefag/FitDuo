@@ -54,9 +54,12 @@ const LOAD_OVERRIDES: Record<string, Load[]> = {
   // ones they take away. It is the only safe harbour the `push_v` slot has.
   'db-scaption': [{ area: 'shoulder', stress: 'moderate' }],
   'db-cuban-rotation': [{ area: 'shoulder', stress: 'moderate' }],
-  // A carry loads the spine by hanging off it, and the grip gives out first —
-  // which is the safety feature, not a defect.
-  'farmers-walk': [{ area: 'lower_back', stress: 'moderate' }],
+  // Recued OFF the chest-supported bench the photo shows, so it carries MORE
+  // spinal load than the demo, not less — and `pattern: 'mobility'` defaults to
+  // no load at all. Its sibling `db-reverse-fly` inherits `lower_back:
+  // moderate` from `pull_h` and this one would have shipped unloaded, which is
+  // exactly the wrong answer for whatever reads `loads` next (Grok, PR #42).
+  'db-reverse-fly-rotation': [{ area: 'lower_back', stress: 'moderate' }],
   'db-lateral-raise': [{ area: 'shoulder', stress: 'high' }],
   'db-front-raise': [{ area: 'shoulder', stress: 'high' }],
   'db-upright-row': [{ area: 'shoulder', stress: 'high' }],

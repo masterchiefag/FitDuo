@@ -260,14 +260,15 @@ test('a mobility session opens on what it works, and on the kit it needs', async
   // on the reasoning that relief days have no loads. PR #41 gave Activate real
   // sets on a band, so the panel has to say what to fetch; suppressing it hid
   // the one piece of kit the session needs until the third phase.
-  // The example profile owns no bands — deliberately, since prescribing a band
-  // nobody owns is the worse failure (content/profiles.example.json) — so this
-  // relief session has nothing to fetch and the panel stays away. What must
-  // never come back is the old blanket rule: the panel is suppressed by an
-  // empty kit, not by the mode, or the day a band IS owned the person finds
-  // out at the third phase. The kit line itself is covered against real band
-  // movements in tests/resistance.test.ts.
-  await expect(page.getByText(/to have out/)).toHaveCount(0)
+  // This asserted `toHaveCount(0)` when it was written, and the reason given
+  // was the premise rather than the rule: the example household owns no bands,
+  // so there was nothing to fetch. PR #42 put Y/T/W into Activate as DUMBBELL
+  // movements, which that household does own — so the same rule now produces
+  // the opposite screen, and the positive case is finally the one on test.
+  // The rule is unchanged and is the point: suppressed by an empty kit, never
+  // by the mode. One card per participant, and the default is both.
+  await expect(page.getByText(/to have out/)).toHaveCount(2)
+  await expect(page.getByText(/\d+(\.\d+)? kg/).first()).toBeVisible()
   // Never the force a colour pulls: "1.7 kg" is not a thing anyone picks up.
   await expect(page.getByText(/1\.7 kg|0\.9 kg|2\.7 kg/)).toHaveCount(0)
   // And the line must not deny load on a session that now progresses band work.
