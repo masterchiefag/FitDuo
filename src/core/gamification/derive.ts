@@ -142,6 +142,21 @@ const MODE_XP: Record<SessionMode, { base: number; fullClear: number }> = {
   mobility: { base: 20, fullClear: 0 },
 }
 
+/**
+ * The most a quit relief session can pay — half of what finishing one pays.
+ *
+ * Every other mode gets this invariant for free: completing adds `base` on top
+ * of the same per-set total abandoning earns, so completing always wins by
+ * `base`. Relief is paid a FLAT rate for finishing, deliberately — it is not
+ * measured in sets — and that flat rate had nothing to beat while relief logged
+ * no sets at all. Activate logs them now, and twelve sets of cuff work paid 24
+ * for pressing ✕ against 20 for pressing Continue (Grok, PR #41).
+ *
+ * A cap rather than a per-set rule for the completed side, because paying
+ * relief by the set is the thing the flat rate exists to avoid.
+ */
+const ABANDONED_MOBILITY_XP_CAP = Math.floor(MODE_XP.mobility.base / 2)
+
 function sessionXp(session: SessionEvent, sets: SetEvent[], prCount: number): number {
   // Recovery work counts for the streak but is not a strength session.
   if (session.mode === 'mobility') return MODE_XP.mobility.base
@@ -204,6 +219,11 @@ export function deriveStats(
   const prCountBySession = new Map<number, number>()
   for (const s of mySets) {
     if (s.assumed) continue
+    // Cuff work at 2.5 kg is not a personal record, and the day it beats a row
+    // is the day the record stops meaning anything. Same rule as
+    // `sessionsCompleted` below: recovery work is real, and it is not strength
+    // accounting.
+    if (sessionOf(s.loggedAt)?.mode === 'mobility') continue
     const e = epleyE1rm(s.weight, s.actualReps)
     if (e > 0 && e > (bestE1rm.get(s.exerciseId) ?? 0) + 1e-9) {
       if (bestE1rm.has(s.exerciseId)) {
@@ -235,7 +255,16 @@ export function deriveStats(
     const completed = completedDates.has(d)
     const daySessions = mySessions.filter((s) => s.dateISO === d)
     const setsOf = (s: SessionEvent) => setsBySession.get(s.startedAt) ?? []
-    const daySets = [...daySessions.flatMap(setsOf), ...(orphanSetsByDate.get(d) ?? [])]
+    // Lifetime tonnage counts strength days only — the same line
+    // `sessionsCompleted` draws, and for the same reason. A relief session
+    // still reports its own volume on its own celebration card, which is a
+    // true statement about that session; what it must not do is inflate the
+    // number that unlocks `volume_10t`. Orphan sets predate the split and are
+    // all strength work.
+    const daySets = [
+      ...daySessions.filter((s) => s.mode !== 'mobility').flatMap(setsOf),
+      ...(orphanSetsByDate.get(d) ?? []),
+    ]
     totalVolumeKg += daySets.reduce((a, s) => a + s.weight * s.actualReps, 0)
 
     // XP is per SESSION; streaks, freezes and achievements are per DAY.
@@ -245,7 +274,15 @@ export function deriveStats(
         if (session.mode !== 'mobility') sessionsCompleted += 1
         totalXp += sessionXp(session, setsOf(session), prCountBySession.get(session.startedAt) ?? 0)
       } else {
-        totalXp += 2 * setsOf(session).length // abandoned work still counts
+        // Abandoned work still counts — but a relief session is paid a flat
+        // rate for finishing, and per-set for quitting would now beat it.
+        // Activate logs sets; a 30-minute posture session logs about twelve, so
+        // hitting ✕ after the last one paid 24 against the 20 for pressing
+        // Continue. Completing must never lose to quitting (Grok, PR #41).
+        totalXp +=
+          session.mode === 'mobility'
+            ? Math.min(2 * setsOf(session).length, ABANDONED_MOBILITY_XP_CAP)
+            : 2 * setsOf(session).length
       }
     }
     // Sets with no owning session still represent work done.
@@ -314,20 +351,46 @@ export function deriveStats(
   }
 }
 
+/**
+ * Which progression a set belongs to. Two tracks, never one.
+ *
+ * `db-reverse-fly` is both a `pull_h` main and an Activate movement, and it is
+ * not the only one. Pooling them would let Sunday's 2 kg cuff work set Monday's
+ * rear-delt prescription — the strength day would open at a rehab weight and
+ * "progress" downwards, which is the opposite of what either session is for.
+ *
+ * This is also how `types.ts`'s rule that recovery days do not drive
+ * progression stays literally true: they drive their own, and never strength's.
+ */
+export type ProgressionTrack = 'strength' | 'relief'
+
+const trackOf = (mode: SessionMode): ProgressionTrack =>
+  mode === 'mobility' ? 'relief' : 'strength'
+
 /** Per-exercise progression state for the generator, derived from the log. */
 export function deriveProgression(
   userId: string,
   sessions: SessionEvent[],
   sets: SetEvent[],
   feedback: FeedbackEvent[],
+  track: ProgressionTrack = 'strength',
 ): Record<string, ExerciseProgress> {
   const out: Record<string, ExerciseProgress> = {}
   const mySessions = sessions.filter((s) => s.participantIds.includes(userId))
-  const mySets = sets.filter((s) => s.userId === userId).sort((a, b) => a.loggedAt - b.loggedAt)
-  const myFeedback = feedback
-    .filter((f) => f.userId === userId)
-    .sort((a, b) => a.loggedAt - b.loggedAt)
   const sessionOf = makeEventSessionAssigner(mySessions)
+  // A set with no session to belong to is history from before this split, and
+  // all of that history is strength work — assigning it there keeps every
+  // existing prescription exactly where it was.
+  const onTrack = (loggedAt: number) => {
+    const s = sessionOf(loggedAt)
+    return s ? trackOf(s.mode) === track : track === 'strength'
+  }
+  const mySets = sets
+    .filter((s) => s.userId === userId && onTrack(s.loggedAt))
+    .sort((a, b) => a.loggedAt - b.loggedAt)
+  const myFeedback = feedback
+    .filter((f) => f.userId === userId && onTrack(f.loggedAt))
+    .sort((a, b) => a.loggedAt - b.loggedAt)
   const keyOf = (loggedAt: number) => sessionOf(loggedAt)?.startedAt ?? localDateISO(loggedAt)
 
   const setsByExercise = new Map<string, SetEvent[]>()

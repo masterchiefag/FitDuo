@@ -157,23 +157,30 @@ describe('exercise catalog', () => {
   })
 
   /**
-   * The invariant that makes the exercise-scoped `isWeighted` correct, asserted
-   * rather than assumed. A movement whose kits disagree about dumbbells —
-   * `[['dumbbell'], ['band']]` — cannot have its load decided without knowing
-   * whose kit it is, and `isWeighted` would call it unloaded for everyone,
-   * including the person holding 15 kg.
+   * The invariant that makes the exercise-scoped `resistanceKind` correct,
+   * asserted rather than assumed. A movement whose kits disagree about how it
+   * is loaded — `[['dumbbell'], ['band']]` — cannot have its ladder decided
+   * without knowing whose kit it is, and `resistanceKind` would answer `none`
+   * for everyone, including the person holding 15 kg.
+   *
+   * Now that bands are a ladder too, this asks the sharper question: not "does
+   * every kit mention a dumbbell" but "does every kit load this the same way".
+   * A movement offering `[['dumbbell'], ['band']]` was always broken here; it
+   * would now be broken in two directions at once.
    *
    * This is the guard for that accepted risk. Pool depth is NOT: adding a band
    * alternative to a thin pattern makes the pool *deeper*, so a depth test goes
    * green while the load bug ships. Breaking this test is the signal to make
    * load person-scoped, not to widen the test.
    */
-  it('no exercise mixes loaded and unloaded kits', () => {
+  it('no exercise mixes kits that disagree about how it is loaded', () => {
     for (const ex of catalog.exercises) {
-      const loaded = ex.requires.map((kit) => kit.includes('dumbbell'))
+      const kinds = ex.requires.map((kit) =>
+        kit.includes('dumbbell') ? 'dumbbell' : kit.includes('band') ? 'band' : 'none',
+      )
       expect(
-        new Set(loaded).size,
-        `${ex.id} has kits that disagree about dumbbells: ${JSON.stringify(ex.requires)} — load must become person-scoped (see isWeighted)`,
+        new Set(kinds).size,
+        `${ex.id} has kits that disagree about load: ${JSON.stringify(ex.requires)} — load must become person-scoped (see resistanceKind)`,
       ).toBe(1)
     }
   })

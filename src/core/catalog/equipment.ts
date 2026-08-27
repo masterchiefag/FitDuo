@@ -51,19 +51,3 @@ export function canPerform(ex: Exercise, owned: readonly Equipment[]): boolean {
 export function allCanPerform(ex: Exercise, kits: readonly (readonly Equipment[])[]): boolean {
   return kits.length > 0 && kits.every((kit) => canPerform(ex, kit))
 }
-
-/**
- * Whether a weight target means anything for this movement.
- *
- * Exercise-scoped, which is only correct while every kit for a movement agrees
- * about dumbbells — true of all 95 today. **Accepted risk, not an oversight:**
- * the day a movement offers `[['dumbbell'], ['band']]`, load has to be decided
- * from the person's kit instead, or someone gets a weight target they cannot
- * lift. Nothing in the catalog is mixed, so the per-person version is not built
- * (docs/DECISIONS.md rung 0) — but the invariant that keeps this correct is
- * asserted in tests/catalog.test.ts ("no exercise mixes loaded and unloaded
- * kits"). Breaking that test is the signal to make load person-scoped.
- */
-export function isWeighted(ex: Exercise): boolean {
-  return ex.requires.every((kit) => kit.includes('dumbbell'))
-}

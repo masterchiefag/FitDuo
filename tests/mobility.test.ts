@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { catalogSchema, type Equipment } from '../src/core/catalog/types'
+import { BAND_COLOURS, BAND_FORCE_KG } from '../src/core/catalog/resistance'
+import type { ParticipantInput, WorkoutPlan } from '../src/core/generator/types'
 import {
   MOBILITY_FOCUS,
   generateMobilitySession,
@@ -17,18 +19,39 @@ const base = {
   dateISO: '2026-08-14',
   generatorVersion: 1,
   catalog,
-  participantIds: ['p1'],
   equipment: ['bodyweight', 'dumbbell', 'band', 'roller'] as const,
 }
 
-// One kit per participant; the solo default is the single kit under test.
+/** One participant per kit; the solo default is the single kit under test. */
+const soloParticipant = (equipment: readonly Equipment[]): ParticipantInput => ({
+  userId: 'p1',
+  availableWeights: [2.5, 5, 7.5, 10],
+  availableBands: ['yellow', 'red', 'green'],
+  equipment: [...equipment],
+  maxTier: 2,
+  progression: {},
+})
+
 const gen = (focus: MobilityFocus, equipment = base.equipment, minutes = 10) =>
   generateMobilitySession({
     ...base,
     focus,
-    kits: [[...equipment]],
+    participants: [soloParticipant(equipment)],
     targetSeconds: minutes * 60,
   })
+
+/**
+ * The Activate phase is a work block when its movements carry reps — which is
+ * the whole point of it — and a timed block only where the catalog still says
+ * `[1, 1]`. A phase holding some of each emits both, named apart. Tests ask for
+ * the phase, not for a block kind.
+ */
+const activateItems = (plan: WorkoutPlan) =>
+  plan.blocks
+    .filter(
+      (b) => b.kind === 'activate' || (b.kind === 'mobility' && b.label.startsWith('Activate')),
+    )
+    .flatMap((b) => b.items)
 
 describe('mobility sessions', () => {
   const focuses = Object.keys(MOBILITY_FOCUS) as MobilityFocus[]
@@ -36,9 +59,18 @@ describe('mobility sessions', () => {
   it('every focus produces a session of mobilise → open → activate', () => {
     for (const focus of focuses) {
       const plan = gen(focus)
-      const labels = plan.blocks.map((b) => (b.kind === 'mobility' ? b.label : b.kind))
-      expect(labels, focus).toEqual(['Mobilise', 'Open', 'Activate'])
-      expect(plan.blocks.every((b) => b.kind === 'mobility')).toBe(true)
+      const phases = plan.blocks.map((b) =>
+        b.kind === 'activate' ? b.label : b.kind === 'mobility' ? b.label : b.kind,
+      )
+      expect(phases.slice(0, 2), focus).toEqual(['Mobilise', 'Open'])
+      expect(
+        phases.slice(2).every((p) => p.startsWith('Activate')),
+        focus,
+      ).toBe(true)
+      expect(
+        plan.blocks.every((b) => b.kind === 'mobility' || b.kind === 'activate'),
+        focus,
+      ).toBe(true)
     }
   })
 
@@ -87,7 +119,7 @@ describe('mobility sessions', () => {
           const where = `${label} ${dateISO} @ ${minutes}min`
           const plan = generateMobilitySession({
             ...base,
-            kits: [equipment],
+            participants: [soloParticipant(equipment)],
             focus: 'posture',
             dateISO,
             targetSeconds: minutes * 60,
@@ -120,10 +152,32 @@ describe('mobility sessions', () => {
   })
 
   it('activation work survives even the shortest session', () => {
-    const plan = gen('posture', base.equipment, 5)
-    const activate = plan.blocks.find((b) => b.kind === 'mobility' && b.label === 'Activate')
+    expect(activateItems(gen('posture', base.equipment, 5)).length).toBeGreaterThanOrEqual(1)
+  })
+
+  /**
+   * The point of the whole phase. A relief session that prescribes the same 45
+   * seconds of band work every week maintains a shoulder; it does not
+   * strengthen one, and strengthening is what the Activate phase exists for.
+   */
+  it('prescribes activation as loaded sets, and progresses them', () => {
+    const plan = gen('posture')
+    const activate = plan.blocks.find((b) => b.kind === 'activate')
     expect(activate).toBeDefined()
-    expect(activate!.items.length).toBeGreaterThanOrEqual(1)
+    if (activate?.kind !== 'activate') throw new Error('unreachable')
+    expect(activate.rounds).toBeGreaterThanOrEqual(2)
+    for (const item of activate.items) {
+      const target = item.perPerson.p1!
+      expect(target.targetReps, item.exerciseId).toBeGreaterThan(1)
+    }
+    // A band movement is prescribed a band the person owns, not a bare number.
+    const catalogById = new Map(catalog.map((e) => [e.id, e]))
+    const banded = activate.items.find((i) =>
+      catalogById.get(i.exerciseId)!.requires.flat().includes('band'),
+    )
+    expect(banded).toBeDefined()
+    const force = banded!.perPerson.p1!.weight
+    expect(BAND_COLOURS.slice(0, 3).map((c) => BAND_FORCE_KG[c])).toContain(force)
   })
 
   it('is deterministic for the same day and focus', () => {
@@ -162,11 +216,14 @@ describe('mobility sessions', () => {
   })
 
   it('posture sessions include real mid-back activation, not just stretching', () => {
-    const plan = gen('posture')
-    const activate = plan.blocks.find((b) => b.kind === 'mobility' && b.label === 'Activate')!
-    expect(activate.items.length).toBeGreaterThanOrEqual(3)
+    // Two at ten minutes, three at twenty. Sets cost what holds did not, so
+    // the count is now a function of the clock — the number to defend is that
+    // activation scales WITH the session rather than staying a token gesture.
+    const items = activateItems(gen('posture'))
+    expect(items.length).toBeGreaterThanOrEqual(2)
+    expect(activateItems(gen('posture', base.equipment, 20)).length).toBeGreaterThanOrEqual(3)
     // The whole point: something must switch the mid-back / cuff on.
-    const ids = activate.items.map((i) => i.exerciseId)
+    const ids = items.map((i) => i.exerciseId)
     const strengtheners = [
       'band-pull-apart',
       'band-rear-fly',
@@ -227,7 +284,7 @@ describe('mobility sessions', () => {
             ...base,
             dateISO,
             focus: 'full_body',
-            kits: [kit],
+            participants: [soloParticipant(kit)],
             targetSeconds: 5 * 60,
           }).blocks.flatMap((b) => b.items.map((i) => i.exerciseId))
           const breadthOnly = ids.filter(
@@ -285,7 +342,7 @@ describe('mobility sessions', () => {
               ...base,
               dateISO,
               focus: 'full_body',
-              kits: [kit],
+              participants: [soloParticipant(kit)],
               targetSeconds: minutes * 60,
             }).blocks.flatMap((b) => b.items.map((i) => i.exerciseId))
             expect(
@@ -336,7 +393,7 @@ describe('mobility sessions', () => {
           const mobilise = generateMobilitySession({
             ...base,
             focus: 'lower_back_hips',
-            kits: [kit],
+            participants: [soloParticipant(kit)],
             targetSeconds: minutes * 60,
           }).blocks.find((b) => b.label === 'Mobilise')!
           const ids = mobilise.items.map((i) => i.exerciseId)
@@ -370,7 +427,10 @@ describe('mobility sessions', () => {
             ex.mobility.regions.some((r) => LEG_REGIONS.includes(r)) &&
             ex.requires.some((k) => k.every((item) => item === 'bodyweight')),
         )
-        expect(legWork.map((e) => e.id), `${phase} has no unloaded lower-body work`).not.toEqual([])
+        expect(
+          legWork.map((e) => e.id),
+          `${phase} has no unloaded lower-body work`,
+        ).not.toEqual([])
       }
     })
 
@@ -394,7 +454,8 @@ describe('mobility sessions', () => {
           expect(ex, item.exerciseId).toBeDefined()
           expect(ex!.mobility).toBeDefined()
           expect(ex!.media.images).toHaveLength(2)
-          expect(item.seconds).toBeGreaterThan(0)
+          // A hold is billed in seconds, a set in the time its reps take.
+          expect('seconds' in item ? item.seconds : item.workSeconds).toBeGreaterThan(0)
         }
       }
     }

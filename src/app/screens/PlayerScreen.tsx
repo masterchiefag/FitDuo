@@ -19,15 +19,14 @@ import type {
 } from '../../core/generator/types'
 import type { Overrides, PlayerState } from '../../core/player/types'
 import type { Exercise } from '../../core/catalog/types'
+import { grabLabel, lastTimeLabel, loadLabel } from '../lib/load'
+import { isWorkBlock, type WorkBlock } from '../../core/player/position'
+import { ladderFor } from '../../core/catalog/resistance'
+import { stepWeight } from '../../core/generator/progression'
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
-const fmtWeight = (w: number) => (w === 0 ? 'bodyweight' : `${w} kg`)
 const holdSeconds = (ex: Exercise) => (ex.repRange[1] === 1 ? ex.secondsPerRep : null)
-/** The one thing to do before a set starts: pick up the right bell. */
-const grabLabel = (t: PersonTarget) => (t.weight === 0 ? 'Bodyweight' : `Grab ${t.weight} kg`)
-const lastTimeLabel = (last: LastPerformance) =>
-  last.weight === 0 ? `${last.reps} reps` : `${last.weight} kg × ${last.reps}`
 
 function phaseTotalSeconds(plan: WorkoutPlan, state: PlayerState): number {
   switch (state.phase) {
@@ -39,14 +38,14 @@ function phaseTotalSeconds(plan: WorkoutPlan, state: PlayerState): number {
     }
     case 'work': {
       const b = plan.blocks[state.blockIndex]
-      const item = b && (b.kind === 'superset' || b.kind === 'circuit') ? b.items[state.itemIndex] : undefined
+      const item = b && isWorkBlock(b) ? b.items[state.itemIndex] : undefined
       return item?.workSeconds ?? 1
     }
     case 'changeover':
       return CHANGEOVER_SECONDS
     case 'rest': {
       const b = plan.blocks[state.blockIndex]
-      return b && (b.kind === 'superset' || b.kind === 'circuit') ? b.restSeconds : 1
+      return b && isWorkBlock(b) ? b.restSeconds : 1
     }
     case 'block_transition':
       return BLOCK_TRANSITION_SECONDS
@@ -66,7 +65,7 @@ function phaseTotalSeconds(plan: WorkoutPlan, state: PlayerState): number {
  * cards, where each person has their own.
  */
 function workDoneLine(plan: WorkoutPlan, setsDone: number): string {
-  const blocks = plan.blocks.filter((b) => b.kind === 'superset' || b.kind === 'circuit').length
+  const blocks = plan.blocks.filter(isWorkBlock).length
   const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`
   return `That's the work done — ${plural(blocks, 'block')}, ${plural(setsDone, 'set')}.`
 }
@@ -74,7 +73,7 @@ function workDoneLine(plan: WorkoutPlan, setsDone: number): string {
 /** Linear progress through the whole session, 0..1. */
 function sessionProgress(plan: WorkoutPlan, state: PlayerState): number {
   const steps: number[] = plan.blocks.map((b) =>
-    b.kind === 'superset' || b.kind === 'circuit' ? b.rounds * b.items.length : b.items.length,
+    isWorkBlock(b) ? b.rounds * b.items.length : b.items.length,
   )
   const total = steps.reduce((a, b) => a + b, 0)
   if (total === 0) return 0
@@ -159,13 +158,7 @@ const MEDIA_SIZE = {
   small: 'h-16 w-20 rounded-lg bg-white object-contain',
 } as const
 
-function ExerciseMedia({
-  ex,
-  size = 'large',
-}: {
-  ex: Exercise
-  size?: keyof typeof MEDIA_SIZE
-}) {
+function ExerciseMedia({ ex, size = 'large' }: { ex: Exercise; size?: keyof typeof MEDIA_SIZE }) {
   const [frame, setFrame] = useState(0)
   useEffect(() => {
     const t = setInterval(() => setFrame((f) => (f === 0 ? 1 : 0)), 1100)
@@ -266,9 +259,21 @@ function RingTimer({
  * above the form cues because it is the one that changes what the next rep
  * looks like.
  */
-function Cues({ ex }: { ex: Exercise }) {
+function Cues({ ex, focusCue }: { ex: Exercise; focusCue?: string | undefined }) {
   return (
     <div className="mx-auto mt-4 max-w-2xl">
+      {/* Why this movement is in the session at all — above the tempo, because
+          it is the reason to do the next rep properly rather than the way to.
+          Lives here rather than in `TimedView` so it survives the phase
+          becoming loaded: an Activate set is the one that most needs it, and it
+          was the one screen that had lost it (Grok, PR #41). */}
+      {focusCue && (
+        <p
+          className={`mb-3 rounded-2xl bg-emerald-50 px-4 py-3 font-semibold text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200 ${T.cue}`}
+        >
+          {focusCue}
+        </p>
+      )}
       {ex.tempoCue && (
         <p
           className={`rounded-2xl border-2 border-slate-200 bg-white px-4 py-3 font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 ${T.cue}`}
@@ -330,14 +335,7 @@ function TimedView({
       <div className="mt-4">
         <RingTimer remaining={remaining} total={total} tone={ending ? 'wind_down' : 'work'} />
       </div>
-      {focusCue && (
-        <p
-          className={`mx-auto mt-3 max-w-2xl rounded-2xl bg-emerald-50 px-4 py-3 font-semibold text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200 ${T.cue}`}
-        >
-          {focusCue}
-        </p>
-      )}
-      {exercise && <Cues ex={exercise} />}
+      {exercise && <Cues ex={exercise} focusCue={focusCue} />}
       {ending?.lastOne ? (
         <p className={`mt-4 text-slate-500 dark:text-slate-400 ${T.status}`}>
           Last one — take it slow.
@@ -371,7 +369,7 @@ function TimedView({
  */
 function NextUpPreview({ block }: { block: Block | undefined }) {
   if (!block) return null
-  const rounds = block.kind === 'superset' || block.kind === 'circuit' ? block.rounds : null
+  const rounds = isWorkBlock(block) ? block.rounds : null
   return (
     <div className="mx-auto mt-3 flex max-w-xl flex-wrap items-center justify-center gap-2">
       {block.items.map((item, i) => {
@@ -407,6 +405,7 @@ function NextUpPreview({ block }: { block: Block | undefined }) {
  */
 function NextTargetCard({
   userId,
+  exercise,
   target,
   last,
   hold,
@@ -414,6 +413,8 @@ function NextTargetCard({
   firstAppearance,
 }: {
   userId: string
+  /** Needed to say the load: a band is a colour, a dumbbell is kilos. */
+  exercise: Exercise | undefined
   target: PersonTarget
   last: LastPerformance | undefined
   /** Timed holds have no reps to compare — "last time 1 rep" is not a fact. */
@@ -433,7 +434,7 @@ function NextTargetCard({
       }
     >
       <p className={`${T.person} ${profile.accent.text}`}>{profile.name}</p>
-      <p className={`mt-0.5 ${T.grab}`}>{grabLabel(target)}</p>
+      <p className={`mt-0.5 ${T.grab}`}>{grabLabel(exercise, target.weight)}</p>
       <p className={`font-semibold text-slate-500 dark:text-slate-400 ${T.status}`}>
         {hold ? `${hold}s hold` : `${target.targetReps} reps`}
       </p>
@@ -447,7 +448,7 @@ function NextTargetCard({
         <p
           className={`mt-1 ${T.note} ${note.up ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-500 dark:text-slate-400'}`}
         >
-          Last time {lastTimeLabel(note.last)}
+          Last time {lastTimeLabel(exercise, note.last)}
         </p>
       )}
       {note?.kind === 'first_time' && (
@@ -518,18 +519,18 @@ function TargetPanel({
                 </div>
                 <div className="mt-1 flex flex-wrap items-baseline justify-between gap-x-2 gap-y-1">
                   <p className="text-2xl font-bold whitespace-nowrap text-slate-600 sm:text-3xl dark:text-slate-300">
-                    {fmtWeight(weight)}
+                    {loadLabel(ex, weight)}
                   </p>
                   {target.weight > 0 && onAdjust && (
                     <div className="flex shrink-0 gap-1">
                       <button
-                        onClick={() => onAdjust(userId, 'weight', -2.5)}
+                        onClick={() => onAdjust(userId, 'weight', -1)}
                         className="h-9 w-9 rounded-lg bg-slate-100 text-lg font-bold dark:bg-slate-800"
                       >
                         −
                       </button>
                       <button
-                        onClick={() => onAdjust(userId, 'weight', 2.5)}
+                        onClick={() => onAdjust(userId, 'weight', 1)}
                         className="h-9 w-9 rounded-lg bg-slate-100 text-lg font-bold dark:bg-slate-800"
                       >
                         +
@@ -556,7 +557,7 @@ function WorkView({
   remaining: number
 }) {
   const dispatch = usePlayerStore((s) => s.dispatch)
-  const block = plan.blocks[state.blockIndex] as Extract<Block, { kind: 'superset' | 'circuit' }>
+  const block = plan.blocks[state.blockIndex] as WorkBlock
   const item = block.items[state.itemIndex]!
   const ex = exercisesById.get(item.exerciseId)
   // Adjustments live in the reducer, not here: the set can end on its own
@@ -566,14 +567,30 @@ function WorkView({
   const nextItem = block.items[state.itemIndex + 1]
   const nextEx = nextItem ? exercisesById.get(nextItem.exerciseId) : null
 
+  /**
+   * `delta` is a DIRECTION for weight and an amount for reps.
+   *
+   * Weight moves one rung along the ladder this person actually owns — the same
+   * one `nextTarget` prescribed from — because the alternative is arithmetic on
+   * a number the UI never shows: a band's load is a colour, and 1.7 + 2.5 names
+   * no colour at all. For dumbbells it is the same fix a size smaller, since a
+   * household owning 1, 2.5 and 5 was previously offered 3.5.
+   */
   const adjust = (userId: string, field: 'targetReps' | 'weight', delta: number) => {
     const target = item.perPerson[userId]!
     const current = overrides[userId]?.[field] ?? target[field]
+    if (field === 'weight') {
+      const profile = profileById(userId)
+      const ladder = ex && profile ? ladderFor(ex, profile) : []
+      const next = ladder.length > 0 ? stepWeight(ladder, current, delta > 0 ? 1 : -1) : current
+      dispatch({ type: 'ADJUST', now: Date.now(), userId, target: { weight: next } })
+      return
+    }
     dispatch({
       type: 'ADJUST',
       now: Date.now(),
       userId,
-      target: { [field]: Math.max(field === 'weight' ? 0 : 1, current + delta) },
+      target: { targetReps: Math.max(1, current + delta) },
     })
   }
 
@@ -626,7 +643,10 @@ function WorkView({
               and they were losing the page to a 320 px stock frame. */}
           <ExerciseMedia ex={ex} size="medium" />
           <div className="text-left">
-            <Cues ex={ex} />
+            <Cues
+              ex={ex}
+              focusCue={block.kind === 'activate' ? ex.mobility?.focusCue : undefined}
+            />
           </div>
         </div>
       )}
@@ -680,7 +700,7 @@ function ChangeoverView({
   remaining: number
 }) {
   const dispatch = usePlayerStore((s) => s.dispatch)
-  const block = plan.blocks[state.blockIndex] as Extract<Block, { kind: 'superset' | 'circuit' }>
+  const block = plan.blocks[state.blockIndex] as WorkBlock
   const next = block.items[state.nextItemIndex]
   const nextEx = next ? exercisesById.get(next.exerciseId) : null
   const hold = nextEx ? holdSeconds(nextEx) : null
@@ -704,6 +724,7 @@ function ChangeoverView({
             <NextTargetCard
               key={userId}
               userId={userId}
+              exercise={nextEx ?? undefined}
               target={target}
               last={next.lastTime?.[userId]}
               hold={hold}
@@ -761,7 +782,7 @@ function RestView({
   remaining: number
 }) {
   const dispatch = usePlayerStore((s) => s.dispatch)
-  const block = plan.blocks[state.blockIndex] as Extract<Block, { kind: 'superset' | 'circuit' }>
+  const block = plan.blocks[state.blockIndex] as WorkBlock
   const next = block.items[state.nextItemIndex]
   const nextEx = next ? exercisesById.get(next.exerciseId) : null
   const hold = nextEx ? holdSeconds(nextEx) : null
@@ -777,12 +798,7 @@ function RestView({
         </p>
       )}
       <div className="mt-5">
-        <RingTimer
-          remaining={remaining}
-          total={block.restSeconds}
-          tone="rest"
-          caption="rest"
-        />
+        <RingTimer remaining={remaining} total={block.restSeconds} tone="rest" caption="rest" />
       </div>
       {nextEx && next && (
         <div className="mx-auto mt-6 max-w-xl rounded-2xl border border-slate-200 bg-white p-3 text-left dark:border-slate-800 dark:bg-slate-900">
@@ -809,6 +825,7 @@ function RestView({
               <NextTargetCard
                 key={userId}
                 userId={userId}
+                exercise={nextEx ?? undefined}
                 target={target}
                 last={next.lastTime?.[userId]}
                 hold={hold}
@@ -898,7 +915,7 @@ function BlockGateView({
 }) {
   const dispatch = usePlayerStore((s) => s.dispatch)
   const block = plan.blocks[state.blockIndex]
-  const done = block && (block.kind === 'superset' || block.kind === 'circuit') ? block : null
+  const done = block && isWorkBlock(block) ? block : null
   const nextBlock = plan.blocks[state.nextBlockIndex]
   // Both halves of this screen used to print the plan's own identifier —
   // "Strength B done! Up next: Strength C" — and the first real session read it
@@ -923,9 +940,7 @@ function BlockGateView({
       {/* Framing, never a control — the ratings below are what keep progression
           alive and are the only required tap in the hour (JOURNEY Part 5). */}
       {finisherNext && (
-        <p className={`mt-1 font-bold text-rose-500 ${T.status}`}>
-          🔥 Last block — the Finisher.
-        </p>
+        <p className={`mt-1 font-bold text-rose-500 ${T.status}`}>🔥 Last block — the Finisher.</p>
       )}
       {finisherDone && (
         <p className={`mt-1 text-slate-500 dark:text-slate-400 ${T.status}`}>
@@ -1268,8 +1283,7 @@ export default function PlayerScreen() {
           {state.phase === 'timed' &&
             (() => {
               const b = plan.blocks[state.blockIndex]
-              if (!b || !('items' in b) || b.kind === 'superset' || b.kind === 'circuit')
-                return null
+              if (!b || !('items' in b) || isWorkBlock(b)) return null
               const item = b.items[state.itemIndex] as { exerciseId: string } | undefined
               const next = b.items[state.itemIndex + 1] as { exerciseId: string } | undefined
               const winding = b.kind === 'cooldown'
@@ -1299,9 +1313,7 @@ export default function PlayerScreen() {
                 />
               )
             })()}
-          {state.phase === 'work' && (
-            <WorkView plan={plan} state={state} remaining={remaining} />
-          )}
+          {state.phase === 'work' && <WorkView plan={plan} state={state} remaining={remaining} />}
           {state.phase === 'changeover' && (
             <ChangeoverView plan={plan} state={state} remaining={remaining} />
           )}

@@ -1,3 +1,4 @@
+import type { BandColour } from '../catalog/resistance'
 import type { Equipment, Exercise, MuscleGroup } from '../catalog/types'
 
 export type DayType = 'full_a' | 'full_b' | 'full_c' | 'upper' | 'lower' | 'push' | 'pull' | 'legs'
@@ -23,6 +24,8 @@ export interface DayHistory {
 export interface ParticipantInput {
   userId: string
   availableWeights: number[] // per-dumbbell, sorted asc
+  /** Theraband colours owned, in ladder order — the band-side `availableWeights`. */
+  availableBands: BandColour[]
   /** What this person owns. Per-person, like weights — see `allCanPerform`. */
   equipment: Equipment[]
   maxTier: 1 | 2 | 3
@@ -103,6 +106,25 @@ export type Block =
       rounds: number
       restSeconds: number
       items: WorkItem[] // 3 exercises, finisher
+    }
+  /**
+   * The Activate phase of a relief session, once its movements carry a load.
+   *
+   * Structurally a work block — sets, reps, a resistance, real progression —
+   * because that is what strengthening a rotator cuff is, and reusing
+   * `WorkItem` means the player logs it, `nextTarget` progresses it and history
+   * remembers it without any of them learning a second vocabulary.
+   *
+   * Its own kind rather than a `circuit` for one blunt reason: the player calls
+   * every circuit a finisher, and an Activate block is the opposite of a
+   * finisher — it is the half of a recovery session that changes anything.
+   */
+  | {
+      kind: 'activate'
+      label: string
+      rounds: number
+      restSeconds: number
+      items: WorkItem[]
     }
   | { kind: 'cooldown'; items: TimedItem[] }
 

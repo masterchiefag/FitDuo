@@ -1,6 +1,7 @@
 import type { Exercise, MobilityRegion, MuscleGroup } from '../catalog/types'
 import { pick, shuffle } from './prng'
 import type { Block, TimedItem } from './types'
+import { isWorkBlock } from '../player/position'
 
 /**
  * Which stretches close a strength session, and why those.
@@ -66,8 +67,6 @@ export const MUSCLE_REGIONS: Record<MuscleGroup, MobilityRegion> = {
   core: 'lower_back',
 }
 
-type WorkBlock = Extract<Block, { kind: 'superset' | 'circuit' }>
-
 export interface WorkedRegion {
   region: MobilityRegion
   /** Sets of work that landed on it — the ranking key, not a dose. */
@@ -88,7 +87,7 @@ export interface WorkedRegion {
  */
 export function workedRegions(blocks: Block[], byId: Map<string, Exercise>): WorkedRegion[] {
   const sets = new Map<MobilityRegion, number>()
-  const work = blocks.filter((b): b is WorkBlock => b.kind === 'superset' || b.kind === 'circuit')
+  const work = blocks.filter(isWorkBlock)
   for (const block of work) {
     for (const item of block.items) {
       const ex = byId.get(item.exerciseId)

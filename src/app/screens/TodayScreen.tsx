@@ -14,6 +14,7 @@ import {
 } from '../lib/planner'
 import { localDateISO } from '../../core/dates'
 import { loadSnapshot, clearSnapshot } from '../../infra/localstore'
+import { isWorkBlock } from '../../core/player/position'
 import {
   DEFAULT_MOBILITY_MINUTES,
   MOBILITY_DURATIONS,
@@ -53,12 +54,10 @@ export default function TodayScreen() {
   const stats = useMemo(() => PROFILES.map((p) => ({ profile: p, s: statsFor(p.id) })), [])
 
   const mainExercises = (previewPlan?.blocks ?? [])
-    .flatMap((b) => (b.kind === 'superset' || b.kind === 'circuit' ? b.items : []))
+    .flatMap((b) => (isWorkBlock(b) ? b.items : []))
     .map((i) => exercisesById.get(i.exerciseId)?.name ?? i.exerciseId)
   const mins = Math.round((previewPlan?.estimatedSeconds ?? 0) / 60)
-  const blockCount = (previewPlan?.blocks ?? []).filter(
-    (b) => b.kind === 'superset' || b.kind === 'circuit',
-  ).length
+  const blockCount = (previewPlan?.blocks ?? []).filter(isWorkBlock).length
 
   // Default to everyone, like the strength card — tapping a focus starts
   // immediately, so a solo default silently drops the partner's credit.

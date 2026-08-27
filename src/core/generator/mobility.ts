@@ -1,8 +1,9 @@
 import { allCanPerform } from '../catalog/equipment'
 import type { Equipment, Exercise, MobilityPhase, MobilityRegion } from '../catalog/types'
-import { estimatePlanSeconds } from './generate'
+import { CHANGEOVER_SECONDS } from '../player/reducer'
+import { buildWorkItem, estimatePlanSeconds } from './generate'
 import { fnv1a32, mulberry32, shuffle } from './prng'
-import type { Block, TimedItem, WorkoutPlan } from './types'
+import type { Block, ParticipantInput, TimedItem, WorkoutPlan } from './types'
 
 /**
  * Mobility & Relief sessions: short, unloaded, and structured
@@ -68,14 +69,19 @@ const PHASE_LABEL: Record<MobilityPhase, string> = {
 }
 
 /**
- * Share of the session each phase gets. Open work dominates because holds are
- * long; activation is short but must never be dropped — it is the half that
- * actually changes anything.
+ * Share of the session each phase gets.
+ *
+ * Activation takes the largest share, which is a reversal: open work dominated
+ * while every phase was priced in 40-second holds, and 0.35 of a ten-minute
+ * session bought three of them. Priced as the sets it actually is, that same
+ * share buys ONE movement — a shoulder session with five stretches and a single
+ * set of rotations, which is the shape this file's own header argues against.
+ * Stretching is what reverts by evening; the strengthening is what does not.
  */
 const PHASE_SHARE: Record<MobilityPhase, number> = {
-  mobilise: 0.25,
-  open: 0.4,
-  activate: 0.35,
+  mobilise: 0.2,
+  open: 0.3,
+  activate: 0.5,
 }
 
 /** Offered durations. Duration is a user input, not a property of the routine. */
@@ -89,16 +95,39 @@ export interface MobilityInput {
   generatorVersion: number
   catalog: Exercise[]
   focus: MobilityFocus
-  participantIds: string[]
   /**
-   * One kit per participant, in any order. Everyone does the same movement at
-   * the same time, so a movement is eligible only if EACH of these kits can do
-   * it — see `allCanPerform` for why this is not one intersected list.
+   * Everyone in the session, with their own kit, resistances and progression —
+   * the same shape a strength session takes, because the Activate phase now
+   * prescribes real sets and has the same questions to answer.
+   *
+   * Eligibility still runs per kit and is never intersected: everyone does the
+   * same movement at the same time, so a movement is eligible only if EACH kit
+   * can do it (`allCanPerform`).
    */
-  kits: Equipment[][]
+  participants: ParticipantInput[]
   /** How long they have. The generator fills this budget. */
   targetSeconds?: number
 }
+
+/**
+ * Rounds and rest for the Activate block.
+ *
+ * Two rounds is the floor and what the phase budgets against; a third is taken
+ * only when the movements already chosen leave room for it. That order matters:
+ * breadth across the small muscles is worth more than a third set of one of
+ * them, so rounds spend what breadth could not.
+ *
+ * It is also how this phase lengthens at all. A timed phase fills a long
+ * session by cycling its pool for a second pass — a work block must not, or the
+ * same movement is prescribed twice in one block while `rounds` already says
+ * "do it again". Rounds are that repeat, stated once.
+ *
+ * Rest is short for the reason it is short in a physio clinic: the loads are
+ * light and the limit is control, not fatigue.
+ */
+const ACTIVATE_ROUNDS = 2
+const ACTIVATE_MAX_ROUNDS = 3
+const ACTIVATE_REST_S = 30
 
 function poolFor(
   catalog: Exercise[],
@@ -145,17 +174,47 @@ interface FillOptions {
   minOne: boolean
 }
 
+/**
+ * A movement the catalog prescribes by the clock rather than by reps. The
+ * `[1, 1]` range is the existing language for it — `nextTarget` already refuses
+ * to progress one — so this asks the catalog rather than keeping a list.
+ */
+function isHold(ex: Exercise): boolean {
+  return ex.repRange[0] === 1 && ex.repRange[1] === 1
+}
+
+/**
+ * `fillBudget` may cycle the pool for a second round, which is how a long
+ * relief session lengthens. A work block says the same thing with `rounds`, so
+ * the repeat would be counted twice.
+ */
+function dedupe(list: Exercise[]): Exercise[] {
+  const seen = new Set<string>()
+  return list.filter((ex) => (seen.has(ex.id) ? false : (seen.add(ex.id), true)))
+}
+
 /** Movements from `ordered` that fit `budget`, in rounds. */
-function fillBudget(ordered: Exercise[], budget: number, opts: FillOptions): Exercise[][] {
+function fillBudget(
+  ordered: Exercise[],
+  budget: number,
+  opts: FillOptions,
+  /**
+   * What one movement costs the phase. Defaults to the authored hold length,
+   * which is what a timed phase spends. The Activate phase overrides it: a set
+   * repeated for rounds costs what the player will actually spend on it, and
+   * budgeting a two-round band row as if it were a 45-second hold is how a
+   * five-minute session quietly became nine.
+   */
+  costOf: (ex: Exercise) => number = (ex) => ex.mobility!.seconds,
+): Exercise[][] {
   if (ordered.length === 0) return []
   const maxRounds = opts.allowRepeat && ordered.length >= 4 ? 2 : 1
   const chosen: Exercise[] = []
   let spent = 0
   for (let i = 0; i < ordered.length * maxRounds; i++) {
     const ex = ordered[i % ordered.length]!
-    const seconds = ex.mobility!.seconds
-    const fits =
-      opts.edge === 'strict' ? spent + seconds <= budget : spent + seconds / 2 <= budget
+    const seconds = costOf(ex)
+    const fits = opts.edge === 'strict' ? spent + seconds <= budget : spent + seconds / 2 <= budget
     if (!fits && !(opts.minOne && chosen.length === 0)) break
     chosen.push(ex)
     spent += seconds
@@ -177,7 +236,9 @@ function fillBudget(ordered: Exercise[], budget: number, opts: FillOptions): Exe
 const EXTENDED_SHARE = 0.2
 
 export function generateMobilitySession(input: MobilityInput): WorkoutPlan {
-  const { catalog, dateISO, focus, generatorVersion, householdId, kits, participantIds } = input
+  const { catalog, dateISO, focus, generatorVersion, householdId, participants } = input
+  const kits: Equipment[][] = participants.map((p) => p.equipment)
+  const participantIds = participants.map((p) => p.userId)
   const targetSeconds = input.targetSeconds ?? DEFAULT_MOBILITY_MINUTES * 60
   const seed = fnv1a32(
     `${householdId}|${dateISO}|mobility|${focus}|${targetSeconds}|v${generatorVersion}`,
@@ -191,20 +252,39 @@ export function generateMobilitySession(input: MobilityInput): WorkoutPlan {
   for (const phase of ['mobilise', 'open', 'activate'] as const) {
     const pool = poolFor(catalog, phase, regions, kits)
     if (pool.length === 0) continue
-    const budget = targetSeconds * PHASE_SHARE[phase]
+
+    const extendedPool = poolFor(catalog, phase, extendedRegions, kits).filter(
+      (ex) => !pool.some((p) => p.id === ex.id),
+    )
+
+    // What a movement costs this phase, and what the phase has to spend. Both
+    // change under Activate: a set runs for as many rounds as the block does,
+    // and the block's between-round rest is charged once, up front, because it
+    // is a property of the block and not of any one movement in it.
+    const workItems = new Map(
+      phase === 'activate'
+        ? [...pool, ...extendedPool].map((ex) => [ex.id, buildWorkItem(ex, participants)] as const)
+        : [],
+    )
+    const costOf = (ex: Exercise): number =>
+      phase === 'activate'
+        ? ACTIVATE_ROUNDS *
+          ((workItems.get(ex.id)?.workSeconds ?? ex.mobility!.seconds) + CHANGEOVER_SECONDS)
+        : ex.mobility!.seconds
+    const phaseBudget = targetSeconds * PHASE_SHARE[phase]
+    const budget =
+      phaseBudget - (phase === 'activate' ? (ACTIVATE_ROUNDS - 1) * ACTIVATE_REST_S : 0)
 
     // Breadth is settled first, and only takes what fits whole inside its
     // share, so what it does not spend goes straight back to the focus's own
     // work — a five-minute session is exactly what it always was.
-    const extendedPool = poolFor(catalog, phase, extendedRegions, kits).filter(
-      (ex) => !pool.some((p) => p.id === ex.id),
-    )
-    const extended = fillBudget(orderPool(rng, extendedPool), budget * EXTENDED_SHARE, {
-      allowRepeat: false,
-      edge: 'strict',
-      minOne: false,
-    }).flat()
-    const extendedSeconds = extended.reduce((a, ex) => a + ex.mobility!.seconds, 0)
+    const extended = fillBudget(
+      orderPool(rng, extendedPool),
+      budget * EXTENDED_SHARE,
+      { allowRepeat: false, edge: 'strict', minOne: false },
+      costOf,
+    ).flat()
+    const extendedSeconds = extended.reduce((a, ex) => a + costOf(ex), 0)
 
     // Fill the rest with this phase's own regions. Longer sessions work further
     // down the pool and then cycle back for a second round of the key
@@ -212,14 +292,48 @@ export function generateMobilitySession(input: MobilityInput): WorkoutPlan {
     // is padding, so shallow pools stop after one pass and a long request
     // returns an honestly shorter session instead of the same two stretches
     // three times.
-    const core = fillBudget(orderPool(rng, pool), budget - extendedSeconds, {
-      allowRepeat: true,
-      edge: 'nearest',
-      minOne: true,
-    }).flat()
+    const core = fillBudget(
+      orderPool(rng, pool),
+      budget - extendedSeconds,
+      // Activate never cycles the pool: a work block repeats with `rounds`, so
+      // a second pass would prescribe the same set twice over.
+      { allowRepeat: phase !== 'activate', edge: 'nearest', minOne: true },
+      costOf,
+    ).flat()
 
     // Breadth goes last within its phase: the focus's own work leads.
-    const items: TimedItem[] = [...core, ...extended].map((ex) => ({
+    const chosen = [...core, ...extended]
+    if (phase === 'activate') {
+      // Sets, not seconds — but only for movements the catalog gives a real rep
+      // range. `[1, 1]` still means a hold, and an isometric neck press is a
+      // hold whichever phase it lands in.
+      const loaded = dedupe(chosen.filter((ex) => !isHold(ex)))
+      const holds = chosen.filter(isHold)
+      // Sets lead. A block is one kind or the other — the player runs a timed
+      // flow or logs sets, never both — so a phase holding some of each is two
+      // blocks, named apart so the session does not announce "Activate" twice.
+      if (loaded.length > 0) {
+        const items = loaded.map((ex) => workItems.get(ex.id) ?? buildWorkItem(ex, participants))
+        const roundCost = items.reduce((a, i) => a + i.workSeconds + CHANGEOVER_SECONDS, 0)
+        const fits = (r: number) => r * roundCost + (r - 1) * ACTIVATE_REST_S <= phaseBudget
+        blocks.push({
+          kind: 'activate',
+          label: PHASE_LABEL[phase],
+          rounds: fits(ACTIVATE_MAX_ROUNDS) ? ACTIVATE_MAX_ROUNDS : ACTIVATE_ROUNDS,
+          restSeconds: ACTIVATE_REST_S,
+          items,
+        })
+      }
+      if (holds.length > 0) {
+        blocks.push({
+          kind: 'mobility',
+          label: loaded.length > 0 ? `${PHASE_LABEL[phase]} holds` : PHASE_LABEL[phase],
+          items: holds.map((ex) => ({ exerciseId: ex.id, seconds: ex.mobility!.seconds })),
+        })
+      }
+      continue
+    }
+    const items: TimedItem[] = chosen.map((ex) => ({
       exerciseId: ex.id,
       seconds: ex.mobility!.seconds,
     }))

@@ -1,5 +1,8 @@
 import type { MuscleGroup } from '../catalog/types'
 
+/** The block kinds that carry sets rather than a timed flow. */
+export type WorkBlockKind = 'superset' | 'circuit' | 'activate'
+
 /**
  * What a block is called out loud — position plus what it is made of.
  *
@@ -42,19 +45,24 @@ export function muscleWords(primaries: MuscleGroup[]): string | null {
  *
  * The Finisher keeps its name: it is already a human word, it is already the
  * one block the player styles differently, and "Block 4 of 4" would throw away
- * the one thing everyone in the session knows about it.
+ * the one thing everyone in the session knows about it. Activate keeps its name
+ * for the same reason, and for one more: it is the third phase of a named
+ * routine, so "Block 1 of 1" would rename the only part of the session the
+ * person came for.
  */
 export function blockPosition(
-  kind: 'superset' | 'circuit',
+  kind: WorkBlockKind,
   blockNumber: number,
   blockCount: number,
 ): string {
-  return kind === 'circuit' ? 'Finisher' : `Block ${blockNumber} of ${blockCount}`
+  if (kind === 'circuit') return 'Finisher'
+  if (kind === 'activate') return 'Activate'
+  return `Block ${blockNumber} of ${blockCount}`
 }
 
 /** The whole display name: `Block 2 of 4 — back & shoulders`. */
 export function workBlockName(input: {
-  kind: 'superset' | 'circuit'
+  kind: WorkBlockKind
   blockNumber: number
   blockCount: number
   primaries: MuscleGroup[]
