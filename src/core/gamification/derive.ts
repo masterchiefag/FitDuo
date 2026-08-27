@@ -413,8 +413,14 @@ export function deriveProgression(
         .find((f) => f.exerciseId === exerciseId && keyOf(f.loggedAt) === lastKey)?.rating ?? null
     // Same rule as PR detection: only witnessed sets set the bar.
     let best = 0
+    // NOT the same rule: the deload baseline counts assumed sets too. A record
+    // has to be witnessed; "how heavy do you normally go here" does not, and
+    // insisting on it would return 0 for a hands-off session — which is every
+    // session by default.
+    let maxWeight = 0
     for (const s of all) {
       if (!s.assumed) best = Math.max(best, epleyE1rm(s.weight, s.actualReps))
+      maxWeight = Math.max(maxWeight, s.weight)
     }
     out[exerciseId] = {
       lastWeight: lastSession[lastSession.length - 1]!.weight,
@@ -422,6 +428,7 @@ export function deriveProgression(
       lastActualReps: lastSession.map((s) => s.actualReps),
       lastFeedback,
       bestE1rm: best,
+      maxWeight,
     }
   }
   return out

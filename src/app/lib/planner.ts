@@ -107,6 +107,7 @@ export function generatorInputFor(participantIds: string[], dateISO: LocalDateIS
         userId: id,
         availableWeights: profile.availableWeights,
         availableBands: profile.availableBands,
+        painAreas: profile.painAreas,
         equipment: profile.equipment,
         maxTier: 2 as const,
         progression: deriveProgression(id, sessions, sets, feedback),
@@ -150,6 +151,9 @@ function reliefParticipants(participantIds: string[]): ParticipantInput[] {
         availableBands: BAND_COLOURS.filter((c) =>
           PROFILES.some((p) => p.availableBands.includes(c)),
         ),
+        // No flags on a preview nobody has claimed: a caution belongs to a
+        // person, and the stand-in is not one.
+        painAreas: [],
         equipment: HOUSEHOLD_EQUIPMENT,
         maxTier: 2,
         progression: {},
@@ -162,6 +166,7 @@ function reliefParticipants(participantIds: string[]): ParticipantInput[] {
       userId: id,
       availableWeights: profile.availableWeights,
       availableBands: profile.availableBands,
+      painAreas: profile.painAreas,
       equipment: profile.equipment,
       maxTier: 2 as const,
       progression: deriveProgression(id, sessions, sets, feedback, 'relief'),

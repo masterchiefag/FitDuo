@@ -1,4 +1,5 @@
-import type { Exercise } from '../catalog/types'
+import type { BodyArea, Exercise } from '../catalog/types'
+import { applyAdjusters } from './adjust'
 import type { ExerciseProgress, PersonTarget } from './types'
 
 /** Epley estimated 1RM; reps at bodyweight (weight 0) contribute no e1rm. */
@@ -58,8 +59,16 @@ export function nextTarget(
   ex: Exercise,
   ladder: number[],
   progress: ExerciseProgress | undefined,
+  painAreas: readonly BodyArea[] = [],
 ): PersonTarget {
-  const t = nextTargetRaw(ex, ladder, progress)
+  // progression -> [adjusters] -> terminal pair. The order is the design
+  // (PLAN §A0.2): whatever an adjuster asks for, it is not the last word.
+  const t = applyAdjusters(nextTargetRaw(ex, ladder, progress), {
+    exercise: ex,
+    ladder,
+    painAreas,
+    baselineWeight: progress?.maxWeight ?? 0,
+  })
   // The terminal pair (PLAN A0): whatever rule produced this target, and
   // however many adjusters get added above it later, the prescription that
   // leaves here is on a rung this person owns today — a dumbbell they have, a

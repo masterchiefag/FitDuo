@@ -256,7 +256,7 @@ export function buildWorkItem(ex: Exercise, participants: ParticipantInput[]): W
   const lastTime: Record<string, LastPerformance> = {}
   for (const p of participants) {
     const progress = p.progression[ex.id]
-    perPerson[p.userId] = nextTarget(ex, ladderFor(ex, p), progress)
+    perPerson[p.userId] = nextTarget(ex, ladderFor(ex, p), progress, p.painAreas)
     // The set the progression state was read from: same set for both numbers,
     // so "7.5 kg × 10" is one performance and not two halves of different ones.
     if (progress) {

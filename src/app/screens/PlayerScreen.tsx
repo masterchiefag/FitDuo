@@ -22,6 +22,7 @@ import type {
 import type { Overrides, PlayerState } from '../../core/player/types'
 import type { Exercise } from '../../core/catalog/types'
 import { grabLabel, kitLine, lastTimeLabel, loadLabel } from '../lib/load'
+import { areaLabel, cautionsFor } from '../lib/cautions'
 import { isWorkBlock, type WorkBlock } from '../../core/player/position'
 import { ladderFor } from '../../core/catalog/resistance'
 import { stepWeight } from '../../core/generator/progression'
@@ -261,9 +262,25 @@ function RingTimer({
  * above the form cues because it is the one that changes what the next rep
  * looks like.
  */
+/**
+ * What to watch on this movement, from the areas it loads. Shown to everyone,
+ * flag or no flag: a person who waits for a sore shoulder before being told to
+ * keep the ribs down has already done the set that caused it (PLAN §R5).
+ */
+function Cautions({ ex }: { ex: Exercise }) {
+  const lead = cautionsFor(ex)[0]
+  if (!lead) return null
+  // Shared, and therefore unaddressed. This line sits under one demo that two
+  // people are looking at, so it cannot say "your shoulder" — that is true of
+  // one of them, and the other reads it beside a number that did not move
+  // (Grok, PR #43). Whose shoulder it is belongs on their own card, below.
+  return <p className={`mb-3 text-slate-500 dark:text-slate-400 ${T.cue}`}>{lead.line}</p>
+}
+
 function Cues({ ex, focusCue }: { ex: Exercise; focusCue?: string | undefined }) {
   return (
     <div className="mx-auto mt-4 max-w-2xl">
+      <Cautions ex={ex} />
       {/* Why this movement is in the session at all — above the tempo, because
           it is the reason to do the next rep properly rather than the way to.
           Lives here rather than in `TimedView` so it survives the phase
@@ -490,6 +507,24 @@ function TargetPanel({
             className={`rounded-2xl border-2 bg-white p-3 dark:bg-slate-900 ${adjusted ? profile.accent.ring + ' border-current' : 'border-slate-200 dark:border-slate-800'}`}
           >
             <p className={`${T.person} ${profile.accent.text}`}>{profile.name}</p>
+            {/* Whose shoulder it is, on their own card, where R5 put it: this
+                is the sentence that explains why THIS number is lower than last
+                week's, and it is addressed to the one person it is true of. */}
+            {ex &&
+              cautionsFor(ex, profile.painAreas)
+                .filter((c) => c.flagged)
+                .slice(0, 1)
+                .map((c) => (
+                  <p
+                    key={c.area}
+                    className={`mt-1 rounded-xl border-2 border-amber-300 bg-amber-50 px-2 py-1 font-semibold text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-100 ${T.note}`}
+                  >
+                    <span className="mr-1 font-bold tracking-wide uppercase">
+                      Your {areaLabel(c.area)}
+                    </span>
+                    lighter today
+                  </p>
+                ))}
             {hold ? (
               <p className={`mt-1 ${T.target}`}>
                 {hold}s <span className="text-xl font-semibold text-slate-400">hold</span>

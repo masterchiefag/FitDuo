@@ -44,6 +44,7 @@ const participantArb = (userId: string): fc.Arbitrary<ParticipantInput> =>
     userId: fc.constant(userId),
     availableWeights: weightsArb,
     availableBands: fc.constant([]),
+    painAreas: fc.constant([]),
     equipment: equipmentArb.map((k) => [...k]),
     maxTier: fc.constantFrom(1 as const, 2 as const, 3 as const),
     progression: fc.constant({}),

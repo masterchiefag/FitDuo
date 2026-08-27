@@ -27,6 +27,7 @@ const soloParticipant = (equipment: readonly Equipment[]): ParticipantInput => (
   userId: 'p1',
   availableWeights: [2.5, 5, 7.5, 10],
   availableBands: ['yellow', 'red', 'green'],
+  painAreas: [],
   equipment: [...equipment],
   maxTier: 2,
   progression: {},

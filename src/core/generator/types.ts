@@ -1,5 +1,5 @@
 import type { BandColour } from '../catalog/resistance'
-import type { Equipment, Exercise, MuscleGroup } from '../catalog/types'
+import type { BodyArea, Equipment, Exercise, MuscleGroup } from '../catalog/types'
 
 export type DayType = 'full_a' | 'full_b' | 'full_c' | 'upper' | 'lower' | 'push' | 'pull' | 'legs'
 
@@ -12,6 +12,15 @@ export interface ExerciseProgress {
   lastActualReps: number[] // per set, most recent session
   lastFeedback: FeedbackRating | null
   bestE1rm: number // Epley estimate, for PR detection
+  /**
+   * The heaviest this person has ever used for this movement — the healthy
+   * baseline a temporary deload is measured against.
+   *
+   * Counts assumed sets, unlike `bestE1rm`, and that is the point: a
+   * follow-along session logs every set assumed by default, so a "witnessed
+   * only" baseline is 0 for exactly the person this exists to protect.
+   */
+  maxWeight: number
 }
 
 export interface DayHistory {
@@ -26,6 +35,12 @@ export interface ParticipantInput {
   availableWeights: number[] // per-dumbbell, sorted asc
   /** Theraband colours owned, in ladder order — the band-side `availableWeights`. */
   availableBands: BandColour[]
+  /**
+   * Areas this person has flagged as hurting. Per person and never shared: the
+   * household trains the same movement, and only the affected person goes
+   * lighter (PLAN §R5).
+   */
+  painAreas: BodyArea[]
   /** What this person owns. Per-person, like weights — see `allCanPerform`. */
   equipment: Equipment[]
   maxTier: 1 | 2 | 3
