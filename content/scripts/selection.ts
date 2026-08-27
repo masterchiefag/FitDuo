@@ -451,6 +451,25 @@ export const SELECTION: Curated[] = [
     ],
   },
   {
+    slug: 'db-scaption',
+    requires: [['dumbbell']],
+    sourceId: 'Dumbbell_Scaption',
+    displayName: 'Scaption Raise',
+    role: 'main',
+    pattern: 'push_v',
+    tier: 1,
+    unilateral: false,
+    repRange: [10, 16],
+    tempoCue: 'Up in 1, pause at shoulder height, lower over 2 — the lowering is the set.',
+    secondsPerRep: 3,
+    setupSeconds: 10,
+    cues: [
+      'Thumbs up, arms angled about 30° in front of you',
+      'Raise to shoulder height — not to the side, not straight ahead',
+      'Lower slowly, no swing',
+    ],
+  },
+  {
     slug: 'db-front-raise',
     requires: [['dumbbell']],
     sourceId: 'Front_Dumbbell_Raise',
@@ -1250,6 +1269,24 @@ export const MOBILITY_META: Record<string, MobilityMeta> = {
     seconds: 35,
     focusCue: 'Lift from between the shoulder blades, not the neck',
   },
+  /**
+   * Scaption is the Y raise, and it earns its place twice.
+   *
+   * In Activate it is cuff and lower-trap work a physio prescribes by name. In
+   * the `push_v` slot it is the ONLY vertical push in the catalog that is not
+   * `shoulder: high` — every other one is a press or a straight-arm raise. A
+   * shoulder that has to avoid high-stress work had nowhere to be sent before
+   * this, because the day templates fill a `push_v` slot whether or not one is
+   * safe (see `LOAD_OVERRIDES` in curate.ts).
+   */
+  'db-scaption': {
+    phase: 'activate',
+    regions: ['shoulders'],
+    seconds: 40,
+    priority: 2,
+    focusCue:
+      'Thumbs up, angled forward — this is the line the shoulder is strongest in, and the one that does not pinch',
+  },
   'db-reverse-fly': {
     phase: 'activate',
     regions: ['thoracic', 'shoulders'],
@@ -1276,6 +1313,120 @@ export const MOBILITY_META: Record<string, MobilityMeta> = {
 
 /** Mobility-only movements — the posture work the strength catalog was missing. */
 export const MOBILITY_ADDITIONS: (Curated & { mobility: MobilityMeta })[] = [
+  /**
+   * The W of Y-T-W, under the name the dataset files it as.
+   *
+   * `Cuban_Press` is a rotation followed by an overhead press, and its two
+   * frames stop at the top of the ROTATION — scarecrow, then forearms vertical.
+   * So the frames are the W exactly, and the press exists only in prose we do
+   * not ship. Cued as the rotation: the press would add a high-stress vertical
+   * push to the phase that exists to avoid one.
+   */
+  {
+    slug: 'db-cuban-rotation',
+    requires: [['dumbbell']],
+    sourceId: 'Cuban_Press',
+    displayName: 'Cuban Rotation',
+    role: 'mobility',
+    pattern: 'mobility',
+    tier: 2,
+    unilateral: false,
+    repRange: [8, 12],
+    secondsPerRep: 4,
+    setupSeconds: 10,
+    cues: [
+      'Upper arms out level with the floor, forearms hanging down',
+      'Rotate the forearms up until they point at the ceiling',
+      'Elbows stay where they are — light weight, slow return',
+    ],
+    mobility: {
+      phase: 'activate',
+      regions: ['shoulders', 'thoracic'],
+      seconds: 45,
+      priority: 2,
+      focusCue:
+        'The hardest thing to train and the first thing to go — external rotation with the arm up',
+    },
+  },
+  /**
+   * The T and the W in one rep: rear delts open the arms, thumbs finish
+   * pointing up. Distinct from `db-reverse-fly`, which stops at the opening.
+   */
+  {
+    slug: 'db-reverse-fly-rotation',
+    requires: [['dumbbell']],
+    setupNote:
+      'Shown chest-supported on an incline bench — hinge forward at the hips instead; same movement.',
+    sourceId: 'Reverse_Flyes_With_External_Rotation',
+    displayName: 'Reverse Fly with Rotation',
+    role: 'mobility',
+    pattern: 'mobility',
+    tier: 2,
+    unilateral: false,
+    repRange: [8, 14],
+    secondsPerRep: 4,
+    setupSeconds: 10,
+    cues: [
+      'Hinge forward, arms hanging, palms facing each other',
+      'Open wide and turn the thumbs up at the top',
+      'Lower under control — the turn is the point, not the height',
+    ],
+    mobility: {
+      phase: 'activate',
+      regions: ['thoracic', 'shoulders'],
+      seconds: 45,
+      priority: 2,
+      focusCue: 'Opening and turning together — the mid-back and the cuff do one job here',
+    },
+  },
+  /**
+   * A carry, in the one place the app can currently use one: `carry` is a
+   * pattern the generator knows and NO day template asks for, so a carry added
+   * as a main would never be selected. Activate can select it today, and it is
+   * postural endurance under load — which is what a carry trains and what
+   * picking things up all day demands.
+   */
+  {
+    slug: 'farmers-walk',
+    requires: [['dumbbell']],
+    setupNote:
+      'Shown outdoors with loaded bars — one dumbbell in each hand is the same walk. A corridor and a turn is enough room.',
+    sourceId: 'Farmers_Walk',
+    displayName: "Farmer's Walk",
+    role: 'mobility',
+    pattern: 'mobility',
+    tier: 1,
+    unilateral: false,
+    /**
+     * A rep is one length — down the room, or down and back if the room is
+     * short. `[1, 1]` would have been the natural reading of "walk for 40
+     * seconds", and it is the one thing this must not say: that range means
+     * "timed hold" everywhere else in the catalog, which routes the movement
+     * into the UNLOADED half of the Activate phase. A carry with no weight is
+     * walking.
+     */
+    repRange: [2, 5],
+    secondsPerRep: 15,
+    setupSeconds: 15,
+    cues: [
+      'A weight in each hand, arms straight down',
+      // Says what a rep is, because the panel counts them and nothing else on
+      // that screen explains what one length of walking has to do with a rep.
+      'One rep is one length — walk it slowly, then turn',
+      'Stand tall the whole way: chest up, shoulders back, no rounding',
+    ],
+    mobility: {
+      phase: 'activate',
+      regions: ['shoulders', 'thoracic', 'lower_back'],
+      seconds: 40,
+      // Deliberately not a priority movement: a loaded carry costs more of the
+      // phase than any cuff movement does, and cuff work is what the phase is
+      // for. It surfaces when a longer session can afford it.
+      priority: 1,
+      focusCue:
+        'Holding a tall posture while loaded — the thing a stiff upper back stops doing first',
+    },
+  },
   {
     slug: 'elbows-back',
     requires: [['bodyweight']],

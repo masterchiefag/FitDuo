@@ -1150,6 +1150,58 @@
       ]
     },
     {
+      "id": "db-scaption",
+      "name": "Scaption Raise",
+      "role": "main",
+      "requires": [
+        [
+          "dumbbell"
+        ]
+      ],
+      "pattern": "push_v",
+      "primaryMuscles": [
+        "shoulders"
+      ],
+      "secondaryMuscles": [
+        "back"
+      ],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        10,
+        16
+      ],
+      "tempoCue": "Up in 1, pause at shoulder height, lower over 2 — the lowering is the set.",
+      "secondsPerRep": 3,
+      "setupSeconds": 10,
+      "media": {
+        "images": [
+          "/exercise-media/db-scaption_0.webp",
+          "/exercise-media/db-scaption_1.webp"
+        ],
+        "instructions": [
+          "Thumbs up, arms angled about 30° in front of you",
+          "Raise to shoulder height — not to the side, not straight ahead",
+          "Lower slowly, no swing"
+        ]
+      },
+      "loads": [
+        {
+          "area": "shoulder",
+          "stress": "moderate"
+        }
+      ],
+      "mobility": {
+        "phase": "activate",
+        "regions": [
+          "shoulders"
+        ],
+        "seconds": 40,
+        "priority": 2,
+        "focusCue": "Thumbs up, angled forward — this is the line the shoulder is strongest in, and the one that does not pinch"
+      }
+    },
+    {
       "id": "db-front-raise",
       "name": "Front Raise",
       "role": "main",
@@ -3201,6 +3253,161 @@
           "lower_back"
         ],
         "seconds": 40
+      }
+    },
+    {
+      "id": "db-cuban-rotation",
+      "name": "Cuban Rotation",
+      "role": "mobility",
+      "requires": [
+        [
+          "dumbbell"
+        ]
+      ],
+      "pattern": "mobility",
+      "primaryMuscles": [
+        "shoulders"
+      ],
+      "secondaryMuscles": [
+        "back"
+      ],
+      "tier": 2,
+      "unilateral": false,
+      "repRange": [
+        8,
+        12
+      ],
+      "secondsPerRep": 4,
+      "setupSeconds": 10,
+      "media": {
+        "images": [
+          "/exercise-media/db-cuban-rotation_0.webp",
+          "/exercise-media/db-cuban-rotation_1.webp"
+        ],
+        "instructions": [
+          "Upper arms out level with the floor, forearms hanging down",
+          "Rotate the forearms up until they point at the ceiling",
+          "Elbows stay where they are — light weight, slow return"
+        ]
+      },
+      "loads": [
+        {
+          "area": "shoulder",
+          "stress": "moderate"
+        }
+      ],
+      "mobility": {
+        "phase": "activate",
+        "regions": [
+          "shoulders",
+          "thoracic"
+        ],
+        "seconds": 45,
+        "priority": 2,
+        "focusCue": "The hardest thing to train and the first thing to go — external rotation with the arm up"
+      }
+    },
+    {
+      "id": "db-reverse-fly-rotation",
+      "name": "Reverse Fly with Rotation",
+      "role": "mobility",
+      "requires": [
+        [
+          "dumbbell"
+        ]
+      ],
+      "pattern": "mobility",
+      "primaryMuscles": [
+        "shoulders"
+      ],
+      "secondaryMuscles": [],
+      "tier": 2,
+      "unilateral": false,
+      "repRange": [
+        8,
+        14
+      ],
+      "secondsPerRep": 4,
+      "setupSeconds": 10,
+      "setupNote": "Shown chest-supported on an incline bench — hinge forward at the hips instead; same movement.",
+      "media": {
+        "images": [
+          "/exercise-media/db-reverse-fly-rotation_0.webp",
+          "/exercise-media/db-reverse-fly-rotation_1.webp"
+        ],
+        "instructions": [
+          "Hinge forward, arms hanging, palms facing each other",
+          "Open wide and turn the thumbs up at the top",
+          "Lower under control — the turn is the point, not the height"
+        ]
+      },
+      "loads": [],
+      "mobility": {
+        "phase": "activate",
+        "regions": [
+          "thoracic",
+          "shoulders"
+        ],
+        "seconds": 45,
+        "priority": 2,
+        "focusCue": "Opening and turning together — the mid-back and the cuff do one job here"
+      }
+    },
+    {
+      "id": "farmers-walk",
+      "name": "Farmer's Walk",
+      "role": "mobility",
+      "requires": [
+        [
+          "dumbbell"
+        ]
+      ],
+      "pattern": "mobility",
+      "primaryMuscles": [
+        "core"
+      ],
+      "secondaryMuscles": [
+        "glutes",
+        "hamstrings",
+        "quads",
+        "back"
+      ],
+      "tier": 1,
+      "unilateral": false,
+      "repRange": [
+        2,
+        5
+      ],
+      "secondsPerRep": 15,
+      "setupSeconds": 15,
+      "setupNote": "Shown outdoors with loaded bars — one dumbbell in each hand is the same walk. A corridor and a turn is enough room.",
+      "media": {
+        "images": [
+          "/exercise-media/farmers-walk_0.webp",
+          "/exercise-media/farmers-walk_1.webp"
+        ],
+        "instructions": [
+          "A weight in each hand, arms straight down",
+          "One rep is one length — walk it slowly, then turn",
+          "Stand tall the whole way: chest up, shoulders back, no rounding"
+        ]
+      },
+      "loads": [
+        {
+          "area": "lower_back",
+          "stress": "moderate"
+        }
+      ],
+      "mobility": {
+        "phase": "activate",
+        "regions": [
+          "shoulders",
+          "thoracic",
+          "lower_back"
+        ],
+        "seconds": 40,
+        "priority": 1,
+        "focusCue": "Holding a tall posture while loaded — the thing a stiff upper back stops doing first"
       }
     },
     {
