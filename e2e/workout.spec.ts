@@ -41,8 +41,17 @@ async function driveSessionToCompletion(page: Page) {
   throw new Error('session did not complete within bounds')
 }
 
+/**
+ * Get past the opening ritual — the day, its shape and today's targets, which
+ * every session now starts with (R6c) and which holds until somebody taps.
+ */
+async function passOpening(page: Page) {
+  await page.getByRole('button', { name: /^Start (warm-up|→)/ }).click()
+}
+
 /** Advance until the first work screen of the session. */
 async function reachFirstSet(page: Page) {
+  await passOpening(page)
   for (let i = 0; i < 20; i++) {
     if (await page.getByRole('button', { name: 'Done ✓' }).isVisible().catch(() => false)) return
     const startNow = page.getByRole('button', { name: 'Start now →' })
@@ -62,6 +71,13 @@ test('golden path: duo workout from start to celebration', async ({ page }) => {
   await page.reload()
 
   await page.getByRole('button', { name: /Start duo workout/ }).click()
+  // The opening names the day and its shape before anything starts. Asserted
+  // structurally: the day type rotates with the date, and the target panels
+  // carry names from gitignored profiles (CLAUDE.md — the remote is public),
+  // so what is checked is that each person got one.
+  await expect(page.getByText(/blocks · \d+ sets each · about \d+ min/)).toBeVisible()
+  await expect(page.getByText(/to have out|nothing to pick up/)).toHaveCount(2)
+  await passOpening(page)
   await expect(page.getByText(/WARM-UP/i)).toBeVisible()
 
   // Duo target panels appear once we reach work; drive the whole session.
@@ -185,6 +201,7 @@ test('kill-safe: reload mid-session offers resume', async ({ page }) => {
   await page.evaluate(() => localStorage.clear())
   await page.reload()
   await page.getByRole('button', { name: /Start duo workout/ }).click()
+  await passOpening(page)
   await expect(page.getByText(/WARM-UP/i)).toBeVisible()
   await page.getByRole('button', { name: 'Skip →' }).click()
 
@@ -193,4 +210,69 @@ test('kill-safe: reload mid-session offers resume', async ({ page }) => {
   await expect(page.getByText('Resume your workout?')).toBeVisible()
   await page.getByRole('button', { name: 'Resume' }).click()
   await expect(page.getByText(/WARM-UP/i)).toBeVisible()
+})
+
+/**
+ * The opening loads a plan and writes nothing, so leaving it by the nav — a
+ * permanent sidebar on the laptop, and far more reachable than "Not now" — must
+ * not strand that plan in the store, where it would shadow the snapshot the
+ * Today banner is offering and make the unfinished session unreachable (Grok,
+ * PR #40).
+ */
+test('an unfinished session survives someone opening today and changing their mind', async ({
+  page,
+}) => {
+  await page.goto('/')
+  await page.evaluate(() => localStorage.clear())
+  await page.reload()
+
+  // Leave a real session unfinished.
+  await page.getByRole('button', { name: /Start duo workout/ }).click()
+  await passOpening(page)
+  await expect(page.getByText(/WARM-UP/i)).toBeVisible()
+  await page.getByRole('button', { name: 'Skip →' }).click()
+  await page.getByRole('link', { name: /Today/ }).click()
+  await expect(page.getByText('Unfinished session')).toBeVisible()
+
+  // Start something new, then back out by the nav rather than by "Not now".
+  await page.getByRole('button', { name: /Start duo workout/ }).click()
+  await expect(page.getByText(/sets each · about \d+ min/)).toBeVisible()
+  await page.getByRole('link', { name: /Today/ }).click()
+
+  // The banner is still true, and Resume opens the session it names.
+  await expect(page.getByText('Unfinished session')).toBeVisible()
+  await page.getByRole('button', { name: 'Resume' }).click()
+  await expect(page.getByText(/WARM-UP/i)).toBeVisible()
+})
+
+test('a mobility session opens on what it works, and on the kit it needs', async ({ page }) => {
+  await page.goto('/')
+  await page.evaluate(() => localStorage.clear())
+  await page.reload()
+  await page.getByRole('button', { name: /Posture & Shoulders/ }).click()
+
+  // A mobility plan carries a placeholder dayType to satisfy the shared plan
+  // shape, so the one thing this opening must not say is "Full Body". It names
+  // the regions the chosen stretches actually address instead.
+  await expect(page.getByText('Mobility & relief').first()).toBeVisible()
+  await expect(page.getByText(/phases · about \d+ min/)).toBeVisible()
+  // This used to assert the opposite — no kit panel, no weight talk anywhere,
+  // on the reasoning that relief days have no loads. PR #41 gave Activate real
+  // sets on a band, so the panel has to say what to fetch; suppressing it hid
+  // the one piece of kit the session needs until the third phase.
+  // The example profile owns no bands — deliberately, since prescribing a band
+  // nobody owns is the worse failure (content/profiles.example.json) — so this
+  // relief session has nothing to fetch and the panel stays away. What must
+  // never come back is the old blanket rule: the panel is suppressed by an
+  // empty kit, not by the mode, or the day a band IS owned the person finds
+  // out at the third phase. The kit line itself is covered against real band
+  // movements in tests/resistance.test.ts.
+  await expect(page.getByText(/to have out/)).toHaveCount(0)
+  // Never the force a colour pulls: "1.7 kg" is not a thing anyone picks up.
+  await expect(page.getByText(/1\.7 kg|0\.9 kg|2\.7 kg/)).toHaveCount(0)
+  // And the line must not deny load on a session that now progresses band work.
+  await expect(page.getByText(/No loads today|Nothing to hit/)).toHaveCount(0)
+
+  await passOpening(page)
+  await expect(page.getByText(/Mobilise/i).first()).toBeVisible()
 })

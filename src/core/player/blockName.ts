@@ -1,4 +1,4 @@
-import type { MuscleGroup } from '../catalog/types'
+import type { MobilityRegion, MuscleGroup } from '../catalog/types'
 
 /** The block kinds that carry sets rather than a timed flow. */
 export type WorkBlockKind = 'superset' | 'circuit' | 'activate'
@@ -32,11 +32,50 @@ export function muscleWords(primaries: MuscleGroup[]): string | null {
   for (const m of primaries) if (!distinct.includes(m)) distinct.push(m)
   // Three is where the line stops being a name and starts being a list. A
   // block has two or three movements, so this only bites when all three differ.
-  const words = distinct.slice(0, 3)
+  return joinWords(distinct.slice(0, 3))
+}
+
+/** `back`, `back & shoulders`, `chest, back & shoulders`. Null for nothing. */
+function joinWords(words: string[]): string | null {
   const last = words[words.length - 1]
   if (last === undefined) return null
   if (words.length === 1) return last
   return `${words.slice(0, -1).join(', ')} & ${last}`
+}
+
+/**
+ * The words a mobility session gives itself — what it is about to work on.
+ *
+ * A stretch speaks regions, not muscle groups (see `MOBILITY_REGIONS`), and a
+ * mobility plan's `dayType` is a placeholder satisfying the shared plan shape —
+ * so "Full Body" is the one thing the opening must NOT print for one of these.
+ * Ranked by how much of the session each region gets, so a Posture session
+ * names the upper back before the hip it borrowed one movement for.
+ */
+const REGION_WORD: Record<MobilityRegion, string> = {
+  thoracic: 'upper back',
+  shoulders: 'shoulders',
+  neck: 'neck',
+  chest: 'chest',
+  lower_back: 'lower back',
+  hips: 'hips',
+  glutes: 'glutes',
+  hamstrings: 'hamstrings',
+  quads: 'quads',
+  calves: 'calves',
+}
+
+export function regionWords(regions: MobilityRegion[], max = 3): string | null {
+  const counts = new Map<MobilityRegion, number>()
+  for (const r of regions) counts.set(r, (counts.get(r) ?? 0) + 1)
+  // Count first, then first-appearance — ties must not depend on Map order
+  // alone, or the same session could name itself two different ways.
+  const order = [...counts.keys()]
+  const ranked = order
+    .slice()
+    .sort((a, b) => counts.get(b)! - counts.get(a)! || order.indexOf(a) - order.indexOf(b))
+    .slice(0, max)
+  return joinWords(ranked.map((r) => REGION_WORD[r]))
 }
 
 /**

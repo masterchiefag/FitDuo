@@ -9,7 +9,9 @@ import { playCue } from '../../infra/audio'
 import { BLOCK_TRANSITION_SECONDS, CHANGEOVER_SECONDS } from '../../core/player/reducer'
 import { sessionPosition } from '../../core/player/position'
 import { targetNote } from '../../core/player/lastTime'
-import { blockNames } from '../lib/blockName'
+import { openingLine, personLoads, sessionSummary } from '../../core/player/opening'
+import { blockNames, mobilityRegions, sessionShape } from '../lib/blockName'
+import { DAY_TYPE_LABEL } from '../lib/planner'
 import type {
   Block,
   LastPerformance,
@@ -19,7 +21,7 @@ import type {
 } from '../../core/generator/types'
 import type { Overrides, PlayerState } from '../../core/player/types'
 import type { Exercise } from '../../core/catalog/types'
-import { grabLabel, lastTimeLabel, loadLabel } from '../lib/load'
+import { grabLabel, kitLine, lastTimeLabel, loadLabel } from '../lib/load'
 import { isWorkBlock, type WorkBlock } from '../../core/player/position'
 import { ladderFor } from '../../core/catalog/resistance'
 import { stepWeight } from '../../core/generator/progression'
@@ -1016,6 +1018,159 @@ function BlockGateView({
   )
 }
 
+/**
+ * The opening: what today is, what shape it has, and what each person is
+ * lifting — said once, before anything starts.
+ *
+ * First real session: *"kicks off without any context of what today's targets
+ * are, what we're doing — not a welcoming start"* (docs/SESSIONS.md, finding 1;
+ * PLAN §R6c). The persona's opening ritual is the whole spec — **name the day
+ * and its shape, then start. No pep talk** — so this screen is four facts and
+ * one line, every one of them read off the plan. Nothing here congratulates
+ * anybody for arriving, and nothing here is a number the session will not keep.
+ *
+ * It HOLDS, like the block gate, rather than counting itself down into the
+ * warm-up. Three reasons: a ring that starts the session while someone is still
+ * reading it is the confusion finding 3 already reported ("I thought it had
+ * started the set"); the type here is sized to be read from across the room,
+ * which is a bad fit for a screen that expires; and the person who wants none
+ * of this is one tap from the warm-up, in the same place the gate's Continue
+ * always is. Nothing is logged, timed or persisted until that tap.
+ */
+function SessionOpeningView({ plan, onLeave }: { plan: WorkoutPlan; onLeave: () => void }) {
+  const dispatch = usePlayerStore((s) => s.dispatch)
+  const mobility = plan.mode === 'mobility'
+  const shape = sessionShape(plan)
+  const summary = sessionSummary(plan)
+  // The edge says the words: core hands over (movement, weight) pairs, and what
+  // that is out loud — "12.5 kg", "the red band", nothing at all — is a
+  // question about the exercise's resistance, answered in one place (PR #41).
+  const kits = personLoads(plan).map(({ userId, loads }) => ({
+    userId,
+    kit: kitLine(
+      loads.reduce<string[]>((labels, { exerciseId, weight }) => {
+        const label = loadLabel(exercisesById.get(exerciseId), weight)
+        if (!labels.includes(label)) labels.push(label)
+        return labels
+      }, []),
+    ),
+  }))
+  // A mobility plan's `dayType` is a placeholder for the shared plan shape, so
+  // "Full Body" would be a lie on half the sessions this screen opens. What the
+  // stretches actually address is the honest name for one of those days.
+  const regions = mobility ? mobilityRegions(plan) : null
+  const title = mobility
+    ? regions
+      ? regions.charAt(0).toUpperCase() + regions.slice(1)
+      : 'Mobility & relief'
+    : DAY_TYPE_LABEL[plan.dayType]
+  const people = plan.participantIds.length
+  // A strength day always has a panel — "nothing to pick up" is news when you
+  // were expecting dumbbells. A relief day only earns one if there is kit to
+  // fetch, and without one the shape gets the whole width rather than sitting
+  // beside a column of nothing.
+  const showKit = !mobility || kits.some((k) => k.kit !== null)
+  const sub = mobility
+    ? `${shape.length} phases · about ${summary.minutes} min`
+    : `${summary.blockCount} blocks · ${summary.setsPerPerson} sets${people > 1 ? ' each' : ''} · about ${summary.minutes} min`
+
+  return (
+    // Two columns on the laptop — the shape beside today's targets — for the
+    // same reason the work screen is this wide: at this type scale, stacking
+    // them put the button that starts the session below the fold, and a primary
+    // action nobody can see is worse than a screen nobody reads.
+    <div className="mx-auto max-w-4xl p-4 text-center">
+      <p className={`${T.eyebrow} ${mobility ? 'text-emerald-500' : 'text-indigo-500'}`}>
+        {mobility ? 'Mobility & relief' : 'Today'}
+      </p>
+      {/* The day gets the biggest words on the screen — naming it is half the
+          ritual, and this is the one screen where nothing is moving yet. */}
+      <h2 className={`mt-0.5 ${T.exercise}`}>{title}</h2>
+      <p className={`mt-0.5 text-slate-500 dark:text-slate-400 ${T.status}`}>{sub}</p>
+
+      <div
+        className={`mt-3 grid gap-3 text-left ${showKit ? 'sm:grid-cols-[5fr_3fr] sm:items-start' : 'mx-auto max-w-xl'}`}
+      >
+        {/* The shape: every block in the order it runs, the warm-up and the
+            stretch included — someone deciding whether they have time is
+            counting those too. */}
+        <ol className="space-y-1">
+          {shape.map((row, i) => (
+            <li
+              key={`${row.name}-${i}`}
+              className={`flex items-baseline justify-between gap-3 rounded-2xl border-2 px-4 py-1.5 ${
+                row.finisher
+                  ? 'border-rose-200 bg-rose-50 dark:border-rose-900 dark:bg-rose-950'
+                  : 'border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900'
+              }`}
+            >
+              <span className={`font-extrabold ${T.status}`}>
+                {row.finisher ? `🔥 ${row.name}` : row.name}
+              </span>
+              <span className="shrink-0 text-base font-semibold text-slate-400 sm:text-lg">
+                {row.meta}
+              </span>
+            </li>
+          ))}
+        </ol>
+
+        {/* Today's targets, per person — the kit to get out before anyone
+            starts. This used to be hidden on every mobility day, on the
+            reasoning that a relief session has no loads and a panel of zeroes
+            would be the app talking about weight on the one day it decided not
+            to. PR #41 half-expired that: Activate prescribes sets on a band
+            now, so a relief day CAN have kit to fetch, and hiding it meant
+            finding out at the third phase. Half, because a household that owns
+            no bands still gets the no-load version of the same session — so
+            the rule is what there is to fetch, not which mode it is. A
+            strength day keeps its panel either way: "nothing to pick up" is
+            news when you were expecting dumbbells. */}
+        {showKit && (
+          <div className={`grid gap-3 sm:grid-cols-1 ${people > 1 ? 'grid-cols-2' : ''}`}>
+            {kits.map(({ userId, kit }) => {
+              const profile = profileById(userId) ?? PROFILES[0]!
+              return (
+                <div
+                  key={userId}
+                  className="rounded-2xl border-2 border-slate-200 bg-white px-4 py-2.5 dark:border-slate-800 dark:bg-slate-900"
+                >
+                  <p className={`${T.person} ${profile.accent.text}`}>{profile.name}</p>
+                  <p className={`mt-0.5 ${T.grab}`}>{kit ?? 'Bodyweight'}</p>
+                  <p className={`font-semibold text-slate-500 dark:text-slate-400 ${T.note}`}>
+                    {kit ? 'to have out' : 'nothing to pick up'}
+                  </p>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+
+      <p className={`mx-auto mt-3 max-w-2xl text-slate-500 dark:text-slate-400 ${T.cue}`}>
+        {openingLine(plan.seed, plan.mode)}
+      </p>
+
+      <div className="mt-4 flex flex-col items-center">
+        <motion.button
+          whileTap={{ scale: 0.96 }}
+          onClick={() => dispatch({ type: 'START', now: Date.now() })}
+          className="w-full max-w-2xl rounded-2xl bg-indigo-600 py-5 text-3xl font-extrabold text-white shadow-lg shadow-indigo-600/30 hover:bg-indigo-500"
+        >
+          {plan.blocks[0]?.kind === 'warmup' ? 'Start warm-up →' : 'Start →'}
+        </motion.button>
+        {/* Backing out costs nothing, and says so: the session has not begun,
+            so there is no abandoned session to record. */}
+        <button
+          onClick={onLeave}
+          className="mt-2 rounded-xl px-5 py-2 text-lg font-semibold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+        >
+          Not now
+        </button>
+      </div>
+    </div>
+  )
+}
+
 function CompleteView() {
   const summary = usePlayerStore((s) => s.summary)
   const reset = usePlayerStore((s) => s.reset)
@@ -1131,6 +1286,7 @@ export default function PlayerScreen() {
   const state = usePlayerStore((s) => s.state)
   const dispatch = usePlayerStore((s) => s.dispatch)
   const resume = usePlayerStore((s) => s.resume)
+  const reset = usePlayerStore((s) => s.reset)
   const navigate = useNavigate()
   const [nowMs, setNowMs] = useState(() => Date.now())
   // Every LOG_SET path logs one row per participant, so this count is the same
@@ -1231,8 +1387,9 @@ export default function PlayerScreen() {
 
   return (
     <div className="flex h-full flex-col">
-      {/* header */}
-      {state.phase !== 'complete' && (
+      {/* header — not on the opening, where every one of its controls is a
+          no-op: there is no clock to pause and no session to abandon yet. */}
+      {state.phase !== 'complete' && state.phase !== 'idle' && (
         <div className="flex items-center gap-3 border-b border-slate-200 p-3 dark:border-slate-800">
           <button
             onClick={() => {
@@ -1279,6 +1436,15 @@ export default function PlayerScreen() {
                 Timers are frozen. Hit Resume when ready.
               </p>
             </div>
+          )}
+          {state.phase === 'idle' && (
+            <SessionOpeningView
+              plan={plan}
+              onLeave={() => {
+                reset()
+                void navigate('/')
+              }}
+            />
           )}
           {state.phase === 'timed' &&
             (() => {

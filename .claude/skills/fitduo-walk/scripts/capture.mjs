@@ -29,6 +29,7 @@ const CLOCK_RATE = 30 // 250ms tick × 30 = 7.5s < LATE_TIMER_GRACE_MS (15s), so
 // final block, which is exactly what ends a session.
 const ADVANCE = [
   /^Start duo workout/,
+  /^Start (warm-up )?→$/, // the session opening — it holds until somebody taps
   /^Start now →$/,
   /ready →$/,
   /^Done ✓$/,

@@ -38,3 +38,19 @@ export function grabLabel(ex: Exercise | undefined, weight: number): string {
 export function lastTimeLabel(ex: Exercise | undefined, last: LastPerformance): string {
   return last.weight === 0 ? `${last.reps} reps` : `${loadLabel(ex, last.weight)} × ${last.reps}`
 }
+
+/**
+ * A kit list, said the way someone reads it across the room before starting.
+ *
+ * Labels rather than numbers, because a relief session's kit is a colour and a
+ * strength session's is a weight, and a household that owns both can be
+ * prescribed both on the same day. All-dumbbell is the common case and it gets
+ * the short form — "10 · 12.5 kg", one unit at the end — because at opening
+ * type size the repeated unit is what pushes a kit onto two lines.
+ */
+export function kitLine(labels: string[]): string | null {
+  const kit = labels.filter((l) => l !== 'bodyweight')
+  if (kit.length === 0) return null
+  const kg = kit.every((l) => /^\d+(\.\d+)? kg$/.test(l))
+  return kg ? `${kit.map((l) => l.replace(' kg', '')).join(' · ')} kg` : kit.join(' · ')
+}
