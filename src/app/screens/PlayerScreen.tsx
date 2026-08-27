@@ -21,7 +21,7 @@ import type {
 } from '../../core/generator/types'
 import type { Overrides, PlayerState } from '../../core/player/types'
 import type { Exercise } from '../../core/catalog/types'
-import { grabLabel, lastTimeLabel, loadLabel } from '../lib/load'
+import { grabLabel, kitLine, lastTimeLabel, loadLabel } from '../lib/load'
 import { isWorkBlock, type WorkBlock } from '../../core/player/position'
 import { ladderFor } from '../../core/catalog/resistance'
 import { stepWeight } from '../../core/generator/progression'
@@ -1042,7 +1042,19 @@ function SessionOpeningView({ plan, onLeave }: { plan: WorkoutPlan; onLeave: () 
   const mobility = plan.mode === 'mobility'
   const shape = sessionShape(plan)
   const summary = sessionSummary(plan)
-  const loads = personLoads(plan)
+  // The edge says the words: core hands over (movement, weight) pairs, and what
+  // that is out loud — "12.5 kg", "the red band", nothing at all — is a
+  // question about the exercise's resistance, answered in one place (PR #41).
+  const kits = personLoads(plan).map(({ userId, loads }) => ({
+    userId,
+    kit: kitLine(
+      loads.reduce<string[]>((labels, { exerciseId, weight }) => {
+        const label = loadLabel(exercisesById.get(exerciseId), weight)
+        if (!labels.includes(label)) labels.push(label)
+        return labels
+      }, []),
+    ),
+  }))
   // A mobility plan's `dayType` is a placeholder for the shared plan shape, so
   // "Full Body" would be a lie on half the sessions this screen opens. What the
   // stretches actually address is the honest name for one of those days.
@@ -1053,6 +1065,11 @@ function SessionOpeningView({ plan, onLeave }: { plan: WorkoutPlan; onLeave: () 
       : 'Mobility & relief'
     : DAY_TYPE_LABEL[plan.dayType]
   const people = plan.participantIds.length
+  // A strength day always has a panel — "nothing to pick up" is news when you
+  // were expecting dumbbells. A relief day only earns one if there is kit to
+  // fetch, and without one the shape gets the whole width rather than sitting
+  // beside a column of nothing.
+  const showKit = !mobility || kits.some((k) => k.kit !== null)
   const sub = mobility
     ? `${shape.length} phases · about ${summary.minutes} min`
     : `${summary.blockCount} blocks · ${summary.setsPerPerson} sets${people > 1 ? ' each' : ''} · about ${summary.minutes} min`
@@ -1072,7 +1089,7 @@ function SessionOpeningView({ plan, onLeave }: { plan: WorkoutPlan; onLeave: () 
       <p className={`mt-0.5 text-slate-500 dark:text-slate-400 ${T.status}`}>{sub}</p>
 
       <div
-        className={`mt-3 grid gap-3 text-left ${mobility ? 'mx-auto max-w-xl' : 'sm:grid-cols-[5fr_3fr] sm:items-start'}`}
+        className={`mt-3 grid gap-3 text-left ${showKit ? 'sm:grid-cols-[5fr_3fr] sm:items-start' : 'mx-auto max-w-xl'}`}
       >
         {/* The shape: every block in the order it runs, the warm-up and the
             stretch included — someone deciding whether they have time is
@@ -1098,12 +1115,19 @@ function SessionOpeningView({ plan, onLeave }: { plan: WorkoutPlan; onLeave: () 
         </ol>
 
         {/* Today's targets, per person — the kit to get out before anyone
-            starts. A mobility session has no loads at all, and inventing a
-            panel of zeroes for it would be the app talking about weight on the
-            one day it has decided not to (docs/PERSONA.md). */}
-        {!mobility && (
+            starts. This used to be hidden on every mobility day, on the
+            reasoning that a relief session has no loads and a panel of zeroes
+            would be the app talking about weight on the one day it decided not
+            to. PR #41 half-expired that: Activate prescribes sets on a band
+            now, so a relief day CAN have kit to fetch, and hiding it meant
+            finding out at the third phase. Half, because a household that owns
+            no bands still gets the no-load version of the same session — so
+            the rule is what there is to fetch, not which mode it is. A
+            strength day keeps its panel either way: "nothing to pick up" is
+            news when you were expecting dumbbells. */}
+        {showKit && (
           <div className={`grid gap-3 sm:grid-cols-1 ${people > 1 ? 'grid-cols-2' : ''}`}>
-            {loads.map(({ userId, weights }) => {
+            {kits.map(({ userId, kit }) => {
               const profile = profileById(userId) ?? PROFILES[0]!
               return (
                 <div
@@ -1111,11 +1135,9 @@ function SessionOpeningView({ plan, onLeave }: { plan: WorkoutPlan; onLeave: () 
                   className="rounded-2xl border-2 border-slate-200 bg-white px-4 py-2.5 dark:border-slate-800 dark:bg-slate-900"
                 >
                   <p className={`${T.person} ${profile.accent.text}`}>{profile.name}</p>
-                  <p className={`mt-0.5 ${T.grab}`}>
-                    {weights.length > 0 ? `${weights.join(' · ')} kg` : 'Bodyweight'}
-                  </p>
+                  <p className={`mt-0.5 ${T.grab}`}>{kit ?? 'Bodyweight'}</p>
                   <p className={`font-semibold text-slate-500 dark:text-slate-400 ${T.note}`}>
-                    {weights.length > 0 ? 'to have out' : 'nothing to pick up'}
+                    {kit ? 'to have out' : 'nothing to pick up'}
                   </p>
                 </div>
               )

@@ -10,7 +10,7 @@ import {
 } from '../src/core/catalog/resistance'
 import { catalogSchema, type Exercise } from '../src/core/catalog/types'
 import { nextTarget, stepWeight } from '../src/core/generator/progression'
-import { grabLabel, loadLabel } from '../src/app/lib/load'
+import { grabLabel, kitLine, loadLabel } from '../src/app/lib/load'
 
 const catalog = catalogSchema.parse(
   JSON.parse(readFileSync(join(__dirname, '..', 'content', 'catalog.json'), 'utf8')),
@@ -148,5 +148,30 @@ describe('a band with no colour recorded is still a band', () => {
   it('names the colour once there is one', () => {
     expect(loadLabel(rotation, BAND_FORCE_KG.red)).toBe('red band')
     expect(grabLabel(rotation, BAND_FORCE_KG.red)).toBe('Grab the red band')
+  })
+})
+
+/**
+ * The opening's kit panel, which is where a session's resistance vocabulary is
+ * read first — before anyone has picked anything up (PR #40, PR #41).
+ */
+describe('the kit line the opening prints', () => {
+  const label = (id: string, weight: number) => loadLabel(ex(id), weight)
+
+  it('says one unit when everything is a dumbbell', () => {
+    expect(kitLine([label('db-chest-press', 10), label('db-row', 12.5)])).toBe('10 · 12.5 kg')
+  })
+
+  it('keeps every word when the day mixes bands and bells', () => {
+    expect(kitLine([label('band-external-rotation', BAND_FORCE_KG.red), label('db-row', 5)])).toBe(
+      'red band · 5 kg',
+    )
+  })
+
+  /** A band nobody has coloured in is still kit to fetch; bodyweight is not. */
+  it('drops bodyweight but never a band', () => {
+    expect(kitLine([label('push-up', 0), label('band-external-rotation', 0)])).toBe('your band')
+    expect(kitLine([label('push-up', 0)])).toBeNull()
+    expect(kitLine([])).toBeNull()
   })
 })

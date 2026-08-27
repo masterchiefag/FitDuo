@@ -66,20 +66,44 @@ describe('sessionSummary', () => {
 })
 
 describe('personLoads', () => {
-  it('is the kit each person gets out, ascending and deduplicated', () => {
-    expect(personLoads(plan())).toEqual([
-      { userId: P1, weights: [10, 12.5] },
-      { userId: P2, weights: [5] },
+  const weightsOf = (p: WorkoutPlan) => personLoads(p).map((x) => x.loads.map((l) => l.weight))
+
+  it('lists every load each person is prescribed, ascending', () => {
+    // P1 planks at 0, squats at 10, rows at 12.5. P2 does both lifts at 5 —
+    // two entries, because two movements sharing a weight is one dumbbell to
+    // fetch only once the edge has said them both as "5 kg".
+    expect(weightsOf(plan())).toEqual([
+      [0, 10, 12.5],
+      [0, 5, 5],
     ])
   })
 
   /** Solo is one panel — the list follows the plan's participants. */
   it('follows participantIds, so solo has exactly one', () => {
-    const solo = plan({ participantIds: [P2] })
-    expect(personLoads(solo)).toEqual([{ userId: P2, weights: [5] }])
+    expect(personLoads(plan({ participantIds: [P2] })).map((x) => x.userId)).toEqual([P2])
   })
 
-  it('leaves a bodyweight-only session with nothing to pick up', () => {
+  /**
+   * The movement travels with the number because the number alone cannot be
+   * said out loud: 1.7 is "the red band" on a band movement and a nonsense
+   * dumbbell everywhere else (PR #41). Zero rides along for the same reason —
+   * a band whose colour nobody has recorded is still kit to fetch, and only
+   * the catalog knows which zero is which.
+   */
+  it('carries the movement, so the edge can say what the number is', () => {
+    expect(personLoads(plan())[0]!.loads).toEqual([
+      { exerciseId: 'plank', weight: 0 },
+      { exerciseId: 'db-squat', weight: 10 },
+      { exerciseId: 'db-row', weight: 12.5 },
+    ])
+  })
+
+  it('breaks a shared weight by id, so the same plan lists the same kit twice over', () => {
+    const [, p2] = personLoads(plan())
+    expect(p2!.loads.map((l) => l.exerciseId)).toEqual(['plank', 'db-row', 'db-squat'])
+  })
+
+  it('keeps a bodyweight session\'s zeroes — "nothing to pick up" is the edge\'s call', () => {
     const bodyweight = plan({
       blocks: [
         {
@@ -93,7 +117,7 @@ describe('personLoads', () => {
         },
       ],
     })
-    expect(personLoads(bodyweight).map((p) => p.weights)).toEqual([[], []])
+    expect(weightsOf(bodyweight)).toEqual([[0], [0]])
   })
 })
 
@@ -101,6 +125,20 @@ describe('openingLine', () => {
   it('never talks about load on a mobility session', () => {
     for (let seed = 0; seed < 10; seed++) {
       expect(openingLine(seed, 'mobility')).not.toMatch(/kg|set|block|lift/i)
+    }
+  })
+
+  /**
+   * Not talking about load is not the same as denying it. Relief sessions
+   * prescribe band work and progress it (PR #41), so an opening that says "no
+   * loads today" is describing a session this app stopped generating — the
+   * same fault as the tap promise below, one mode over.
+   */
+  it('never claims a mobility session has nothing to pick up', () => {
+    for (let seed = 0; seed < 10; seed++) {
+      expect(openingLine(seed, 'mobility')).not.toMatch(
+        /no (load|weight|resistance)|nothing to (lift|hit|pick|carry)/i,
+      )
     }
   })
 

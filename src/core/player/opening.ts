@@ -38,32 +38,55 @@ export function sessionSummary(plan: WorkoutPlan): SessionSummary {
   return { blockCount, setsPerPerson, minutes: Math.round(plan.estimatedSeconds / 60) }
 }
 
-/** The bells one person needs out for today's session. */
+/** One thing today asks someone to pick up: what asks for it, and how much. */
+export interface OpeningLoad {
+  exerciseId: string
+  weight: number
+}
+
+/** The kit one person needs out for today's session. */
 export interface PersonLoads {
   userId: string
-  /** Distinct loaded weights, ascending. Empty = nothing to pick up. */
-  weights: number[]
+  /** Every distinct (movement, weight) prescribed to them, ascending. */
+  loads: OpeningLoad[]
 }
 
 /**
  * What each person is lifting today, as a kit list rather than a schedule.
  *
- * The distinct weights and not a min–max span: the question this answers is
+ * The distinct loads and not a min-max span: the question this answers is
  * "which dumbbells do I get out before we start", and a span claims the ones
  * in between are needed too. Keyed off `participantIds` so a solo session has
  * one panel, a duo has two, and the order matches every other screen.
+ *
+ * Pairs, not bare numbers, and no filter on zero: a weight is not always a
+ * number out loud. Relief sessions prescribe bands, stored as the force their
+ * colour pulls — "1.7 kg" is not a thing anyone can pick up, and a band whose
+ * colour nobody has recorded yet is a real 0 that still means "bring the band"
+ * (PR #41). Which of those a number is, and whether it is kit at all, is a
+ * question about the exercise's resistance, and the catalog is not in core —
+ * so the movement travels with the number and the edge says the words.
+ * `src/app/lib/load.ts` is the one place that conversion lives.
  */
 export function personLoads(plan: WorkoutPlan): PersonLoads[] {
   return plan.participantIds.map((userId) => {
-    const weights = new Set<number>()
+    const seen = new Set<string>()
+    const loads: OpeningLoad[] = []
     for (const block of plan.blocks) {
       if (!isWorkBlock(block)) continue
       for (const item of block.items) {
         const target = item.perPerson[userId]
-        if (target && target.weight > 0) weights.add(target.weight)
+        if (!target) continue
+        const key = `${item.exerciseId}|${target.weight}`
+        if (seen.has(key)) continue
+        seen.add(key)
+        loads.push({ exerciseId: item.exerciseId, weight: target.weight })
       }
     }
-    return { userId, weights: [...weights].sort((a, b) => a - b) }
+    // Ascending, id-tiebroken: two movements can share a weight, and the same
+    // plan must list the same kit in the same order every time it is opened.
+    loads.sort((a, b) => a.weight - b.weight || (a.exerciseId < b.exerciseId ? -1 : 1))
+    return { userId, loads }
   })
 }
 
@@ -71,10 +94,10 @@ export function personLoads(plan: WorkoutPlan): PersonLoads[] {
  * The opening's one line — what the app is about to do, said calmly once.
  *
  * Two registers, one persona: strength states the contract (it runs itself),
- * mobility trades load talk for sensation ("wherever you reach today is the
- * stretch"). Neither performs enthusiasm, and neither claims anything the app
- * cannot know — the never-list applies to the first line of the session as
- * much as the last.
+ * mobility speaks in sensation rather than numbers. Neither performs
+ * enthusiasm, and — the part that keeps needing enforcing — neither claims
+ * anything the app cannot know, including about its own session. The
+ * never-list applies to the first line of the session as much as the last.
  *
  * Varied by seeded pick, which is the repetition discipline the persona asks
  * for: two people hear every line and the ritual is *supposed* to repeat, so
@@ -91,8 +114,13 @@ const OPENING_LINES: Record<'strength' | 'mobility', readonly string[]> = {
     'Warm-up first, then the blocks in order. The screen keeps count.',
   ],
   mobility: [
-    'No loads today. Wherever you reach is the stretch.',
-    'Nothing to hit here — hold where you feel it, and breathe.',
+    // Two of these used to say "No loads today" and "Nothing to hit here".
+    // Both were true of the relief session this app had in August and false of
+    // the one it has now — Activate prescribes sets on a band and progresses
+    // them (PR #41). Same fault as the tap promise above: an opening claiming
+    // the shape of a session it has not read.
+    'Stretch what is tight, then wake up what is weak.',
+    'Hold where you feel it, and breathe.',
     'Slow and low-stakes: sensation, not range.',
   ],
 }

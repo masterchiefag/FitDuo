@@ -245,7 +245,7 @@ test('an unfinished session survives someone opening today and changing their mi
   await expect(page.getByText(/WARM-UP/i)).toBeVisible()
 })
 
-test('a mobility session opens on what it works, and never on load', async ({ page }) => {
+test('a mobility session opens on what it works, and on the kit it needs', async ({ page }) => {
   await page.goto('/')
   await page.evaluate(() => localStorage.clear())
   await page.reload()
@@ -256,10 +256,22 @@ test('a mobility session opens on what it works, and never on load', async ({ pa
   // the regions the chosen stretches actually address instead.
   await expect(page.getByText('Mobility & relief').first()).toBeVisible()
   await expect(page.getByText(/phases · about \d+ min/)).toBeVisible()
-  // No loads on a no-load day: no kit panels, and nothing about weight at all
-  // (docs/PERSONA.md — mobility is sensation over range).
-  await expect(page.getByText(/to have out|nothing to pick up/)).toHaveCount(0)
-  await expect(page.getByText(/\d+(\.\d+)? kg/)).toHaveCount(0)
+  // This used to assert the opposite — no kit panel, no weight talk anywhere,
+  // on the reasoning that relief days have no loads. PR #41 gave Activate real
+  // sets on a band, so the panel has to say what to fetch; suppressing it hid
+  // the one piece of kit the session needs until the third phase.
+  // The example profile owns no bands — deliberately, since prescribing a band
+  // nobody owns is the worse failure (content/profiles.example.json) — so this
+  // relief session has nothing to fetch and the panel stays away. What must
+  // never come back is the old blanket rule: the panel is suppressed by an
+  // empty kit, not by the mode, or the day a band IS owned the person finds
+  // out at the third phase. The kit line itself is covered against real band
+  // movements in tests/resistance.test.ts.
+  await expect(page.getByText(/to have out/)).toHaveCount(0)
+  // Never the force a colour pulls: "1.7 kg" is not a thing anyone picks up.
+  await expect(page.getByText(/1\.7 kg|0\.9 kg|2\.7 kg/)).toHaveCount(0)
+  // And the line must not deny load on a session that now progresses band work.
+  await expect(page.getByText(/No loads today|Nothing to hit/)).toHaveCount(0)
 
   await passOpening(page)
   await expect(page.getByText(/Mobilise/i).first()).toBeVisible()
