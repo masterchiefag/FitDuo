@@ -67,6 +67,7 @@ export function nextTarget(
     exercise: ex,
     ladder,
     painAreas,
+    baselineWeight: progress?.maxWeight ?? 0,
   })
   // The terminal pair (PLAN A0): whatever rule produced this target, and
   // however many adjusters get added above it later, the prescription that

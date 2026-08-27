@@ -22,6 +22,16 @@ export interface AdjustContext {
   ladder: number[]
   /** Areas this person has flagged as hurting. */
   painAreas: readonly BodyArea[]
+  /**
+   * The heaviest this person has used for this movement, or 0 with no history.
+   *
+   * A deload has to be measured against a HEALTHY baseline, not against last
+   * session — because last session's log IS the deloaded prescription. Stepping
+   * down from it again each time turns "one rung lighter while it hurts" into a
+   * progressive deload that walks the kit to its lightest bell in three
+   * sessions and then cannot climb back (Grok, PR #43).
+   */
+  baselineWeight: number
 }
 
 export interface Adjuster {
@@ -37,7 +47,8 @@ function oneStepDown(ladder: number[], weight: number): number {
 
 /**
  * A flagged area goes lighter on the movements that load it — for that person
- * only, and without removing the movement from anyone's session.
+ * only, without removing the movement from anyone's session, and by the SAME
+ * one rung every session the flag stays live.
  *
  * Adapting rather than deleting is the constraint, not a compromise: the
  * household trains the same movement together, and one person's shoulder must
@@ -51,17 +62,23 @@ function oneStepDown(ladder: number[], weight: number): number {
  */
 export const painLoad: Adjuster = {
   id: 'painLoad',
-  apply(target, { exercise, ladder, painAreas }) {
+  apply(target, { exercise, ladder, painAreas, baselineWeight }) {
     if (painAreas.length === 0) return target
     const hits = exercise.loads.filter((l) => painAreas.includes(l.area))
     if (hits.length === 0) return target
     const [minReps] = exercise.repRange
     const high = hits.some((l) => l.stress === 'high')
-    const weight =
-      high && target.weight > 0 && ladder.length > 0
-        ? oneStepDown(ladder, target.weight)
-        : target.weight
-    return { targetReps: minReps, weight }
+    if (!high || target.weight === 0 || ladder.length === 0) {
+      // `moderate` is a caution, not a deload: the reps come off, the bell does
+      // not. Bodyweight has no rung to drop and takes the reps either way.
+      return { targetReps: minReps, weight: target.weight }
+    }
+    // A CEILING, not a subtraction. One rung below the healthy baseline, and
+    // never above what progression asked for — so a flag that stays on holds
+    // the same rung, and `too_hard` on a flagged movement steps once rather
+    // than twice.
+    const ceiling = oneStepDown(ladder, baselineWeight || target.weight)
+    return { targetReps: minReps, weight: Math.min(target.weight, ceiling) }
   },
 }
 

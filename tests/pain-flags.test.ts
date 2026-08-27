@@ -55,6 +55,57 @@ describe('a flagged area goes lighter, and nothing else changes', () => {
 })
 
 /**
+ * The bug this pipeline nearly shipped with. `painLoad` stepped down from
+ * whatever progression produced, and progression reads last session's log —
+ * which IS the deloaded prescription. One rung became one rung PER SESSION: a
+ * 10 kg press walked to 7.5, then 5, then 2.5, and could not climb back.
+ *
+ * R5 says one step down while the flag is live, with escalation opt-in. The
+ * overlay is therefore a ceiling measured against the healthy baseline, not a
+ * subtraction from last time (Grok, PR #43).
+ */
+describe('a live flag holds one rung, it does not walk down', () => {
+  const press = ex('db-shoulder-press')
+  const ladder = ladderFor(press, KIT)
+  const progressFrom = (weight: number, reps: number, maxWeight: number) => ({
+    lastWeight: weight,
+    lastTargetReps: reps,
+    lastActualReps: [reps, reps, reps],
+    lastFeedback: null,
+    bestE1rm: 0,
+    maxWeight,
+  })
+
+  it('prescribes the same rung on three consecutive flagged sessions', () => {
+    const healthy = 10
+    let progress = progressFrom(healthy, 10, healthy)
+    const rungs: number[] = []
+    for (let session = 0; session < 3; session++) {
+      const t = nextTarget(press, ladder, progress, ['shoulder'])
+      rungs.push(t.weight)
+      // What the session then logs is exactly what was prescribed — a
+      // follow-along set is assumed at its target.
+      progress = progressFrom(t.weight, t.targetReps, Math.max(progress.maxWeight, t.weight))
+    }
+    expect(rungs).toEqual([7.5, 7.5, 7.5])
+  })
+
+  it('steps once, not twice, when the movement also felt too hard', () => {
+    const t = nextTarget(press, ladder, { ...progressFrom(10, 10, 10), lastFeedback: 'too_hard' }, [
+      'shoulder',
+    ])
+    expect(t.weight).toBe(7.5)
+  })
+
+  it('never prescribes above what progression asked for', () => {
+    // Baseline says 10, but this person is mid-climb at 5 — the ceiling must
+    // not become a promotion.
+    const t = nextTarget(press, ladder, progressFrom(5, 10, 10), ['shoulder'])
+    expect(t.weight).toBeLessThanOrEqual(5)
+  })
+})
+
+/**
  * PLAN §A0.2: `weightSnap` and `repClamp` always run last, so no adjuster can
  * emit a prescription that is unliftable or outside the movement's range —
  * "that invariant is a property test, not a convention".

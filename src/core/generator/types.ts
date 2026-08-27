@@ -12,6 +12,15 @@ export interface ExerciseProgress {
   lastActualReps: number[] // per set, most recent session
   lastFeedback: FeedbackRating | null
   bestE1rm: number // Epley estimate, for PR detection
+  /**
+   * The heaviest this person has ever used for this movement — the healthy
+   * baseline a temporary deload is measured against.
+   *
+   * Counts assumed sets, unlike `bestE1rm`, and that is the point: a
+   * follow-along session logs every set assumed by default, so a "witnessed
+   * only" baseline is 0 for exactly the person this exists to protect.
+   */
+  maxWeight: number
 }
 
 export interface DayHistory {

@@ -142,9 +142,10 @@ export default function TodayScreen() {
               Going lighter on {p.name}&rsquo;s {p.painAreas.map(areaLabel).join(' and ')} work
             </p>
             <p className="mt-0.5 text-sm text-slate-600 dark:text-slate-300">
-              Same movements, same session: on the ones that load it {p.name} goes a rung lighter
-              and to the bottom of the rep range, and nobody else&rsquo;s targets change. Clear it
-              in <code>profiles.local.json</code> when it stops hurting.
+              Same movements, same session: {p.name}&rsquo;s targets drop on the ones that load it —
+              reps to the bottom of the range, and a rung off the bell where the movement loads it
+              hard. Nobody else&rsquo;s targets change. Clear it in <code>profiles.local.json</code>{' '}
+              when it stops hurting.
             </p>
           </div>
         </div>
